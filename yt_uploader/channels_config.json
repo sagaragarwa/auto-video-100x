@@ -1,0 +1,20 @@
+{
+    "channel_psychology": {
+        "name": "Psychology & Mental Health Channel",
+        "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_psychology",
+        "niche": "psychology",
+        "visibility": "public"
+    },
+    "channel_trading": {
+        "name": "Trading & Finance Channel",
+        "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_trading",
+        "niche": "trading",
+        "visibility": "public"
+    },
+    "motival": {
+        "name": "tfg",
+        "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\motival",
+        "niche": "general",
+        "visibility": "public"
+    }
+}

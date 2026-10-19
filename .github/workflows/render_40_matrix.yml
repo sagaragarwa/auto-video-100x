@@ -1,0 +1,81 @@
+name: 🚀 40-Episode Master Matrix Engine (30 Trading + 10 Mental Health)
+
+on:
+  workflow_dispatch:
+    inputs:
+      batch:
+        description: 'Which batch to render in cloud'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - trading
+          - mental_health
+      episode:
+        description: 'Single episode number (1-40, leave empty for matrix)'
+        required: false
+        default: ''
+
+concurrency:
+  group: cloud-40-render-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  cloud-render-episodes:
+    name: Episode ${{ matrix.episode }} Cloud Render
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      max-parallel: 20
+      matrix:
+        episode: [
+          1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
+          11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+          21, 22, 23, 24, 25, 26, 27, 28, 29, 30,
+          31, 32, 33, 34, 35, 36, 37, 38, 39, 40
+        ]
+
+    steps:
+      - name: Checkout Codebase
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install FFmpeg & Devanagari Fonts
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg fonts-noto-core fonts-noto-cjk fonts-deva
+
+      - name: Install Python Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install loguru edge-tts requests pillow
+
+      - name: Render 1080p Master Episode (Zero Thumbnail / Future Unlisted)
+        env:
+          PIXABAY_API_KEY: ${{ secrets.PIXABAY_API_KEY || '48724139-1fbe7e777966fce52b390343f' }}
+          PYTHONPATH: '.'
+        run: |
+          python -u scripts/autonomous_40_producer.py --episode ${{ matrix.episode }}
+
+      - name: Upload 1080p Video Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: episode_${{ matrix.episode }}_1080p
+          path: output/master_40_series/Episode_${{ matrix.episode }}_*.mp4
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Upload Unlisted Metadata Artifact (No Thumbnail)
+        uses: actions/upload-artifact@v4
+        with:
+          name: episode_${{ matrix.episode }}_meta
+          path: output/master_40_series/Episode_${{ matrix.episode }}_upload_meta.json
+          if-no-files-found: warn
+          retention-days: 14

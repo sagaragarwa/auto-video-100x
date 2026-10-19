@@ -1,0 +1,9 @@
+{
+    "repo_owner": "sagaragarwa",
+    "repo_name": "auto-video-100x",
+    "github_token": "",
+    "check_interval_seconds": 30,
+    "workflow_file": "cloud_master_render.yml",
+    "auto_keepalive": true,
+    "offload_rendering_to_cloud": true
+}

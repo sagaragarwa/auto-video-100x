@@ -1,0 +1,272 @@
+{
+  "project_name": "40_Master_Documentaries_USA_English",
+  "version": "2.0.0",
+  "target_market": "USA & Global English",
+  "language": "en-US",
+  "min_duration_minutes": 20,
+  "min_duration_seconds": 1200,
+  "thumbnail_policy": "NEVER_GENERATE_SKIPPED",
+  "upload_policy": "NO_UPLOAD_NOW_UNLISTED_WHEN_CALLED",
+  "engagement_ctas": {
+    "early_hook_cta": "If you find this deep dive valuable, hit subscribe to join our private research network.",
+    "mid_video_cta": "Drop a comment below with your personal experience, and don't forget to like this video so YouTube shares this research with more people who need it.",
+    "outro_cta": "Subscribe for upcoming institutional masterclasses, and leave your thoughts in the comments."
+  },
+  "batches": {
+    "trading_institutional_30": {
+      "count": 30,
+      "niche": "trading",
+      "voice": "en-US-ChristopherNeural",
+      "topics": [
+        {
+          "episode": 1,
+          "title": "Dark Pools: The Invisible Machine Where 40% of Wall Street Trades",
+          "theme": "Off-exchange liquidity, Alternative Trading Systems (ATS), and institutional order routing.",
+          "focus": "How Goldman Sachs, Citadel, and Morgan Stanley cross billions in private liquidity without moving lit exchanges."
+        },
+        {
+          "episode": 2,
+          "title": "High-Frequency Trading: The Microsecond Race for Market Dominance",
+          "theme": "FPGA microchips, microwave transmission networks, and colocation adjacent to exchange matching engines.",
+          "focus": "How quantitative firms like Jane Street and Virtu profit from latency arbitrage in sub-millisecond windows."
+        },
+        {
+          "episode": 3,
+          "title": "Order Book Microstructure: The Hidden Anatomy of Bid-Ask Liquidity",
+          "theme": "Level 3 market data, passive liquidity providers, toxic flow, and limit order dynamics.",
+          "focus": "Reading order book imbalances, iceberg detection, and bid-ask spread elasticity."
+        },
+        {
+          "episode": 4,
+          "title": "The Treasury Basis Trade: The Multi-Trillion Dollar Hedge Fund Arbitrage",
+          "theme": "Cash-futures basis, overnight repo facility, and sovereign debt leverage.",
+          "focus": "Why the Fed closely monitors the basis trade and how a liquidity freeze threatens global financial stability."
+        },
+        {
+          "episode": 5,
+          "title": "Market Makers and Payment for Order Flow: The Retail Illusion",
+          "theme": "Internalization of retail order flow, PFOF economics, and non-toxic flow separation.",
+          "focus": "Why zero-commission trading exists and how wholesalers capture the bid-ask spread with zero directional risk."
+        },
+        {
+          "episode": 6,
+          "title": "The Gamma Squeeze: How Options Market Makers Trigger Market Explosions",
+          "theme": "Option delta hedging, dealer gamma positioning, and short gamma feedback loops.",
+          "focus": "How out-of-the-money call buying forces algorithmic market makers to buy underlying equities aggressively."
+        },
+        {
+          "episode": 7,
+          "title": "Statistical Arbitrage: The Mathematics Behind Quantitative Hedge Funds",
+          "theme": "Cointegration, mean reversion, Ornstein-Uhlenbeck processes, and multi-asset pairs trading.",
+          "focus": "How quantitative algorithms trade mathematical spreads rather than company fundamentals."
+        },
+        {
+          "episode": 8,
+          "title": "Smart Money Concepts: Liquidity Sweeps, Order Blocks, and Institutional Traps",
+          "theme": "Wyckoff accumulation, liquidity grab heuristics, and retail breakout traps.",
+          "focus": "How institutional algorithms engineer stop-loss cascades to accumulate positions at wholesale prices."
+        },
+        {
+          "episode": 9,
+          "title": "The Anatomy of Flash Crashes: Algorithmic Cascades and Liquidity Black Holes",
+          "theme": "May 6 2010 Flash Crash, the 2014 Treasury flash rally, and algorithmic feedback loops.",
+          "focus": "What happens when automated quoting algorithms simultaneously pull resting bids during extreme volatility."
+        },
+        {
+          "episode": 10,
+          "title": "The FX Carry Trade Unwind: The Global Dollar-Yen Transmission Mechanism",
+          "theme": "Uncovered interest rate parity, foreign exchange swaps, and Bank of Japan monetary policy shifts.",
+          "focus": "How global leverage is funded in cheap currencies and the catastrophic cross-asset impact when the carry unwinds."
+        },
+        {
+          "episode": 11,
+          "title": "The Volatility Machine: Trading the VIX and the Great Short Vol Explosion",
+          "theme": "Implied volatility surface, VIX futures term structure, contango, and the February 2018 XIV blowup.",
+          "focus": "The hidden danger of short-volatility exchange-traded products and the mechanics of volatility spikes."
+        },
+        {
+          "episode": 12,
+          "title": "Central Bank Plumbing: The Reverse Repo Facility, Quantitative Tightening, and Reserve Balances",
+          "theme": "Federal Reserve monetary transmission, Overnight Reverse Repo (ON RRP), and SOFR interest rate benchmarks.",
+          "focus": "How central bank balance sheet liquidity governs risk-asset valuations across Wall Street."
+        },
+        {
+          "episode": 13,
+          "title": "Credit Default Swaps and Synthetic Collateralized Debt: The Shadow Credit Engine",
+          "theme": "Corporate credit spreads, ISDA master agreements, credit default swaps, and synthetic debt creation.",
+          "focus": "How systemic risk migrates through non-bank financial intermediaries in the modern credit landscape."
+        },
+        {
+          "episode": 14,
+          "title": "Algorithmic Execution Secrets: How Institutional Icebergs and TWAP/VWAP Operate",
+          "theme": "Smart Order Routing (SOR), Poisson process scheduling, synthetic noise injection, and market impact minimization.",
+          "focus": "How institutions move millions of shares across dozens of venues without triggering front-running algorithms."
+        },
+        {
+          "episode": 15,
+          "title": "Junk Bond Contagion: The Mechanics of Corporate Debt Refinancing Waves",
+          "theme": "High-yield debt maturity walls, covenant-lite loans, collateralized loan obligations (CLOs), and credit downgrades.",
+          "focus": "What happens when leveraged companies face higher interest rates and refinancing windows close."
+        },
+        {
+          "episode": 16,
+          "title": "Commodity Supercycles and Physical Arbitrage: The Secrets of Global Energy Trading",
+          "theme": "Crude oil contango, floating storage economics, tanker chartering, and refining margins (crack spreads).",
+          "focus": "How elite commodity trading merchants trade physical supply chain bottlenecks against futures contracts."
+        },
+        {
+          "episode": 17,
+          "title": "Sovereign Wealth Funds: The Trillion-Dollar Whales Shaping Global Markets",
+          "theme": "Norway Government Pension Fund Global, Saudi PIF, Abu Dhabi ADIA, and Singapore GIC capital allocation.",
+          "focus": "How multi-generational sovereign capital rebalances global asset classes during market dislocations."
+        },
+        {
+          "episode": 18,
+          "title": "The Psychology of Market Tops: Distribution Physics and Institutional Selling",
+          "theme": "Volume spread analysis, climax runs, churning at resistance, and institutional exit liquidity engineering.",
+          "focus": "Identifying the subtle mathematical signatures that occur right before a major multi-year bull market rolls over."
+        },
+        {
+          "episode": 19,
+          "title": "Quantitative Risk Management: The Kelly Criterion, Expected Shortfall, and Tail Risk Hedging",
+          "theme": "Optimal capital allocation mathematics, Value-at-Risk (VaR) limitations, and fat-tailed probability distributions.",
+          "focus": "How elite hedge fund risk officers prevent ruin while maximizing compound annual growth rates."
+        },
+        {
+          "episode": 20,
+          "title": "Prime Brokerage Secrets: Synthetic Margin, Total Return Swaps, and Family Office Collapses",
+          "theme": "The Archegos Capital liquidation, cross-margining agreements, rehypothecation, and counterparty credit risk.",
+          "focus": "How synthetic leverage hides massive concentrated positions from public regulatory disclosure."
+        },
+        {
+          "episode": 21,
+          "title": "Delta Neutral Market Making: The Mathematical Armor of Modern Liquidity Providers",
+          "theme": "Black-Scholes option pricing, dynamic hedging, continuous gamma balancing, and volatility arbitrage.",
+          "focus": "How quantitative market makers make millions daily regardless of whether markets go up or down."
+        },
+        {
+          "episode": 22,
+          "title": "The Invisible Hand of Trend Following: Inside Multi-Billion Dollar CTA Strategies",
+          "theme": "Commodity Trading Advisors (CTAs), trend-following momentum models, and cross-asset breakout systems.",
+          "focus": "Why automated systematic trend followers dominate massive multi-month moves across currencies and commodities."
+        },
+        {
+          "episode": 23,
+          "title": "Microstructure Slippage and Market Impact: The Invisible Tax on Institutional Portfolios",
+          "theme": "Almgren-Chriss market impact models, temporary vs. permanent price impact, and transaction cost analysis (TCA).",
+          "focus": "The advanced mathematics used to calculate the exact cost of executing multi-million dollar institutional orders."
+        },
+        {
+          "episode": 24,
+          "title": "The Crypto Institutional Pipeline: Spot ETFs, CME Basis, and Cash-and-Carry Arbitrage",
+          "theme": "Bitcoin spot ETF creation/redemption mechanisms, regulated futures basis, and institutional custody architecture.",
+          "focus": "How Wall Street transitioned crypto from retail speculation into a multi-billion dollar systematic yield machine."
+        },
+        {
+          "episode": 25,
+          "title": "Macro Liquidity Cycles: Global M2, Cross-Border Capital Flows, and Asset Valuation",
+          "theme": "Global central bank balance sheets, commercial bank deposit creation, and currency swap basis.",
+          "focus": "Tracking the global monetary tide that dictates equity bull markets and liquidity contractions."
+        },
+        {
+          "episode": 26,
+          "title": "Inside the Black Box: The Mathematical Philosophy of Renaissance Technologies",
+          "theme": "The Medallion Fund, Hidden Markov Models, kernel regression, non-linear signals, and transaction fee management.",
+          "focus": "How Jim Simons and elite mathematicians cracked Wall Street with pure mathematical pattern recognition."
+        },
+        {
+          "episode": 27,
+          "title": "Alternative Data Hegemony: Satellite Tracking, Geolocation, and Real-Time Economic Espionage",
+          "theme": "Credit card transaction feeds, synthetic aperture radar satellite tracking, web scrapers, and corporate jets.",
+          "focus": "How elite hedge funds know quarterly earnings numbers weeks before the general public."
+        },
+        {
+          "episode": 28,
+          "title": "High-Speed News Scraping: Natural Language Processing in Millisecond Trading Desks",
+          "theme": "Machine learning sentiment classification, SEC Edgar low-latency direct feeds, and headline parse trees.",
+          "focus": "How algorithms execute trades within three milliseconds of a central bank rate announcement."
+        },
+        {
+          "episode": 29,
+          "title": "The Mechanics of Short Selling: Locate Rules, Borrow Fees, and Short Squeeze Dynamics",
+          "theme": "SEC Regulation SHO, hard-to-borrow rates, securities lending desks, and short interest calculations.",
+          "focus": "The hidden structural machinery of short selling and how forced buy-ins trigger parabolic short squeezes."
+        },
+        {
+          "episode": 30,
+          "title": "Behavioral Finance and Cognitive Biases: The Neural Architecture of Trader Failure",
+          "theme": "Prospect theory, hyperbolic discounting, overconfidence bias, revenge trading, and emotional self-regulation.",
+          "focus": "Why human evolutionary biology is wired directly against profitable trading and how top quants eliminate emotion."
+        }
+      ]
+    },
+    "mental_health_psychology_10": {
+      "count": 10,
+      "niche": "psychology",
+      "language": "hi-IN",
+      "voice": "hi-IN-MadhurNeural",
+      "topics": [
+        {
+          "episode": 31,
+          "title": "The Neurobiology of Depression: Inside the Default Mode Network and Severe Anhedonia",
+          "theme": "Major Depressive Disorder (MDD), Default Mode Network (DMN) hyperconnectivity, and dopamine receptor downregulation.",
+          "focus": "Why depression is not mere sadness, but a biological shutdown of cognitive vitality, reward pathways, and neural plasticity."
+        },
+        {
+          "episode": 32,
+          "title": "Severe Anxiety and Panic: The Amygdala Hijack and Sympathetic Nervous System Overdrive",
+          "theme": "Generalized Anxiety Disorder (GAD), Panic Disorder, hypothalamic-pituitary-adrenal (HPA) axis, and cortisol toxicity.",
+          "focus": "The physiological terror of panic attacks, chronic somatic anxiety, and the science of vagus nerve down-regulation."
+        },
+        {
+          "episode": 33,
+          "title": "Bipolar Disorder: The Dangerous Neurochemistry of Mania and the Crushing Depressive Collapse",
+          "theme": "Bipolar 1 vs Bipolar 2, dopamine transporter deregulation, circadian disruption, and lithium neuroprotective mechanics.",
+          "focus": "The euphoric, sleepless frenzy of acute mania and the devastating plunge into catatonic bipolar depression."
+        },
+        {
+          "episode": 34,
+          "title": "Schizophrenia: The Fragmented Reality, Dopamine Excess, and the Neural Illusion of Hallucinations",
+          "theme": "Schizophrenia spectrum, mesolimbic dopamine hyperactivity, NMDA receptor hypofunction, and cognitive fragmentation.",
+          "focus": "An empathetic, scientifically rigorous investigation into auditory hallucinations, delusions, and the struggle to anchor reality."
+        },
+        {
+          "episode": 35,
+          "title": "Borderline Personality Disorder: Emotional Agony, Fear of Abandonment, and Neural Dysregulation",
+          "theme": "BPD, emotional hypersensitivity, limbic-prefrontal disconnect, and dialectical behavioral mechanics.",
+          "focus": "The excruciating emotional pain of emotional third-degree burns, unstable relationships, and the pathway to emotional integration."
+        },
+        {
+          "episode": 36,
+          "title": "Obsessive-Compulsive Disorder: The Trapped Brain, Intrusive Thoughts, and Cortico-Striatal Loops",
+          "theme": "OCD, cortico-striato-thalamo-cortical (CSTC) circuit dysfunction, intrusive taboo obsessions, and compulsive neutralization.",
+          "focus": "Demystifying OCD beyond stereotypes of cleanliness, exposing the mental torture of intrusive thoughts and evidence-based ERP."
+        },
+        {
+          "episode": 37,
+          "title": "Complex PTSD and Developmental Trauma: How Chronic Stress Inscribes Itself on the Body and Nervous System",
+          "theme": "C-PTSD, childhood emotional neglect, structural dissociation, allostatic load, and Bessel van der Kolk trauma architecture.",
+          "focus": "Why trauma is stored in somatic tissues, hypervigilance, emotional flashbacks, and neurobiological pathways to recovery."
+        },
+        {
+          "episode": 38,
+          "title": "Adult ADHD and Executive Dysfunction: The Prefrontal Cortex Dopamine Deficit and the Hyperfocus Paradox",
+          "theme": "Attention Deficit Hyperactivity Disorder, dopamine transport in the striatum, executive function failure, and time blindness.",
+          "focus": "Why ADHD is not an inability to focus but an inability to regulate attention, detailing the crippling reality of executive paralysis."
+        },
+        {
+          "episode": 39,
+          "title": "Chronic Insomnia and Circadian Collapse: How Sleep Deprivation Destroys the Human Mind",
+          "theme": "Sleep architecture, glymphatic brain clearance, adenosine accumulation, micro-sleeps, and sleep-induced psychosis.",
+          "focus": "The biological devastation of chronic insomnia, cognitive degradation, emotional volatility, and restoring restorative slow-wave sleep."
+        },
+        {
+          "episode": 40,
+          "title": "The Gut-Brain Axis and Psychobiotics: How the Microbiome Dictates Mood, Anxiety, and Brain Health",
+          "theme": "Enteric nervous system, vagus nerve bidirectional signaling, microbiome serotonin synthesis, and neuroinflammation.",
+          "focus": "The revolutionary science revealing how intestinal flora directly modulates neurochemical transmitters, mood, and psychiatric vulnerability."
+        }
+      ]
+    }
+  }
+}
