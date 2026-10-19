@@ -193,7 +193,17 @@ def produce_single_episode(ep_info: Dict[str, Any], niche: str, voice: str) -> D
     with open(upload_meta_path, "w", encoding="utf-8") as f:
         json.dump(future_upload_payload, f, indent=4)
 
-    # 8. Post-Episode 5GB Disk Governor Enforcement
+    # 8. Auto-delivery directly to User's Downloads folder
+    user_downloads = os.path.join(os.path.expanduser("~"), "Downloads")
+    dest_video = os.path.join(user_downloads, os.path.basename(final_video))
+    try:
+        import shutil
+        shutil.copyfile(final_video, dest_video)
+        logger.success(f"📥 AUTO-DELIVERED TO DOWNLOADS FOLDER: {dest_video}")
+    except Exception as e:
+        logger.warning(f"Could not auto-copy to Downloads: {e}")
+
+    # 9. Post-Episode 5GB Disk Governor Enforcement
     enforce_5gb_disk_headroom(min_free_gb=5.0)
 
     elapsed = time.time() - t0

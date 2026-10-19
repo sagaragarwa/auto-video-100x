@@ -1,6 +1,8 @@
 name: 🚀 40-Episode Master Matrix Engine (30 Trading + 10 Mental Health)
 
 on:
+  schedule:
+    - cron: '*/30 * * * *'
   workflow_dispatch:
     inputs:
       batch:
@@ -79,3 +81,13 @@ jobs:
           path: output/master_40_series/Episode_${{ matrix.episode }}_upload_meta.json
           if-no-files-found: warn
           retention-days: 14
+
+      - name: Publish to GitHub Release for Direct Auto-Download
+        uses: softprops/action-gh-release@v2
+        if: success()
+        with:
+          tag_name: "v1.0-episodes"
+          files: |
+            output/master_40_series/Episode_${{ matrix.episode }}_*.mp4
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -241,6 +241,42 @@ class GitHubCloudWatcher:
         if self.config.get("auto_keepalive", True):
             self.reactivate_workflows_if_inactive()
 
+        # 3. Auto-Download completed cloud videos directly into user's Downloads folder
+        self.sync_and_download_cloud_videos()
+
+    def sync_and_download_cloud_videos(self):
+        """
+        Polls GitHub Releases / Artifacts and automatically downloads any new completed 
+        videos directly into C:\Users\janar\Downloads\ without manual user intervention!
+        """
+        owner = self.config.get("repo_owner", "sagaragarwa")
+        repo = self.config.get("repo_name", "auto-video-100x")
+        user_downloads = os.path.join(os.path.expanduser("~"), "Downloads")
+        
+        url = f"https://api.github.com/repos/{owner}/{repo}/releases"
+        headers = self._get_headers()
+        try:
+            resp = requests.get(url, headers=headers, timeout=10)
+            if resp.status_code == 200:
+                releases = resp.json()
+                for rel in releases:
+                    for asset in rel.get("assets", []):
+                        name = asset.get("name", "")
+                        if name.endswith(".mp4"):
+                            local_dest = os.path.join(user_downloads, name)
+                            if not os.path.exists(local_dest) or os.path.getsize(local_dest) < asset.get("size", 1000):
+                                download_url = asset.get("browser_download_url")
+                                logger.info(f"⬇️ Auto-Downloading cloud video '{name}' to Downloads: {local_dest}...")
+                                with requests.get(download_url, stream=True, timeout=60) as r:
+                                    r.raise_for_status()
+                                    with open(local_dest, "wb") as f:
+                                        for chunk in r.iter_content(chunk_size=1048576):
+                                            if chunk:
+                                                f.write(chunk)
+                                logger.success(f"🎉 Successfully downloaded {name} to {local_dest}!")
+        except Exception as e:
+            logger.debug(f"Release sync error: {e}")
+
     def start_background_daemon(self):
         """
         Starts the 30-second interval watcher daemon in a background thread.
