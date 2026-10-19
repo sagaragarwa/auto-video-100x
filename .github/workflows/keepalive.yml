@@ -1,0 +1,24 @@
+name: 🔄 KeepAlive 24/7 Engine Active
+
+on:
+  schedule:
+    # Runs every 20 days automatically to prevent GitHub 60-day inactivity shutdown
+    - cron: '0 0 */20 * *'
+  workflow_dispatch:
+
+jobs:
+  keepalive:
+    name: Prevent Inactivity Deactivation
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+      contents: write
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+      - name: Keepalive Workflow
+        uses: gautamkrishnar/keepalive-workflow@v2
+        with:
+          committer_username: 'github-actions[bot]'
+          committer_email: 'github-actions[bot]@users.noreply.github.com'
+          commit_message: 'chore: keep 24/7 autonomous video engine active [skip ci]'
