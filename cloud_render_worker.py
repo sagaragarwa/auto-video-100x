@@ -282,7 +282,7 @@ def process_episode(episode_index: int):
 
     audio_file = os.path.join(ep_temp, "voiceover.mp3")
     srt_file = os.path.join(ep_temp, "subtitles.srt")
-    final_output = os.path.join(OUTPUT_DIR, f"episode_{episode_index:02d}_master.mp4")
+    final_output = os.path.join(OUTPUT_DIR, f"episode_{episode_index}_master.mp4")
 
     # 1. Voiceover & SRT
     is_hindi = any(0x0900 <= ord(c) <= 0x097F for c in ep["video_script"][:500])
