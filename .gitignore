@@ -47,6 +47,6 @@ htmlcov/
 .env
 
 output/
-temp_render/
 *.mp4
+!assets/outro_clip.mp4
 
