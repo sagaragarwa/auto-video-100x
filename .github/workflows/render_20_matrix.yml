@@ -1,0 +1,75 @@
+name: 🚀 100X Cloud Parallel Video Engine (20 Videos Simultaneous)
+
+on:
+  workflow_dispatch:
+    inputs:
+      batch_target:
+        description: 'Which batch to render'
+        required: true
+        default: 'all_20'
+        type: choice
+        options:
+          - all_20
+          - trading_1_to_10
+          - ai_11_to_20
+  schedule:
+    # 24/7 Automated Run (Every 6 hours)
+    - cron: '0 */6 * * *'
+
+concurrency:
+  group: video-render-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  render-episodes:
+    name: 🎬 Render Episode ${{ matrix.episode }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      max-parallel: 20  # 20 concurrent cloud runners in parallel!
+      matrix:
+        episode: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
+
+    steps:
+      - name: 📥 Checkout Codebase
+        uses: actions/checkout@v4
+
+      - name: 🐍 Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: 🎬 Install FFmpeg & High-Definition Fonts
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg fonts-noto-core fonts-noto-cjk fonts-deva
+
+      - name: 📦 Install Minimal Engine Dependencies
+        run: |
+          pip install -r requirements-cloud.txt
+
+      - name: ⚡ Render 1080p Master Video
+        env:
+          PIXABAY_API_KEY: ${{ secrets.PIXABAY_API_KEY || '48724139-1fbe7e777966fce52b390343f' }}
+          OUTPUT_DIR: 'output'
+        run: |
+          python cloud_render_worker.py --episode ${{ matrix.episode }}
+
+      - name: ☁️ Upload 1080p Video Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: episode_${{ matrix.episode }}_1080p
+          path: output/episode_${{ matrix.episode }}_master.mp4
+          retention-days: 30
+
+      - name: 📱 Optional Telegram Notification (If Configured)
+        if: env.TELEGRAM_BOT_TOKEN != '' && env.TELEGRAM_CHAT_ID != ''
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+            -d chat_id="${TELEGRAM_CHAT_ID}" \
+            -d text="🎉 Episode ${{ matrix.episode }} is READY in 1080p Full HD on GitHub!"
