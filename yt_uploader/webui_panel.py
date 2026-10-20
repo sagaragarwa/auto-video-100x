@@ -218,46 +218,57 @@ def render_master_engine_panel():
     """
     Renders the 1-Prompt 5X Master Autonomous Video Engine Card in the WebUI.
     Allows user to type a single natural language prompt and generate a 5X better continuous 1080p documentary.
+    Strictly enforces zero subtitles, zero thumbnails, full Content ID outro, and auto-delivery to Downloads.
     """
     with st.expander("⚡ 5X Master Autonomous Video Engine (1 Single Prompt से 1080p Documentary & Auto-Upload)", expanded=True):
         st.markdown("""
         **1 Single Natural Language Prompt से पूरी वीडियो बनाएं:**  
-        अब जटिल सेटिंग्स भूल जाइए। बस एक पंक्ति लिखें जैसे:  
-        `5 minute dopamine detox documentary in Hindi, auto upload` या `10 minute crypto trading psychology in Hindi`  
+        अब कोई भी सेटिंग छेड़ने की जरूरत नहीं। बस एक पंक्ति लिखें जैसे:  
+        `5 minute dopamine detox documentary in Hindi` या `10 minute wall street algorithmic trading in English`  
         
-        **🌟 5X Superpowers:**  
-        • **Zero Repeat B-Roll**: हर सीन का 100% यूनीक 1080p विजुअल (कोई 10-क्लिप लूपिंग नहीं)  
-        • **Modern YouTube Subtitles**: 26pt Bold Nirmala UI + स्मूथ ड्रॉप शैडो (कोई पुराना काला बक्सा नहीं)  
-        • **Dynamic Sidechain Ducking**: आवाज के साथ बैकग्राउंड म्यूजिक का रियल-टाइम सांस लेना  
-        • **Smart Auto-Route**: टॉपिक के आधार पर सही चैनल पर ऑटोमैटिक पोस्ट  
-        • **5GB Disk Governor**: डिस्क स्पेस हमेशा सुरक्षित (> 5 GB Free)  
+        **🌟 5X Broadcast Standards:**  
+        • **Zero Repeat Visuals**: MD5 फिंगरप्रिंटिंग के साथ हर सीन का 100% यूनीक विजुअल (कोई लूपिंग नहीं)  
+        • **Full Signature Content ID Outro**: हर वीडियो के अंत में पूरी ओरिजिनल आउट्रो क्लिप स्मूथ फेड के साथ  
+        • **Clean Netflix Aesthetic**: बिना किसी सबटाइटल के साफ और सिनेमैटिक 1080p विजुअल्स  
+        • **EBU R128 Loudness (-14 LUFS)**: 48kHz स्टीरियो ब्रॉडकास्ट ऑडियो (यूट्यूब ऑफिशियल लाउडनेस)  
+        • **Auto-Delivery to Downloads**: वीडियो बनते ही सीधे आपके `Downloads` फोल्डर में सेव  
+        • **Strict Zero Thumbnails**: थंबनेल पूरी तरह से बाईपास (यूट्यूब स्टूडियो अपलोड अनलिस्टेड)  
         """)
 
         p_col, a_col = st.columns([4, 1.5], vertical_alignment="bottom")
         with p_col:
             master_prompt = st.text_input(
                 "🎯 Master Prompt (बस एक प्रॉम्प्ट लिखें):",
-                value="5 minute dopamine detox documentary in Hindi, auto upload to psychology channel",
+                value=st.session_state.get("input_master_prompt_val", ""),
+                placeholder="जैसे: Anxiety Aur Mental Calmness Ka Asli Sach या 20 min trading institutional order flow",
                 key="input_master_prompt"
             )
         with a_col:
-            auto_up = st.checkbox("🚀 Auto-Upload", value=False, key="chk_master_auto_up", help="बनते ही चैनल पर सीधे अपलोड करें")
+            auto_up = st.checkbox("🚀 Auto-Upload", value=False, key="chk_master_auto_up", help="बनते ही चैनल पर अनलिस्टेड अपलोड करें")
 
         if st.button("🎬 Generate 5X Master Documentary (वीडियो बनाएं)", type="primary", use_container_width=True, key="btn_run_master_engine"):
-            with st.spinner("⚡ Running 5X Cinematic Master Engine (Visual matching, Audio ducking, 1080p Render)..."):
-                try:
-                    from yt_uploader.master_engine import CinematicMasterEngine
-                    engine = CinematicMasterEngine()
-                    res = engine.generate_autonomous_video(prompt=master_prompt, auto_upload=auto_up)
-                    st.success(f"🎉 5X Master Video Complete in {res['render_time_seconds']}s! Size: {res['file_size_human']}")
-                    st.video(res['video_path'])
-                    if os.path.exists(res['thumbnail_path']):
-                        st.image(res['thumbnail_path'], caption="1080p Ultra HD Topic-Matched Thumbnail")
-                    with st.expander("📊 Viral SEO Package & Metadata", expanded=False):
-                        st.json(res['seo'])
-                        st.json(res['plan'])
-                except Exception as e:
-                    st.error(f"Generation failed: {e}")
+            if not master_prompt or not master_prompt.strip():
+                st.warning("⚠️ कृपया पहले कोई विषय (Topic) या प्रॉम्प्ट लिखें!")
+            else:
+                with st.spinner("⚡ Running 5X Master Engine (Unique visual matching, 48kHz audio, 1080p Render, Full Outro)..."):
+                    try:
+                        from yt_uploader.master_engine import CinematicMasterEngine
+                        engine = CinematicMasterEngine()
+                        res = engine.generate_autonomous_video(prompt=master_prompt.strip(), auto_upload=auto_up)
+                        st.success(f"🎉 5X Master Video Complete in {res['render_time_seconds']}s! Size: {res['file_size_human']} | Delivered to Downloads!")
+                        deliv_file = res.get('downloads_path') or res.get('video_path')
+                        if deliv_file:
+                            st.info(f"📁 Saved to Downloads: {deliv_file}")
+                            if os.path.exists(deliv_file):
+                                try:
+                                    st.video(deliv_file)
+                                except Exception as _v_err:
+                                    logger.warning(f"Streamlit video preview note: {_v_err}")
+                        with st.expander("📊 Viral SEO Package & Metadata (Unlisted)", expanded=False):
+                            st.json(res['seo'])
+                            st.json(res['plan'])
+                    except Exception as e:
+                        st.error(f"Generation failed: {e}")
 
 def render_github_cloud_panel():
     """
