@@ -299,6 +299,42 @@ class GitHubCloudWatcher:
         except Exception as e:
             logger.debug(f"Release sync error: {e}")
 
+        # 2. Poll Artifacts endpoint (Primary robust auto-delivery for 1080p Cloud Videos)
+        try:
+            art_url = f"https://api.github.com/repos/{owner}/{repo}/actions/artifacts?per_page=5"
+            art_resp = requests.get(art_url, headers=headers, timeout=10)
+            if art_resp.status_code == 200:
+                artifacts = art_resp.json().get("artifacts", [])
+                for art in artifacts:
+                    if art.get("name") == "master_video_1080p" and not art.get("expired"):
+                        art_id = art.get("id")
+                        zip_url = f"https://api.github.com/repos/{owner}/{repo}/actions/artifacts/{art_id}/zip"
+                        r_red = requests.get(zip_url, headers=headers, allow_redirects=False, timeout=10)
+                        if r_red.status_code == 302 and "Location" in r_red.headers:
+                            blob_url = r_red.headers["Location"]
+                            temp_zip = os.path.join(user_downloads, f"cloud_art_{art_id}.zip")
+                            if not os.path.exists(temp_zip):
+                                with requests.get(blob_url, stream=True, timeout=180) as r_b:
+                                    r_b.raise_for_status()
+                                    with open(temp_zip, "wb") as f_z:
+                                        for chunk in r_b.iter_content(chunk_size=1048576):
+                                            if chunk:
+                                                f_z.write(chunk)
+                                import zipfile
+                                with zipfile.ZipFile(temp_zip, "r") as z:
+                                    for z_info in z.infolist():
+                                        if z_info.filename.endswith(".mp4"):
+                                            targ = os.path.join(user_downloads, os.path.basename(z_info.filename))
+                                            if not os.path.exists(targ) or os.path.getsize(targ) < z_info.file_size:
+                                                z.extract(z_info, user_downloads)
+                                                logger.success(f"🎉 Auto-Delivered Cloud Video from Artifact to Downloads: {targ}")
+                                try:
+                                    os.remove(temp_zip)
+                                except Exception:
+                                    pass
+        except Exception as e:
+            logger.debug(f"Artifact auto-sync note: {e}")
+
     def start_background_daemon(self):
         """
         Starts the 30-second interval watcher daemon in a background thread.
