@@ -32,7 +32,6 @@ import edge_tts
 from yt_uploader.cinematic_director import CinematicDirector
 from yt_uploader.cinematic_render import normalize_cinematic_clip, render_cinematic_longform
 from yt_uploader.seo_generator import generate_viral_seo_package
-from scripts.generate_outro_clips import create_outro_clip
 
 USER_DOWNLOADS = os.path.join(os.path.expanduser("~"), "Downloads")
 OUT_DIR = os.path.join(_root, "output", "chat_videos")
