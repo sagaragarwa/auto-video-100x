@@ -147,31 +147,31 @@ def render_cinematic_longform(
         sub_filter = f"subtitles=modern_subs.srt:force_style='{MODERN_SUB_STYLE}'"
         if has_bgm:
             cmd_final.extend(["-stream_loop", "-1", "-i", bgm_path])
-            audio_filter = build_dynamic_audio_filter(has_bgm=True) + fade_filter
-            full_filter_complex = f"[0:v]{sub_filter}[vout];{audio_filter}"
+            raw_audio = build_dynamic_audio_filter(has_bgm=True).replace("[aout]", f"{fade_filter}[aout]")
+            full_filter_complex = f"[0:v]{sub_filter}[vout];{raw_audio}"
             cmd_final.extend([
                 "-filter_complex", full_filter_complex,
                 "-map", "[vout]", "-map", "[aout]"
             ])
         else:
-            audio_filter = build_dynamic_audio_filter(has_bgm=False) + fade_filter
+            raw_audio = build_dynamic_audio_filter(has_bgm=False).replace("[aout]", f"{fade_filter}[aout]")
             cmd_final.extend([
-                "-filter_complex", f"[0:v]{sub_filter}[vout];{audio_filter}",
+                "-filter_complex", f"[0:v]{sub_filter}[vout];{raw_audio}",
                 "-map", "[vout]", "-map", "[aout]"
             ])
     else:
         # Clean Cinematic Visuals (NO SUBTITLES)
         if has_bgm:
             cmd_final.extend(["-stream_loop", "-1", "-i", bgm_path])
-            audio_filter = build_dynamic_audio_filter(has_bgm=True) + fade_filter
+            raw_audio = build_dynamic_audio_filter(has_bgm=True).replace("[aout]", f"{fade_filter}[aout]")
             cmd_final.extend([
-                "-filter_complex", audio_filter,
+                "-filter_complex", raw_audio,
                 "-map", "0:v", "-map", "[aout]"
             ])
         else:
-            audio_filter = build_dynamic_audio_filter(has_bgm=False) + fade_filter
+            raw_audio = build_dynamic_audio_filter(has_bgm=False).replace("[aout]", f"{fade_filter}[aout]")
             cmd_final.extend([
-                "-filter_complex", audio_filter,
+                "-filter_complex", raw_audio,
                 "-map", "0:v", "-map", "[aout]"
             ])
 
