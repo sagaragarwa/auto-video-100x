@@ -52,8 +52,8 @@ jobs:
       - name: Install Python Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install loguru edge-tts playwright requests pillow
+          pip install -r requirements.txt || true
+          pip install loguru edge-tts requests pillow pydantic tomli
 
       - name: Execute 5X Master Video Generation in Cloud
         env:
