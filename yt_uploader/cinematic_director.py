@@ -31,9 +31,67 @@ try:
 except Exception:
     pass
 
-from app.models.schema import VideoAspect
-from app.services.material import search_videos_pixabay
 from yt_uploader.disk_governor import enforce_5gb_disk_headroom
+
+def get_pixabay_api_key() -> str:
+    key = os.environ.get("PIXABAY_API_KEY")
+    if key and key.strip():
+        return key.strip()
+    try:
+        cfg_path = os.path.join(_root, "config.toml")
+        if os.path.exists(cfg_path):
+            with open(cfg_path, "r", encoding="utf-8") as f:
+                content = f.read()
+            m = re.search(r'pixabay_api_keys\s*=\s*\[\s*"([^"]+)"', content)
+            if m:
+                return m.group(1).strip()
+    except Exception:
+        pass
+    return "48724139-1fbe7e777966fce52b390343f"
+
+def direct_search_pixabay(search_term: str, minimum_duration: int = 3, per_page: int = 50) -> List[Dict[str, Any]]:
+    """
+    Direct, lightweight REST query to Pixabay API without MoviePy or heavy dependencies.
+    Returns list of dicts with 'url', 'duration', 'width', 'height'.
+    """
+    api_key = get_pixabay_api_key()
+    params = {
+        "key": api_key,
+        "q": search_term,
+        "video_type": "all",
+        "per_page": per_page,
+        "safesearch": "true"
+    }
+    query_url = "https://pixabay.com/api/videos/"
+    try:
+        r = requests.get(query_url, params=params, timeout=(10, 25))
+        if r.status_code != 200:
+            logger.warning(f"Pixabay API returned {r.status_code} for '{search_term}'")
+            return []
+        data = r.json()
+        hits = data.get("hits", [])
+        results = []
+        for h in hits:
+            dur = h.get("duration", 0)
+            if dur < minimum_duration:
+                continue
+            v_dict = h.get("videos", {})
+            selected = v_dict.get("large") or v_dict.get("medium") or v_dict.get("small")
+            if not selected:
+                continue
+            w = selected.get("width", 0)
+            h_val = selected.get("height", 0)
+            if w >= h_val:
+                results.append({
+                    "url": selected.get("url"),
+                    "duration": dur,
+                    "width": w,
+                    "height": h_val
+                })
+        return results
+    except Exception as e:
+        logger.warning(f"Direct Pixabay search request failed for '{search_term}': {e}")
+        return []
 
 # Semantic visual keyword mapping dictionary for common niches
 NICHE_VISUAL_KEYWORDS = {
@@ -256,6 +314,12 @@ class CinematicDirector:
         # Initialize local stock cache
         build_local_stock_index()
 
+        # Prune global caches if they grow beyond 70% of available stock to prevent starvation
+        global _GLOBAL_USED_HASHES
+        if _LOCAL_STOCK_LIBRARY and len(_GLOBAL_USED_HASHES) > int(len(_LOCAL_STOCK_LIBRARY) * 0.7):
+            logger.info("Cycling _GLOBAL_USED_HASHES to ensure fresh pool while keeping current video unique.")
+            _GLOBAL_USED_HASHES.clear()
+
     def get_scene_visual_queries(self, script_scenes: List[Dict[str, Any]], custom_topic: str = "") -> List[str]:
         """
         Maps each narration scene to a targeted, cinematic English search query.
@@ -397,18 +461,11 @@ class CinematicDirector:
         if allow_online:
             logger.info(f"🎬 Scene {scene_idx+1}: Searching Pixabay for '{query}'...")
             try:
-                # Randomize page between 1 and 3 to ensure diverse clips
-                random_page = random.randint(1, 3)
-                results = search_videos_pixabay(
-                    search_term=query,
-                    minimum_duration=3,
-                    video_aspect=VideoAspect.landscape
-                )
-                if results:
-                    candidates = list(results)
+                candidates = direct_search_pixabay(search_term=query, minimum_duration=3)
+                if candidates:
                     random.shuffle(candidates)  # Shuffle so we don't always pick item #0!
                     for r in candidates:
-                        video_url = getattr(r, "url", None)
+                        video_url = r.get("url") if isinstance(r, dict) else getattr(r, "url", None)
                         if not video_url or video_url in _GLOBAL_USED_URLS:
                             continue
 
