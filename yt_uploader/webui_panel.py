@@ -321,7 +321,8 @@ def render_github_cloud_panel():
         with c_p1:
             cloud_prompt = st.text_input(
                 "🎯 Prompt to Offload to GitHub Cloud (क्लाउड पर भेजने के लिए प्रॉम्प्ट):",
-                value="5 minute dopamine detox documentary in Hindi, auto upload to psychology channel",
+                value=st.session_state.get("input_cloud_prompt_val", ""),
+                placeholder="जैसे: 5 minute anxiety aur mental calmness ka sach in Hindi या 10 min trading",
                 key="input_cloud_prompt"
             )
         with c_p2:
