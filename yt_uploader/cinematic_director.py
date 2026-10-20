@@ -527,7 +527,7 @@ class CinematicDirector:
         and seamlessly fills the rest from verified unique offline stock clips.
         ABSOLUTELY ZERO IN-VIDEO LOOPING! Total runtime under 60-90 seconds!
         """
-        needed_count = max(6, int(target_duration / avg_scene_duration) + 2)
+        needed_count = min(40, max(6, int(target_duration / avg_scene_duration) + 2))
         logger.info(f"🎯 Target Duration: {target_duration:.1f}s | Gathering {needed_count} strictly unique clips (zero repeats)...")
 
         # Create scenes from real script sentences if available
