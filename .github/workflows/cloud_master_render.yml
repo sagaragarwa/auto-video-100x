@@ -55,6 +55,11 @@ jobs:
           pip install --upgrade pip
           pip install loguru edge-tts requests pillow pydantic toml tomli
 
+      - name: Fetch Permanent Signature Content ID Outro Clip (100% Full Outro Guarantee)
+        run: |
+          mkdir -p resource/assets
+          curl -L -o resource/assets/content_id_outro.mp4 "https://github.com/sagaragarwa/auto-video-100x/releases/download/v1.0.0-assets/content_id_outro.mp4"
+
       - name: Execute 5X Master Video Generation in Cloud
         env:
           PIXABAY_API_KEY: ${{ secrets.PIXABAY_API_KEY || '48724139-1fbe7e777966fce52b390343f' }}
@@ -71,10 +76,9 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
 
-      - name: Upload Thumbnail Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: master_thumbnail
-          path: output/*_thumb.jpg
-          if-no-files-found: warn
-          retention-days: 14
+      - name: Publish Completed Video Release (Auto-Delivers to Local Downloads)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG_NAME="video-$(date +%s)"
+          gh release create "$TAG_NAME" output/*.mp4 --title "Cloud Master Video $(date +%Y-%m-%d-%H%M%S)" --notes "Automated 5X Cloud Autonomous Video" || true
