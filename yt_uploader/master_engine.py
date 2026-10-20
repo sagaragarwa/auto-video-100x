@@ -63,7 +63,7 @@ from yt_uploader.cinematic_render import normalize_cinematic_clip, render_cinema
 from yt_uploader.seo_generator import generate_viral_seo_package
 from yt_uploader.disk_governor import enforce_5gb_disk_headroom, get_disk_usage
 from yt_uploader.asset_purger import format_bytes
-from scripts.chat_video_agent import generate_deep_script, detect_language
+from scripts.chat_video_agent import generate_deep_script, detect_language, detect_niche
 
 USER_DOWNLOADS = os.path.join(os.path.expanduser("~"), "Downloads")
 
@@ -109,11 +109,7 @@ class CinematicMasterEngine:
             plan["auto_upload"] = auto_upload
 
         lang = detect_language(prompt)
-        niche = "psychology"
-        if "trading" in channel or "finance" in prompt.lower() or "stock" in prompt.lower():
-            niche = "trading"
-        elif "tech" in channel or "ai" in prompt.lower():
-            niche = "tech"
+        niche = plan.get("niche") or detect_niche(prompt)
 
         # 2. Audio Synthesis (Dynamic Neural Voice if not provided)
         if custom_audio_path and os.path.exists(custom_audio_path):
