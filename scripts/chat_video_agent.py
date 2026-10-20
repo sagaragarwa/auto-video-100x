@@ -446,23 +446,26 @@ def produce_chat_video(
     with open(seo_meta_file, "w", encoding="utf-8") as f:
         json.dump(seo, f, indent=4)
 
-    # 9. Smart Auto-Upload (if requested)
+    # 9. Smart Multi-Platform Auto-Upload (YouTube, Rumble, etc.)
     actual_file = dest_download if (dest_download and os.path.exists(dest_download)) else final_output_path
     upload_result = None
-    if auto_upload:
-        logger.info(f"🚀 Auto-upload requested! Launching smart YouTube Studio uploader...")
-        from yt_uploader.studio_uploader import upload_video_to_studio
-        ch_key = "channel_trading" if niche == "trading" else "channel_psychology"
-        profile_dir = os.path.join(_root, "storage", "profiles", ch_key)
+    should_upload = auto_upload or any(k in prompt.lower() for k in ["rumble", "upload", "रंबल", "अपलोड"])
+    if should_upload:
         try:
-            upload_result = upload_video_to_studio(
-                channel_profile_dir=profile_dir,
-                video_file_path=actual_file,
-                thumbnail_file_path="",  # STRICTLY SKIP THUMBNAILS PER USER MANDATE
+            from yt_uploader.multi_platform_router import parse_multi_platform_intent, dispatch_to_platforms
+            intent = parse_multi_platform_intent(prompt)
+            logger.info(f"🚀 Multi-Platform Auto-Upload triggered for: {intent['platforms']}")
+            upload_result = dispatch_to_platforms(
+                video_path=actual_file,
                 seo_package=seo,
+                platforms=intent["platforms"],
+                youtube_channel=intent["youtube_channel"],
+                rumble_channel=intent["rumble_channel"],
+                visibility=intent["visibility"],
+                rumble_license=intent["rumble_license"],
                 headless=True
             )
-            logger.success(f"Upload Result: {upload_result}")
+            logger.success(f"Multi-Platform Upload Result: {upload_result}")
         except Exception as e:
             logger.error(f"Upload attempt encountered: {e}")
             upload_result = {"success": False, "error": str(e)}
