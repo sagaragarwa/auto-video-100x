@@ -200,6 +200,9 @@ class CinematicMasterEngine:
         with open(seo_meta_file, "w", encoding="utf-8") as f:
             json.dump(seo, f, indent=4)
 
+        # Determine actual surviving delivered file path
+        target_video = dest_download if (dest_download and os.path.exists(dest_download)) else output_video
+
         # 9. Smart Auto-Upload (if requested)
         if plan.get("auto_upload"):
             logger.info("🚀 Auto-upload requested! Launching smart YouTube Studio uploader...")
@@ -209,7 +212,7 @@ class CinematicMasterEngine:
                 profile_dir = os.path.join(_root, "storage", "profiles", ch_key)
                 upload_video_to_studio(
                     channel_profile_dir=profile_dir,
-                    video_file_path=output_video,
+                    video_file_path=target_video,
                     thumbnail_file_path="",  # STRICT ZERO THUMBNAIL PER USER MANDATE
                     seo_package=seo,
                     headless=True
@@ -221,7 +224,6 @@ class CinematicMasterEngine:
         enforce_5gb_disk_headroom(min_free_gb=5.0)
 
         total_time = time.time() - start_time
-        target_video = dest_download if (dest_download and os.path.exists(dest_download)) else output_video
         v_size = os.path.getsize(target_video) if (target_video and os.path.exists(target_video)) else 0
 
         result = {
