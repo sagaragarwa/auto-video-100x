@@ -53,14 +53,14 @@ jobs:
       - name: Install Python Dependencies (Ultra-Fast 3s Setup)
         run: |
           pip install --upgrade pip
-          pip install loguru edge-tts requests pillow pydantic tomli
+          pip install loguru edge-tts requests pillow pydantic toml tomli
 
       - name: Execute 5X Master Video Generation in Cloud
         env:
           PIXABAY_API_KEY: ${{ secrets.PIXABAY_API_KEY || '48724139-1fbe7e777966fce52b390343f' }}
           PYTHONPATH: '.'
         run: |
-          PROMPT="${{ github.event.inputs.prompt || '5 minute dopamine detox documentary in Hindi' }}"
+          PROMPT="${{ github.event.inputs.prompt || github.event.client_payload.prompt || '5 minute dopamine detox documentary in Hindi' }}"
           python -u yt_uploader/main.py master-engine --prompt "$PROMPT"
 
       - name: Upload 1080p Video Artifact
