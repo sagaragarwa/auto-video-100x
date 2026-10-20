@@ -583,8 +583,8 @@ def produce_chat_video(
         target_duration=real_duration,
         prompt=title,
         niche=niche,
-        avg_scene_duration=4.2,
-        max_online_downloads=6,
+        avg_scene_duration=6.0,
+        max_online_downloads=120,
         script_text=script_text
     )
 
@@ -594,10 +594,10 @@ def produce_chat_video(
 
     for idx, raw_clip in enumerate(raw_unique_clips):
         n_clip = os.path.join(norm_dir, f"chat_{int(t0)}_sc_{idx:02d}.mp4")
-        normalize_cinematic_clip(raw_clip, n_clip, target_duration=4.5)
+        normalize_cinematic_clip(raw_clip, n_clip, target_duration=6.0)
         norm_clips.append(n_clip)
 
-    logger.success(f"🎬 Assembled {len(norm_clips)} STRICTLY UNIQUE clips! Total visual coverage: {len(norm_clips)*4.5:.1f}s vs audio {real_duration:.1f}s (ZERO LOOPS)!")
+    logger.success(f"🎬 Assembled {len(norm_clips)} STRICTLY UNIQUE clips! Total visual coverage: {len(norm_clips)*6.0:.1f}s vs audio {real_duration:.1f}s (ZERO LOOPS)!")
 
     # 4. Background Music
     bgm_file = os.path.join(_root, "resource", "songs", "output001.mp3")
