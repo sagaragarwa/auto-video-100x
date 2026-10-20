@@ -423,11 +423,21 @@ def produce_chat_video(
         outro_duration=None  # ALWAYS PLAY FULL SIGNATURE OUTRO CLIP PER USER MANDATE
     )
 
-    # 6. Single-Source Auto-Delivery to Downloads & Ephemeral Temp Purge (Zero Disk Leak)
-    from yt_uploader.disk_sanitizer import safe_deliver_and_deduplicate, purge_ephemeral_clips, enforce_infinite_storage_headroom
-    dest_download = safe_deliver_and_deduplicate(final_output_path, USER_DOWNLOADS, move_instead_of_copy=True)
-    purge_ephemeral_clips(norm_clips)
-    enforce_infinite_storage_headroom(min_free_gb=10.0)
+    # 6. Single-Source Auto-Delivery & Ephemeral Temp Purge (Zero Disk Leak)
+    is_ci = os.environ.get("GITHUB_ACTIONS") == "true" or os.environ.get("CI") == "true"
+    dest_download = final_output_path
+    try:
+        from yt_uploader.disk_sanitizer import safe_deliver_and_deduplicate, purge_ephemeral_clips, enforce_infinite_storage_headroom
+        purge_ephemeral_clips(norm_clips)
+        enforce_infinite_storage_headroom(min_free_gb=10.0)
+        if not is_ci:
+            dest_download = safe_deliver_and_deduplicate(final_output_path, USER_DOWNLOADS, move_instead_of_copy=True)
+        else:
+            logger.info(f"CI runner detected: Preserving video at {final_output_path}")
+            dest_download = final_output_path
+    except Exception as _ds_err:
+        logger.warning(f"Disk sanitizer note: {_ds_err}")
+        dest_download = final_output_path
 
     # 8. Deep-Researched Viral SEO
     seo = generate_viral_seo_package(subject=title, niche=niche)
