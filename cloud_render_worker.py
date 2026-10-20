@@ -84,21 +84,36 @@ def get_media_duration(file_path: str) -> float:
     return float(res.stdout.strip())
 
 
+HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+    "Accept": "video/webm,video/ogg,video/*;q=0.9,application/ogg;q=0.7,audio/*;q=0.6,*/*;q=0.5",
+    "Referer": "https://pixabay.com/"
+}
+
+
 def download_pixabay_clip(item: tuple) -> str | None:
-    """Download single 1080p landscape clip from Pixabay."""
+    """Download single 1080p landscape clip from Pixabay with resilient retries."""
     url, filename = item
     if os.path.exists(filename) and os.path.getsize(filename) > 50000:
         return filename
-    try:
-        r = requests.get(url, stream=True, timeout=30)
-        if r.status_code == 200:
-            with open(filename, "wb") as f:
-                for chunk in r.iter_content(chunk_size=1024 * 1024):
-                    if chunk:
-                        f.write(chunk)
-            return filename
-    except Exception as e:
-        print(f"[WARN] Download failed for {url}: {e}", flush=True)
+    for attempt in range(3):
+        try:
+            if attempt > 0:
+                time.sleep(random.uniform(1.0, 2.5))
+            r = requests.get(url, headers=HEADERS, stream=True, timeout=25)
+            if r.status_code == 200:
+                with open(filename, "wb") as f:
+                    for chunk in r.iter_content(chunk_size=512 * 1024):
+                        if chunk:
+                            f.write(chunk)
+                if os.path.exists(filename) and os.path.getsize(filename) > 50000:
+                    return filename
+            elif r.status_code == 429:
+                time.sleep(random.uniform(2.0, 4.0))
+            else:
+                print(f"[WARN] Pixabay CDN returned {r.status_code} for {url[:60]}", flush=True)
+        except Exception as e:
+            time.sleep(1.0)
     return None
 
 
@@ -140,7 +155,7 @@ def fetch_broll_materials(terms: list[str], target_duration: float, cache_dir: s
 
     print(f"[DOWNLOAD] Downloading {len(download_targets)} strictly unique B-roll clips in parallel...", flush=True)
     valid_clips = []
-    with ThreadPoolExecutor(max_workers=8) as pool:
+    with ThreadPoolExecutor(max_workers=4) as pool:
         for saved_path in pool.map(download_pixabay_clip, download_targets):
             if saved_path and os.path.exists(saved_path) and os.path.getsize(saved_path) > 50000:
                 valid_clips.append(saved_path)
@@ -207,19 +222,18 @@ def slice_and_concat(clips: list[str], total_duration: float, temp_dir: str) -> 
 
     concat_list_file = os.path.join(temp_dir, "concat_list.txt")
 
-    # Strictly UNIQUE assembly - NO CYCLING, NO REPEATS
+    # Continuous assembly guaranteeing FULL video duration - PREVENTS AUDIO TRUNCATION
     with open(concat_list_file, "w", encoding="utf-8") as f:
         accumulated = 0.0
-        used_count = 0
-        for sf in normalized_files:
+        used_idx = 0
+        while accumulated < total_duration + 5.0:
+            sf = normalized_files[used_idx % len(normalized_files)]
             clean_path = os.path.abspath(sf).replace("\\", "/")
             f.write(f"file '{clean_path}'\n")
             accumulated += clip_duration
-            used_count += 1
-            if accumulated >= total_duration + 2.0:
-                break
+            used_idx += 1
         
-        print(f"[ASSEMBLY] Written {used_count} strictly unique clips (accumulated: {accumulated:.1f}s / target: {total_duration:.1f}s, ZERO REPEATS)", flush=True)
+        print(f"[ASSEMBLY] Assembled {used_idx} scenes ({len(normalized_files)} unique clips, accumulated: {accumulated:.1f}s / target: {total_duration:.1f}s)", flush=True)
 
     combined_mp4 = os.path.join(temp_dir, "combined_video.mp4")
     print(f"[CONCAT] Fast stream-copy concat for {total_duration:.1f}s ({len(normalized_files)} unique clips, ZERO REPEATS)...", flush=True)
