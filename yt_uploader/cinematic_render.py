@@ -247,8 +247,16 @@ def render_cinematic_longform(
             subprocess.run(cmd_merge, cwd=_root, check=True)
 
         # Clean intermediate pass and manifest
-        for f_del in [temp_main_pass, outro_manifest]:
-            if os.path.exists(f_del) and f_del != output_video_path:
+        for f_del in [temp_main_pass, outro_manifest, stitched_raw, concat_manifest]:
+            if f_del and os.path.exists(f_del) and f_del != output_video_path:
+                try:
+                    os.remove(f_del)
+                except Exception:
+                    pass
+    else:
+        # If no outro was appended, clean stitched_raw and concat_manifest
+        for f_del in [stitched_raw, concat_manifest]:
+            if f_del and os.path.exists(f_del) and f_del != output_video_path:
                 try:
                     os.remove(f_del)
                 except Exception:
