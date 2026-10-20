@@ -2,7 +2,6 @@ import os
 import time
 import json
 from loguru import logger
-from playwright.sync_api import sync_playwright
 
 CHROME_PATH = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
 
@@ -17,6 +16,7 @@ def upload_video_to_studio(
     Uploads a video to YouTube Studio using persistent browser profile without API quota.
     Injects Title, Description, Thumbnail, Tags, and sets Visibility.
     """
+    from playwright.sync_api import sync_playwright
     if not os.path.exists(video_file_path):
         raise FileNotFoundError(f"Video file not found: {video_file_path}")
 
