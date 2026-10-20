@@ -145,6 +145,20 @@ def main():
     cloud_parser.add_argument("--prompt", required=True, help="Video prompt")
     cloud_parser.add_argument("--auto-upload", action="store_true", help="Auto upload to YouTube Studio")
 
+    # Command: rumble-list
+    subparsers.add_parser("rumble-list", help="List all configured Rumble channel profiles")
+
+    # Command: rumble-login
+    r_login_parser = subparsers.add_parser("rumble-login", help="Perform one-time login for a Rumble channel")
+    r_login_parser.add_argument("--channel", default="rumble_general", help="Rumble Channel key (e.g. rumble_psychology)")
+
+    # Command: rumble-upload
+    r_up_parser = subparsers.add_parser("rumble-upload", help="Upload video to Rumble")
+    r_up_parser.add_argument("--video", required=True, help="Path to the video file")
+    r_up_parser.add_argument("--channel", default="rumble_general", help="Rumble channel key")
+    r_up_parser.add_argument("--license", default="rumble_only", choices=["rumble_only", "exclusive", "personal"])
+    r_up_parser.add_argument("--sub-channel", default="", help="Sub-channel name in Rumble dropdown")
+
     args = parser.parse_args()
 
     channels = load_channels()
@@ -204,6 +218,42 @@ def main():
             logger.error(f"Channel '{args.channel}' not found. Available: {list(channels.keys())}")
             return
         open_login_window(args.channel)
+        return
+
+    if args.command == "rumble-list":
+        from yt_uploader.rumble_uploader import load_rumble_channels
+        r_channels = load_rumble_channels()
+        print("\n=== Registered Multi-Channel Rumble Profiles ===")
+        for k, v in r_channels.items():
+            prof = v.get("profile_dir", "")
+            exists = os.path.exists(prof) and len(os.listdir(prof)) > 0 if os.path.exists(prof) else False
+            status = "✅ Profile Configured (Ready)" if exists else "⚠️ Not Logged In Yet (Run 'rumble-login')"
+            print(f" • Rumble Key : {k}")
+            print(f"   Name       : {v.get('name')}")
+            print(f"   Niche      : {v.get('niche')}")
+            print(f"   License    : {v.get('license', 'rumble_only')}")
+            print(f"   Status     : {status}")
+            print(f"   Profile Dir: {prof}\n")
+        return
+
+    if args.command == "rumble-login":
+        from yt_uploader.rumble_uploader import open_rumble_login_window
+        open_rumble_login_window(args.channel)
+        return
+
+    if args.command == "rumble-upload":
+        from yt_uploader.rumble_uploader import upload_video_to_rumble
+        from yt_uploader.seo_generator import generate_viral_seo_package
+        seo = generate_viral_seo_package(subject=os.path.basename(args.video), niche="general")
+        res = upload_video_to_rumble(
+            channel_key=args.channel,
+            video_file_path=args.video,
+            seo_package=seo,
+            license_type=args.license,
+            sub_channel_name=args.sub_channel or None,
+            headless=False
+        )
+        print("Rumble Upload Result:", res)
         return
 
     if args.command == "upload":
