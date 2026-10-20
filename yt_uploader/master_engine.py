@@ -183,11 +183,21 @@ class CinematicMasterEngine:
             outro_duration=None  # ALWAYS PLAY FULL SIGNATURE OUTRO CLIP PER USER MANDATE
         )
 
-        # 6. Single-Source Auto-Delivery to Downloads & Ephemeral Temp Purge (Zero Disk Leak)
-        from yt_uploader.disk_sanitizer import safe_deliver_and_deduplicate, purge_ephemeral_clips, enforce_infinite_storage_headroom
-        dest_download = safe_deliver_and_deduplicate(output_video, USER_DOWNLOADS, move_instead_of_copy=True)
-        purge_ephemeral_clips(normalized_clips)
-        enforce_infinite_storage_headroom(min_free_gb=10.0)
+        # 6. Single-Source Auto-Delivery & Ephemeral Temp Purge (Zero Disk Leak)
+        is_ci = os.environ.get("GITHUB_ACTIONS") == "true" or os.environ.get("CI") == "true"
+        dest_download = output_video
+        try:
+            from yt_uploader.disk_sanitizer import safe_deliver_and_deduplicate, purge_ephemeral_clips, enforce_infinite_storage_headroom
+            purge_ephemeral_clips(normalized_clips)
+            enforce_infinite_storage_headroom(min_free_gb=10.0)
+            if not is_ci:
+                dest_download = safe_deliver_and_deduplicate(output_video, USER_DOWNLOADS, move_instead_of_copy=True)
+            else:
+                logger.info(f"CI runner detected: Preserving master video at {output_video} for artifact/release export.")
+                dest_download = output_video
+        except Exception as _ds_err:
+            logger.warning(f"Disk sanitizer note: {_ds_err}")
+            dest_download = output_video
 
         # 7. Thumbnail Policy (USER MANDATE: NEVER GENERATE THUMBNAIL)
         logger.info("🚫 Thumbnail generation permanently SKIPPED per user mandate.")
