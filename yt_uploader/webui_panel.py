@@ -1,4 +1,5 @@
 import os
+import sys
 import glob
 import streamlit as st
 from loguru import logger
@@ -8,10 +9,12 @@ from yt_uploader.main import upload_single_video_flow
 from yt_uploader.disk_governor import get_disk_usage, deep_clean_stale_caches, DEFAULT_MIN_FREE_GB
 
 def get_python_exe():
+    if sys.executable and os.path.exists(sys.executable):
+        return sys.executable
     cand = r"C:\Users\janar\AppData\Roaming\uv\python\cpython-3.11.17-windows-x86_64-none\python.exe"
     if os.path.exists(cand):
         return cand
-    return sys.executable
+    return "python"
 
 def render_youtube_channel_manager():
     """
