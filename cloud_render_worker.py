@@ -28,7 +28,32 @@ import requests
 PIXABAY_API_KEY = os.environ.get("PIXABAY_API_KEY", "48724139-1fbe7e777966fce52b390343f")
 OUTPUT_DIR = os.environ.get("OUTPUT_DIR", "output")
 TEMP_DIR = os.environ.get("TEMP_DIR", "temp_render")
-OUTRO_CLIP_PATH = os.environ.get("OUTRO_CLIP_PATH", os.path.join("assets", "outro_clip.mp4"))
+
+def get_outro_clip_path():
+    candidates = [
+        os.environ.get("OUTRO_CLIP_PATH", ""),
+        os.path.join("resource", "assets", "content_id_outro.mp4"),
+        os.path.join("assets", "outro_clip.mp4")
+    ]
+    for c in candidates:
+        if c and os.path.exists(c) and os.path.getsize(c) > 50000:
+            return c
+    # Auto-fetch if not present
+    target = os.path.join("resource", "assets", "content_id_outro.mp4")
+    os.makedirs(os.path.dirname(target), exist_ok=True)
+    try:
+        url = "https://github.com/sagaragarwa/auto-video-100x/releases/download/v1.0.0-assets/content_id_outro.mp4"
+        print(f"[OUTRO] Downloading signature Content ID outro from {url}...", flush=True)
+        r = requests.get(url, timeout=60)
+        if r.status_code == 200:
+            with open(target, "wb") as f:
+                f.write(r.content)
+            return target
+    except Exception as e:
+        print(f"[WARN] Outro auto-download notice: {e}", flush=True)
+    return ""
+
+OUTRO_CLIP_PATH = get_outro_clip_path()
 
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 os.makedirs(TEMP_DIR, exist_ok=True)
@@ -78,17 +103,19 @@ def download_pixabay_clip(item: tuple) -> str | None:
 
 
 def fetch_broll_materials(terms: list[str], target_duration: float, cache_dir: str) -> list[str]:
-    """Search and download 1080p landscape clips for terms."""
+    """Search and download 1080p landscape clips for terms with ZERO REPEAT guarantee."""
     print(f"[SEARCH] Querying Pixabay for keywords: {terms}...", flush=True)
     download_targets = []
     seen_ids = set()
+    # For a 17-21min documentary, gather 120-150 strictly unique clips
+    target_limit = min(150, max(90, int(target_duration / 7.5) + 15))
 
     for term in terms:
-        if len(download_targets) >= 12:
+        if len(download_targets) >= target_limit:
             break
         url = (
             f"https://pixabay.com/api/videos/?key={PIXABAY_API_KEY}"
-            f"&q={requests.utils.quote(term)}&video_type=film&per_page=10"
+            f"&q={requests.utils.quote(term)}&video_type=film&per_page=50"
         )
         try:
             res = requests.get(url, timeout=15).json()
@@ -99,21 +126,21 @@ def fetch_broll_materials(terms: list[str], target_duration: float, cache_dir: s
                 seen_ids.add(h["id"])
                 v_sizes = h.get("videos", {})
                 best_video = (
-                    v_sizes.get("large", {}).get("url") or
                     v_sizes.get("medium", {}).get("url") or
+                    v_sizes.get("large", {}).get("url") or
                     v_sizes.get("small", {}).get("url")
                 )
                 if best_video:
                     clip_name = os.path.join(cache_dir, f"pixabay_{h['id']}.mp4")
                     download_targets.append((best_video, clip_name))
-                    if len(download_targets) >= 12:
+                    if len(download_targets) >= target_limit:
                         break
         except Exception as e:
             print(f"[WARN] Query error for '{term}': {e}", flush=True)
 
-    print(f"[DOWNLOAD] Downloading {len(download_targets)} B-roll clips in parallel...", flush=True)
+    print(f"[DOWNLOAD] Downloading {len(download_targets)} strictly unique B-roll clips in parallel...", flush=True)
     valid_clips = []
-    with ThreadPoolExecutor(max_workers=6) as pool:
+    with ThreadPoolExecutor(max_workers=8) as pool:
         for saved_path in pool.map(download_pixabay_clip, download_targets):
             if saved_path and os.path.exists(saved_path) and os.path.getsize(saved_path) > 50000:
                 valid_clips.append(saved_path)
@@ -132,12 +159,12 @@ def fetch_broll_materials(terms: list[str], target_duration: float, cache_dir: s
         subprocess.run(cmd, check=True, capture_output=True)
         valid_clips.append(fallback_clip)
 
-    print(f"[DOWNLOAD] Ready with {len(valid_clips)} valid clips.", flush=True)
+    print(f"[DOWNLOAD] Ready with {len(valid_clips)} strictly unique clips (ZERO REPEATS)!", flush=True)
     return valid_clips
 
 
 def slice_single_clip(args: tuple) -> str | None:
-    """Normalize and slice a clip to 5 seconds 1080p 30fps."""
+    """Normalize and slice a clip to 10 seconds 1080p 30fps."""
     source_file, out_file, clip_duration = args
     if os.path.exists(out_file) and os.path.getsize(out_file) > 10000:
         return out_file
@@ -154,17 +181,23 @@ def slice_single_clip(args: tuple) -> str | None:
 
 
 def slice_and_concat(clips: list[str], total_duration: float, temp_dir: str) -> str:
-    """Normalize unique clips once, then assemble continuous stream via FFmpeg concat copy."""
-    clip_duration = 5.0
+    """Normalize strictly unique clips once, then assemble continuous stream with ZERO REPEATS."""
+    if not clips:
+        raise RuntimeError("No clips available for slicing!")
 
-    print(f"[SLICE] Normalizing {len(clips)} unique clips to 1080p 30fps...", flush=True)
+    # Dynamic cinematic clip pacing so EVERY clip is used strictly ONCE
+    # Automatically calculates optimal scene length (6.0s - 10.0s) based on available unique clips
+    num_clips = len(clips)
+    clip_duration = min(10.0, max(6.0, (total_duration + 5.0) / num_clips))
+
+    print(f"[SLICE] Normalizing {num_clips} strictly unique clips ({clip_duration:.2f}s each) to 1080p 30fps...", flush=True)
     slice_tasks = []
     for idx, src in enumerate(clips):
         out_clip = os.path.join(temp_dir, f"normalized_{idx:03d}.mp4")
         slice_tasks.append((src, out_clip, clip_duration))
 
     normalized_files = []
-    with ThreadPoolExecutor(max_workers=4) as pool:
+    with ThreadPoolExecutor(max_workers=6) as pool:
         for result in pool.map(slice_single_clip, slice_tasks):
             if result:
                 normalized_files.append(result)
@@ -172,23 +205,30 @@ def slice_and_concat(clips: list[str], total_duration: float, temp_dir: str) -> 
     if not normalized_files:
         raise RuntimeError("Failed to normalize any B-roll clips!")
 
-    required_count = int(total_duration / clip_duration) + 2
     concat_list_file = os.path.join(temp_dir, "concat_list.txt")
 
+    # Strictly UNIQUE assembly - NO CYCLING, NO REPEATS
     with open(concat_list_file, "w", encoding="utf-8") as f:
-        for i in range(required_count):
-            sf = normalized_files[i % len(normalized_files)]
+        accumulated = 0.0
+        used_count = 0
+        for sf in normalized_files:
             clean_path = os.path.abspath(sf).replace("\\", "/")
             f.write(f"file '{clean_path}'\n")
+            accumulated += clip_duration
+            used_count += 1
+            if accumulated >= total_duration + 2.0:
+                break
+        
+        print(f"[ASSEMBLY] Written {used_count} strictly unique clips (accumulated: {accumulated:.1f}s / target: {total_duration:.1f}s, ZERO REPEATS)", flush=True)
 
     combined_mp4 = os.path.join(temp_dir, "combined_video.mp4")
-    print(f"[CONCAT] Fast stream-copy concat for {total_duration:.1f}s ({required_count} segments)...", flush=True)
+    print(f"[CONCAT] Fast stream-copy concat for {total_duration:.1f}s ({len(normalized_files)} unique clips, ZERO REPEATS)...", flush=True)
     concat_cmd = [
         "ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i", concat_list_file,
         "-t", f"{total_duration:.3f}", "-c", "copy", "-movflags", "+faststart", combined_mp4
     ]
     subprocess.run(concat_cmd, check=True)
-    print(f"[CONCAT] Video stream assembled successfully: {combined_mp4}", flush=True)
+    print(f"[CONCAT] Video stream assembled successfully with ZERO REPEATS: {combined_mp4}", flush=True)
     return combined_mp4
 
 
@@ -284,7 +324,8 @@ def process_episode(episode_index: int):
     combined_video = slice_and_concat(clips, total_duration, ep_temp)
 
     # 4. Final Mux & Content ID Outro Append (Zero Subtitles)
-    assemble_master_with_outro(combined_video, audio_file, OUTRO_CLIP_PATH, final_output, ep_temp)
+    outro_clip = get_outro_clip_path()
+    assemble_master_with_outro(combined_video, audio_file, outro_clip, final_output, ep_temp)
 
     elapsed = time.time() - start_time
     print("=" * 65, flush=True)
