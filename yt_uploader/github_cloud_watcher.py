@@ -301,12 +301,12 @@ class GitHubCloudWatcher:
 
         # 2. Poll Artifacts endpoint (Primary robust auto-delivery for 1080p Cloud Videos)
         try:
-            art_url = f"https://api.github.com/repos/{owner}/{repo}/actions/artifacts?per_page=5"
+            art_url = f"https://api.github.com/repos/{owner}/{repo}/actions/artifacts?per_page=60"
             art_resp = requests.get(art_url, headers=headers, timeout=10)
             if art_resp.status_code == 200:
                 artifacts = art_resp.json().get("artifacts", [])
                 for art in artifacts:
-                    if art.get("name") == "master_video_1080p" and not art.get("expired"):
+                    if (art.get("name") == "master_video_1080p" or "1080p" in art.get("name", "")) and not art.get("expired"):
                         art_id = art.get("id")
                         zip_url = f"https://api.github.com/repos/{owner}/{repo}/actions/artifacts/{art_id}/zip"
                         r_red = requests.get(zip_url, headers=headers, allow_redirects=False, timeout=10)
