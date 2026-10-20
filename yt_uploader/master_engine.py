@@ -80,6 +80,7 @@ class CinematicMasterEngine:
         custom_audio_path: Optional[str] = None,
         custom_srt_path: Optional[str] = None,
         auto_upload: Optional[bool] = None,
+        platforms: Optional[List[str]] = None,
         skip_thumbnail: bool = True
     ) -> Dict[str, Any]:
         """
@@ -213,22 +214,28 @@ class CinematicMasterEngine:
         # Determine actual surviving delivered file path
         target_video = dest_download if (dest_download and os.path.exists(dest_download)) else output_video
 
-        # 9. Smart Auto-Upload (if requested)
-        if plan.get("auto_upload"):
-            logger.info("🚀 Auto-upload requested! Launching smart YouTube Studio uploader...")
+        # 9. Smart Multi-Platform Auto-Upload (YouTube, Rumble, etc.)
+        upload_dispatch_res = None
+        should_upload = plan.get("auto_upload", False) or bool(platforms) or any(k in prompt.lower() for k in ["rumble", "upload", "रंबल", "अपलोड"])
+        if should_upload and auto_upload is not False:
             try:
-                from yt_uploader.studio_uploader import upload_video_to_studio
-                ch_key = "channel_trading" if niche == "trading" else "channel_psychology"
-                profile_dir = os.path.join(_root, "storage", "profiles", ch_key)
-                upload_video_to_studio(
-                    channel_profile_dir=profile_dir,
-                    video_file_path=target_video,
-                    thumbnail_file_path="",  # STRICT ZERO THUMBNAIL PER USER MANDATE
+                from yt_uploader.multi_platform_router import parse_multi_platform_intent, dispatch_to_platforms
+                intent = parse_multi_platform_intent(prompt)
+                effective_platforms = platforms if platforms else intent.get("platforms", ["youtube"])
+                logger.info(f"🚀 Multi-Platform Auto-Upload Dispatching to: {effective_platforms}")
+                upload_dispatch_res = dispatch_to_platforms(
+                    video_path=target_video,
                     seo_package=seo,
+                    platforms=effective_platforms,
+                    youtube_channel=intent.get("youtube_channel"),
+                    rumble_channel=intent.get("rumble_channel"),
+                    visibility=intent.get("visibility", "unlisted"),
+                    rumble_license=intent.get("rumble_license", "rumble_only"),
                     headless=True
                 )
             except Exception as up_err:
-                logger.warning(f"Auto-upload failed or skipped: {up_err}")
+                logger.warning(f"Multi-platform auto-upload encountered: {up_err}")
+                upload_dispatch_res = {"success": False, "error": str(up_err)}
 
         # 10. Post-Render 5GB Disk Governor Enforcement
         enforce_5gb_disk_headroom(min_free_gb=5.0)
@@ -246,6 +253,7 @@ class CinematicMasterEngine:
             "file_size_human": format_bytes(v_size),
             "render_time_seconds": round(total_time, 1),
             "channel": channel,
+            "upload_dispatch": upload_dispatch_res,
             "seo": seo,
             "plan": plan
         }
