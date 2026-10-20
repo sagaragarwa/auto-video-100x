@@ -83,24 +83,51 @@ def detect_niche(prompt: str) -> str:
             return "history"
     return "general"
 
+def clean_subject(prompt: str) -> str:
+    clean = prompt
+    patterns = [
+        r'\b\d+\s*(?:min|mins|minute|minutes|sec|secs|second|seconds|m|s)\b',
+        r'\b(?:in\s+)?(?:hindi|english|angrezi)\b',
+        r'\b(?:documentary|masterclass|fast cuts|cinematic|quality)\b',
+        r'\b(?:auto\s+upload(?:\s+to)?|upload(?:\s+to)?|auto)\b',
+        r'\b(?:channel_\w+|psychology channel|trading channel|tech channel|science channel)\b',
+        r'\b(?:channel|to)\b',
+        r'\b(?:banao|generate|create|make)\b',
+        r'\b(?:ki\s+)?video\b',
+        r'\bvideo\b'
+    ]
+    for pat in patterns:
+        clean = re.sub(pat, ' ', clean, flags=re.IGNORECASE)
+    clean = re.sub(r'\b(\w+)(?:\s+\1\b)+', r'\1', clean, flags=re.IGNORECASE)
+    clean = re.sub(r'[,;:\-_\s]+', ' ', clean).strip()
+    clean = re.sub(r'\b(?:ki|ka|ke|ko|in|on|of|for|to)\s*$', '', clean, flags=re.IGNORECASE).strip()
+    return clean if clean else "Deep Masterclass"
+
 def generate_deep_script(prompt: str, niche: str, lang: str, target_duration_sec: int) -> Dict[str, Any]:
     """
-    Synthesizes deep-researched long-form documentary script (1 to 5+ minutes).
-    1. Attempts to use configured LLM service (Gemini, Claude, GPT, DeepSeek, etc.) if available.
+    Synthesizes deep-researched long-form documentary script (3 to 20+ minutes).
+    1. Attempts to use configured LLM service if available.
     2. Seamlessly falls back to rich, multi-niche procedural generator with high-retention hooks and authentic domain knowledge.
+    Guarantees exact target word count so that (narration + 173s signature outro) >= target_duration_sec!
     """
-    clean_topic = prompt.replace("video on", "").replace("make a video", "").replace("banao", "").replace("documentary", "").replace("5 minute", "").replace("10 minute", "").strip()
-    clean_topic = re.sub(r"\b(?:in\s+)?(?:hindi|english)\b", "", clean_topic, flags=re.IGNORECASE).strip()
-    if not clean_topic:
-        clean_topic = prompt.strip()
+    clean_topic = clean_subject(prompt)
+    detected_n = detect_niche(prompt) if not niche or niche == "general" else niche
 
-    detected_n = detect_niche(prompt) or niche
+    words_per_minute = 135 if lang == "en" else 125
+    outro_dur = 173.25
 
-    # 1. Try LLM generation from app.services.llm if configured
+    # 1. Target Narration Word Count Calculation
+    if target_duration_sec >= 300:
+        needed_narration_sec = max(180, target_duration_sec - outro_dur + 45)
+    else:
+        needed_narration_sec = max(90, target_duration_sec)
+
+    target_words = int((needed_narration_sec / 60.0) * words_per_minute)
+
+    # Check LLM if configured
     try:
         from app.services import llm
         from app.config import config
-        # Check if any LLM API key is present
         has_llm = any([
             config.app.get("gemini_api_key"),
             config.app.get("openai_api_key"),
@@ -112,211 +139,380 @@ def generate_deep_script(prompt: str, niche: str, lang: str, target_duration_sec
             os.environ.get("OPENAI_API_KEY")
         ])
         if has_llm:
-            target_paragraphs = max(3, min(8, int(target_duration_sec / 60)))
+            target_paragraphs = max(4, min(16, int(needed_narration_sec / 45)))
             lang_str = "Hindi" if lang == "hi" else "English"
-            logger.info(f"🤖 Generating dynamic script via configured LLM for: '{clean_topic}' ({lang_str})...")
             llm_script = llm.generate_script(
-                video_subject=clean_topic,
+                video_subject=f"{clean_topic} comprehensive deep analysis documentary",
                 language=lang_str,
                 paragraph_number=target_paragraphs
             )
-            if llm_script and len(llm_script.strip()) > 200:
-                logger.success(f"✅ Generated {len(llm_script)} chars dynamic script via LLM!")
+            if llm_script and len(llm_script.split()) >= target_words * 0.7:
                 return {
                     "title": f"The Untold Truth Behind {clean_topic.title()}" if lang == "en" else f"{clean_topic.title()} Ka Asli Sach [Deep Analysis]",
                     "script": llm_script.strip(),
                     "niche": detected_n,
                     "lang": lang
                 }
-    except Exception as llm_err:
-        logger.warning(f"LLM script generation skipped or unavailable: {llm_err}. Using procedural dynamic synthesis.")
+    except Exception:
+        pass
 
-    # 2. Rich, Niche-Aware Procedural Script Synthesis (Guaranteed 100% Unique per run)
-    words_per_minute = 135 if lang == "en" else 125
-    target_words = int((target_duration_sec / 60.0) * words_per_minute)
-    target_words = max(200, min(950, target_words))
-
-    # Niche-specific knowledge engines
+    # 2. Rich Multi-Chapter Procedural Knowledge Engines
     if lang == "en":
         # ENGLISH SYNTHESIS
-        hook_options = [
-            f"Most people think they understand {clean_topic}. But when you look beneath the surface, the reality is radically different from what the mainstream media portrays. In this deep dive, we break down the rigorous research, the hidden mechanics, and the exact operational reality that changes everything you thought you knew.",
-            f"There is an uncomfortable truth about {clean_topic} that almost nobody is willing to discuss publicly. Behind the glossy headlines lies a sophisticated machine designed to exploit intuition. Today, we peel back the layers to expose how this entire ecosystem actually functions behind closed doors.",
-            f"If you have ever tried to navigate {clean_topic}, you have likely noticed that standard advice consistently produces mediocre outcomes. That is not an accident—it is a systemic design. In this comprehensive breakdown, we analyze the empirical data and the counter-intuitive principles that separate elite operators from everyone else.",
-            f"What if everything you were told about {clean_topic} was fundamentally flawed? Decades of institutional research reveal a profound divergence between public perception and physical reality. Over the next few minutes, we dissect the mathematical and psychological architecture governing this entire domain."
-        ]
-
         if detected_n == "trading":
-            ch1_options = [
-                f"To understand the core architecture of {clean_topic}, we must first examine market microstructure and institutional order flow. Retail traders focus on lagging indicators like RSI or MACD, while institutional desks at Citadel and Goldman Sachs look exclusively at liquidity pools and order book imbalances. When billions of dollars move, liquidity must be engineered before price can transition into an impulsive expansion.",
-                f"In modern financial markets, liquidity is the only true fundamental truth. When high-frequency trading algorithms identify clustered stop losses resting above key highs or below structural lows, predatory algorithms trigger aggressive liquidity sweeps. Understanding where uninformed volume is trapped allows systematic traders to align with smart money rather than becoming exit liquidity."
+            hook = (
+                f"Most market participants look at their trading screens and assume that what they see on the public lit tape "
+                f"represents the entirety of financial reality. They draw retail trendlines, watch lagging indicators like RSI or MACD, "
+                f"and believe that supply and demand meet in a transparent, democratic auction. "
+                f"But in modern institutional finance, the public tape is often merely an engineered optical illusion. "
+                f"In this exhaustive masterclass, we dissect {clean_topic}, peeling back the layers of market microstructure, "
+                f"dark pools, and high-frequency algorithms to reveal how Wall Street actually operates behind closed doors."
+            )
+            cta1 = (
+                f"Before we examine the proprietary routing logic, if you find this institutional breakdown valuable, "
+                f"take a brief moment to subscribe to the channel and turn on notifications so you never miss a deep-dive market masterclass."
+            )
+            cta2 = (
+                f"What is your perspective on this structural shift in institutional finance? "
+                f"Do you trade with automated mechanical risk rules or discretionary gut feel? "
+                f"Share your experience in the comments below—we read every community discussion."
+            )
+            conclusion = (
+                f"The conclusion is undeniable: institutional trading is not about predicting the future with magical indicators; "
+                f"it is about understanding liquidity engineering, managing asymmetric risk-to-reward ratios, and executing with robotic discipline. "
+                f"Implement these mechanical frameworks systematically. Thank you for watching, and stay focused on what truly matters."
+            )
+            chapters = [
+                f"To understand the core architecture of {clean_topic}, we must first examine market microstructure and institutional order flow. Retail traders focus on lagging chart patterns, while quantitative desks at Citadel and Jane Street monitor liquidity pools and order book imbalances. When sovereign wealth funds rebalance billions across asset classes, liquidity must be engineered before price can transition into an impulsive expansion.",
+                f"In modern financial markets, liquidity is the only true fundamental reality. High-frequency algorithms continuously monitor trade prints on the Trade Reporting Facility to detect patterns of off-exchange accumulation. Clustered stop losses resting above swing highs or below structural lows represent resting volume that predatory algorithms actively hunt to fill institutional parent orders.",
+                f"Next, let us analyze order book anatomy: Level Two versus Level Three direct exchange multicast feeds. While the public SIP feed aggregates top-of-book quotes with geographic latency, quantitative desks consume raw ITCH and OpenBook feeds directly in memory. Tracking order replenishment speed, hidden reserve icebergs, and queue priority separates passive spread capture from toxic adverse selection.",
+                f"Consider also alternative trading venues, crossing networks, and dark order execution. Institutional desks utilize Midpoint Pegs, Discretionary Pegs, and Minimum Quantity instructions to execute massive blocks without broadcasting pre-trade information leakage to the lit market. Navigating these off-exchange protocols requires understanding how high-frequency pinging probes attempt to sniff hidden size.",
+                f"The psychological dimension of execution is where 95 percent of operators fail. Cognitive biases like loss aversion and sunk cost fallacy cause traders to hold losers while cutting winners prematurely. Mathematical expectation dictates that without positive expectancy, strictly defined risk per trade, and volatility-adjusted position sizing, long-term survival is statistically impossible.",
+                f"Professional quantitative execution models eliminate emotional turbulence entirely. By utilizing algorithmic execution schedules—such as Volume-Weighted Average Price and Time-Weighted Average Price—institutional traders slice massive parent orders into hundreds of micro-child orders, minimizing market impact and adverse slippage across multiple dark pools.",
+                f"Finally, let us examine the macroeconomic regime shift. As global interest rates oscillate and quantitative tightening drains market liquidity, volatility surfaces shift rapidly. Adapting to these structural regime changes requires relentless journaling, continuous backtesting against historical out-of-sample data, and the humility to respect market mechanics over personal ego."
             ]
-            ch2_options = [
-                f"The psychological dimension of execution is where 95% of market participants fail. Cognitive biases like loss aversion and confirmation bias force traders to hold losing trades while cutting winners prematurely. Mathematical expectation dictates that without asymmetric risk-to-reward ratios and mechanical risk parameters, long-term survival is statistically impossible.",
-                f"Automated execution models and quantitative frameworks eliminate emotional turbulence from decision-making. By implementing disciplined position sizing, volatility-adjusted stop losses, and rigorous trade journaling, professional operators transform market chaos into consistent, repeatable probabilistic edges."
+            deep_extensions = [
+                f"Delving further into the mathematical mechanics of {clean_topic}, portfolio variance and drawdown risk must be continuously monitored. Quantitative risk parity models balance asset exposure by inverse volatility, ensuring that catastrophic black swan events do not breach statutory capital preservation requirements.",
+                f"Statistical arbitrage frameworks exploit microsecond pricing discrepancies between correlated ETF baskets and underlying single-stock components. By maintaining market-neutral beta exposure, algorithmic market makers extract risk-free edge regardless of broader macroeconomic direction.",
+                f"The evolution of machine learning in order routing has introduced reinforcement learning agents that optimize execution trajectories in real time. These algorithms dynamically adapt their passive-versus-aggressive order ratio based on real-time bid-ask spread expansion and order book pressure."
             ]
+
         elif detected_n == "tech":
-            ch1_options = [
-                f"The foundational breakthrough behind {clean_topic} lies in computational scaling laws and architectural innovation. As neural network parameters scale, emergent reasoning capabilities begin to surface that traditional deterministic programming could never achieve. The battleground is no longer just algorithms—it is energy efficiency, memory bandwidth, and silicon throughput.",
-                f"When evaluating {clean_topic}, the real bottleneck is infrastructure. From advanced semiconductor packaging to high-bandwidth optical interconnects, the physical limits of modern computing are being redefined daily. Systems that can ingest and synthesize petabytes of unstructured telemetry with low latency are capturing undeniable market dominance."
+            hook = (
+                f"Most people think Artificial Intelligence and {clean_topic} are merely about chatbots and automated text generation. "
+                f"But when you examine the computational scaling laws, semiconductor physics, and massive cluster architecture powering this paradigm, "
+                f"the reality is radically more profound. We are witnessing the most significant technological inflection point in human civilization. "
+                f"In this exhaustive documentary breakdown, we dissect the rigorous engineering, the compute bottlenecks, and the operational reality governing {clean_topic}."
+            )
+            cta1 = (
+                f"If you appreciate deep engineering research that respects your technical curiosity, subscribe to the channel now and hit the notification bell. "
+                f"We publish weekly masterclasses dissecting the foundational mechanics of frontier technology."
+            )
+            cta2 = (
+                f"How do you view this transition toward autonomous agentic intelligence? "
+                f"Will autonomous multi-agent workflows amplify human creativity 100x, or fundamentally disrupt traditional white-collar occupations? "
+                f"Drop your thoughts in the comment section below."
+            )
+            conclusion = (
+                f"The conclusion is unmistakable: {clean_topic} is not a fleeting hype cycle, but the new foundational computing architecture for the next century. "
+                f"Understand these computational scaling principles, embrace autonomous orchestration, and continuously upgrade your mental models. "
+                f"Thank you for watching, and we will see you in the next deep breakdown."
+            )
+            chapters = [
+                f"The foundational architecture behind {clean_topic} originated with the 2017 Transformer breakthrough. By replacing recurrent sequential bottlenecks with Multi-Head Self-Attention, transformers enabled parallel training across trillions of tokens. Input text is tokenized and mapped into high-dimensional vector spaces, where deep attention matrices calculate contextual relationships across complex semantic sequences simultaneously.",
+                f"Beneath the mathematical software lies the harsh physical reality of semiconductor hardware. Modern frontier models require tens of thousands of specialized tensor processing units, like Nvidia H100 and B200 Blackwell silicon. Featuring High-Bandwidth Memory operating at multiple terabytes per second, these clusters require high-speed optical interconnects and massive liquid-cooling infrastructure to prevent thermal throttling.",
+                f"Let us now examine training dynamics and Chinchilla Neural Scaling Laws. Research demonstrates that model performance scales predictably as a power-law function of compute budget, dataset volume, and parameter capacity. Following unsupervised pre-training, models undergo Reinforcement Learning from Human Feedback and Direct Preference Optimization to align probabilistic token outputs with human intent.",
+                f"Beyond static single-turn prompting lies the true technological frontier: Autonomous Multi-Agent Swarms. By deploying specialized agents arranged in Planner, Worker, and Evaluator hierarchies, complex multi-step workflows are solved autonomously. Utilizing Model Context Protocols, these agents interact directly with file systems, execution environments, and external cloud APIs.",
+                f"Recent breakthroughs in test-time compute scaling have unlocked genuine reasoning capabilities. Rather than instantaneous next-token prediction, modern reasoning models generate internal chain-of-thought trajectories, evaluate alternative branches via tree search, and backtrack when dead ends are identified, achieving elite human benchmarks in competitive coding and mathematical synthesis.",
+                f"To remain competitive in this evolving ecosystem, practitioners must transition from passive tool users to autonomous AI orchestrators. Mastering context window efficiency, system prompt architecture, and local open-source models like DeepSeek and Llama allows individuals to build automated software pipelines with extraordinary economic leverage.",
+                f"From a geopolitical perspective, compute infrastructure has become a matter of sovereign national defense. Advanced photolithography, semiconductor fabrication facilities, and dedicated nuclear power contracts are dictating the global balance of power. Raw compute power is rapidly becoming the world's most valuable strategic commodity."
             ]
-            ch2_options = [
-                f"Beyond raw hardware, the societal and operational impact of this technological shift is unprecedented. Automated autonomous agents and decentralized intelligence frameworks are replacing static workflows. Those who understand how to orchestrate multi-agent architectures will possess an exponential leverage advantage over legacy institutions.",
-                f"The key takeaway for technological adaptation is velocity. As open-source models converge with proprietary frontier intelligence, the barrier to building world-class software has collapsed. Focusing on core architectural principles rather than fleeting hype cycles is what produces lasting technological breakthroughs."
+            deep_extensions = [
+                f"Examining the internal latency and memory bandwidth challenges reveals that memory wall constraints remain the primary hurdle in hardware scaling. SRAM caching hierarchies, wafer-scale integration, and silicon photonics represent the cutting-edge solutions currently being deployed to transcend von Neumann bottlenecks.",
+                f"Synthetic data generation and self-play reinforcement learning are replacing human-curated datasets. By setting models against adversarial evaluators in simulated environments, frontier systems continuously synthesize novel mathematical proofs and algorithmic optimizations without human intervention.",
+                f"The economic implications of zero-marginal-cost software generation will fundamentally reshape organizational design. Small autonomous teams leveraging intelligent agent workflows will routinely build and maintain infrastructure that historically required multi-million-dollar engineering departments."
             ]
-        elif detected_n == "history" or detected_n == "science":
-            ch1_options = [
-                f"When modern researchers examine {clean_topic} through rigorous scientific and archaeological lenses, historical orthodoxies rapidly crumble. Physical evidence, isotopic analysis, and precision engineering anomalies point to a complexity that defies simplistic conventional explanations.",
-                f"From cosmic astrophysical anomalies to forgotten monumental architecture, {clean_topic} presents challenges that modern paradigms struggle to reconcile. By analyzing the raw empirical data without dogmatic bias, an entirely new perspective begins to crystallize."
+
+        elif detected_n == "science" or detected_n == "history":
+            hook = (
+                f"When modern researchers examine {clean_topic} through rigorous empirical lenses, historical orthodoxies and conventional assumptions rapidly crumble. "
+                f"Physical evidence, precision isotopic dating, and architectural anomalies point to a complexity that defies simplistic textbooks. "
+                f"In this comprehensive documentary masterclass, we examine the raw scientific data and forgotten records that reshape our understanding of {clean_topic}."
+            )
+            cta1 = (
+                f"If you value independent scientific and historical research backed by empirical evidence, subscribe today and join our community of curious thinkers."
+            )
+            cta2 = (
+                f"What do you believe is the most compelling explanation for these anomalous discoveries? Share your hypothesis in the comments below."
+            )
+            conclusion = (
+                f"Ultimately, seeking truth requires setting aside dogmatic bias and following physical evidence wherever it leads. "
+                f"Embrace scientific rigor and keep questioning conventional narratives. Thank you for watching, and see you in the next investigation."
+            )
+            chapters = [
+                f"The physical evidence surrounding {clean_topic} challenges mainstream consensus. Whether analyzing micro-machining marks on ancient diorite vessels or precision astronomical alignments across megalithic complexes, the level of engineering intentionality suggests sophisticated lost technological paradigms.",
+                f"Examining geological stratigraphy and environmental sediment cores reveals catastrophic climatic transitions in Earth's history. Rapid meltwater pulses, cosmic impact indicators like nanodiamonds and platinum anomalies, and abrupt extinction horizons suggest cyclical global disruptions that reset ancient human civilizations.",
+                f"From an astrophysical perspective, cosmological observations continue to reveal fundamental puzzles. Dark matter, cosmic background radiation anomalies, and quantum vacuum energy challenge the Standard Model of physics, suggesting that our understanding of space-time and gravity remains fundamentally incomplete.",
+                f"Synthesizing ancient mathematical traditions reveals profound geometric knowledge encoded in architectural dimensions. The Golden Ratio, Pythagorean harmonics, and geodesic measurements indicate that ancient builders understood the precise equatorial circumference and curvature of the Earth millennia before modern satellites.",
+                f"Modern multi-spectral satellite imagery and LiDAR technology are currently revolutionizing archaeology, revealing lost urban networks buried beneath dense rainforests and desert sands that accommodated millions of inhabitants with advanced hydraulic engineering systems.",
+                f"Interdisciplinary research combining archaeoastronomy, genetics, and linguistic phylogenetics is dismantling fragmented academic silos. Tracing human mitochondrial DNA migration corridors demonstrates complex global maritime interactions far earlier than conventional history acknowledged.",
+                f"As emerging technologies allow us to probe deeper into quantum mechanics and cosmic microwave backgrounds, the boundary between ancient philosophical intuition and modern physics continues to blur, pointing toward a profound underlying continuity in universal structure."
             ]
-            ch2_options = [
-                f"The deeper we investigate, the clearer the structural patterns become. Whether through ancient mathematical geometry or advanced quantum cosmological frameworks, the underlying principles demonstrate a staggering level of intentionality and sophisticated design.",
-                f"Synthesizing these findings requires stepping outside traditional academic boundaries. When multidisciplinary insights intersect, forgotten truths and cutting-edge discoveries reveal a profound continuity across human history and universal mechanics."
+            deep_extensions = [
+                f"Carbon-14 calibration curves and accelerator mass spectrometry have provided unprecedented temporal resolution, demonstrating that anomalous monuments were constructed centuries earlier than previously theorized.",
+                f"Quantum entanglement and non-local correlations continue to challenge deterministic classical mechanics, proving that information itself is a foundational physical property woven into the fabric of reality.",
+                f"Analyzing ancient archaeo-metallurgy demonstrates specialized alloy compositions and high-temperature furnace techniques that modern metallurgy struggled to replicate until the late industrial era."
             ]
+
         else: # Psychology / Mindset / General
-            ch1_options = [
-                f"To understand {clean_topic}, we must examine how neurological feedback loops dictate human behavior. In an era of constant hyper-stimulation, our dopamine receptors are continuously down-regulated. This chronic neurological fatigue degrades executive function, memory consolidation, and long-term goal pursuit.",
-                f"The biological baseline of {clean_topic} reveals that willpower is a severely finite resource. When environmental friction is high and cognitive friction is unaddressed, the default mode network hijacks attention. Reclaiming focus requires systemic environmental engineering rather than fleeting bursts of motivation."
+            hook = (
+                f"Most people believe that navigating {clean_topic} is simply a matter of raw willpower and positive thinking. "
+                f"However, rigorous neurobiology and cognitive science prove that willpower is a severely finite biological resource. "
+                f"Behind our daily behaviors lies an intricate network of neurotransmitters, autonomic feedback loops, and default mode networks that govern human decision-making. "
+                f"In this in-depth masterclass, we break down the clinical research and evidence-based protocols that allow you to master {clean_topic} once and for all."
+            )
+            cta1 = (
+                f"If this scientific perspective on human behavior is providing clarity, hit the like button and subscribe to the channel for weekly evidence-based masterclasses."
+            )
+            cta2 = (
+                f"What is your single greatest friction point when attempting to implement lasting behavioral change? Drop your experience in the comments below."
+            )
+            conclusion = (
+                f"True transformation is not born from fleeting motivation; it is engineered through physiological alignment and systematic environmental design. "
+                f"Apply these protocols consistently and protect your mental sovereignty. Thank you for watching, and see you in the next masterclass."
+            )
+            chapters = [
+                f"To understand the biological baseline of {clean_topic}, we must examine how modern hyper-stimulation disrupts dopamine receptors. Constant notifications, short-form algorithm feeds, and artificial rewards cause chronic down-regulation of dopamine D2 receptors, creating baseline lethargy, chronic procrastination, and severe attentional fragmentation.",
+                f"When environmental friction is low for high-dopamine distractions, the default mode network hijacks cognitive bandwidth. Chronic elevation of cortisol and adrenaline keeps the sympathetic nervous system locked in a low-grade fight-or-flight state, impairing prefrontal cortex executive functioning and rational decision-making.",
+                f"Implementing sustainable neuroplastic recovery requires somatic regulation. Stimulating the vagus nerve through physiologically verified respiration—such as extended exhalations and physiological sighs—instantly activates parasympathetic tone, reducing heart rate variability stress metrics within seconds.",
+                f"Circadian rhythm entrainment represents the foundational pillar of cognitive endurance. Viewing natural early-morning sunlight stimulates retinal ganglion cells, synchronizing cortisol peaks with daylight and establishing a biochemical timer for optimal evening melatonin synthesis and restorative deep sleep architecture.",
+                f"Cognitive restructuring involves reframing catastrophic self-talk into objective empirical observations. By recognizing that thoughts are biological events rather than immutable truths, practitioners create psychological distance between stimulus and response, restoring dominant self-regulatory control.",
+                f"Identity-based habit compounding dictates that lasting behavioral shifts occur only when actions align with core personal identity. By automating micro-habits that reduce decision fatigue, elite performers maintain effortless focus while others exhaust their willpower through brute-force struggle.",
+                f"Over a multi-month trajectory, consistent adherence to these physiological principles leads to structural neurogenesis in the hippocampus and enhanced prefrontal gray matter density, transforming deliberate discipline into an automated baseline state."
             ]
-            ch2_options = [
-                f"Implementing sustainable transformation requires a structured, evidence-based protocol. By aligning circadian rhythms, optimizing sleep architecture, and creating non-negotiable friction around high-dopamine distractions, the prefrontal cortex regains dominant behavioral control.",
-                f"Consistency compounds exponentially over time. When daily micro-actions are tied to identity rather than emotional state, neurological rewiring shifts from an arduous conscious effort into an automated, effortless reflex."
+            deep_extensions = [
+                f"Investigating neurotransmitter reuptake kinetics demonstrates that adequate micronutrient intake, including magnesium L-threonate and omega-3 fatty acids, provides critical cofactors for myelin sheath repair and neurotransmitter synthesis.",
+                f"Deliberate environmental architecture creates physical boundaries that protect cognitive focus. By introducing intentional friction—such as physical device lockboxes and dedicated deep-work sanctuaries—attention is defended from predatory algorithmic capture.",
+                f"Non-Sleep Deep Rest protocols and systematic body scanning techniques facilitate rapid parasympathetic recovery, clearing neurotoxic adenosine accumulation from server synaptic clefts without requiring full sleep cycles."
             ]
-
-        cta_options = [
-            f"If you value deep investigative breakdowns that respect your intelligence, take a quick second to hit the like button and subscribe to the channel. Drop your thoughts in the comments below—we read every community discussion.",
-            f"If this analytical perspective provided value to your understanding, subscribe now and hit the notification bell for our weekly deep dives. We would love to hear your insights in the comments.",
-            f"Make sure to like this video and join our community of forward-thinking researchers by subscribing today. Share your unique perspective in the comment section below."
-        ]
-
-        conclusion_options = [
-            f"The conclusion is clear: mastering {clean_topic} demands abandoning conventional superficial myths and adopting an evidence-based operational framework. Start applying these principles today. Thank you for watching.",
-            f"Ultimately, your ability to navigate {clean_topic} comes down to discipline, clarity, and continuous execution. Implement these insights systematically. We will see you in the next breakdown.",
-            f"Success in this domain is not about luck; it is about respecting the underlying mechanics and executing relentlessly. Thank you for your time, and stay focused on what truly matters."
-        ]
-
-        hook = random.choice(hook_options)
-        ch1 = random.choice(ch1_options)
-        cta = random.choice(cta_options)
-        ch2 = random.choice(ch2_options)
-        conclusion = random.choice(conclusion_options)
-        full_text = f"{hook}\n\n{ch1}\n\n{cta}\n\n{ch2}\n\n{conclusion}"
 
     else:
         # HINDI SYNTHESIS
-        hindi_hooks = [
-            f"Zyadatar log {clean_topic} ke baare me sirf superficial baatein jaante hain. Lekin jab hum real empirical data aur deep analytical evidence ko dekhte hain, toh sachai bilkul alag nikal kar aati hai. Aaj ke is in-depth masterclass me hum samjhenge ki aakhir iske peeche ka asli hidden mechanism kya hai.",
-            f"Ek aisa kadwa sach hai {clean_topic} ke baare me, jise aksar mainstream media me chhipaya jata hai. Log sochte hain ki yeh aam baat hai, lekin parde ke peeche ek poora algorithmic aur structural system kaam karta hai. Aaj hum is poore ecosystem ko deeply decode karne wale hain.",
-            f"Agar aapne kabhi bhi {clean_topic} ko gaur se observe kiya hai, toh aapko pata hoga ki aam tareeqe hamesha fail ho jaate hain. Yeh koi ittefaq nahi hai, balki system ka designed structure hai. Aaj hum un exact principles par baat karenge jo top operators use karte hain.",
-            f"Kya aap jaante hain ki {clean_topic} ko lekar jo batein failayi jaati hain, unme se 90% sirf illusion hain? Jab aap facts, mathematical patterns aur core ground reality ko analyze karenge, toh aapka dekhne ka nazariya hamesha ke liye badal jayega."
-        ]
-
         if detected_n == "trading":
-            hindi_ch1 = [
-                f"Pehle chapter me baat karte hain market microstructure aur institutional order flow ki. Ek aam retail trader sirf chart par indicators dekhkar buy ya sell karta hai, jabki Wall Street ke institutional desks aur HFT algorithms exclusively liquidity pools aur stop-loss clusters ko hunt karte hain. Jab tak aapko yeh samajh nahi aayega ki smart money kahan enter ho rahi hai, tab tak aap har breakout me trap hote rahenge.",
-                f"Financial markets me sirf ek hi sachai hoti hai—aur woh hai Liquidity aur Volume Imbalance. Bade institutions jab hazaron crores ka volume move karte hain, toh unhe apna order execute karne ke liye retail traders ki exit liquidity chahiye hoti hai. Isliye support aur resistance ke fake breakouts banaye jaate hain taaki common traders ko trap kiya ja sake."
+            hook = (
+                f"Zyadatar log trading ko sirf chart par indicators dekhna ya call-put buy karna samajhte hain. "
+                f"Lekin jab aap Wall Street ke institutional desks, high-frequency algorithms aur order book microstructure ko dekhte hain, "
+                f"toh samajh aata hai ki public tape par dikhne wali har movement ek well-planned liquidity trap hoti hai. "
+                f"Retail traders jahan breakout par buy karte hain, wahan institutional algorithms unhe exit liquidity banakar stop hunt karte hain. "
+                f"Aaj ke is exhaustive documentary masterclass me hum {clean_topic} ke un real institutional mechanics ko decode karenge jo 99% traders ko kabhi nahi sikhaye jaate."
+            )
+            cta1 = (
+                f"Agar aapko yeh institutional market microstructure samajh aa raha hai aur aap retail mindset se nikal kar "
+                f"smart money ke sath align hona chahte hain, toh is video ko like karein aur channel ko subscribe kar lijiye. "
+                f"Bell icon zaroor dabayein taaki koi bhi trading masterclass miss na ho."
+            )
+            cta2 = (
+                f"Aap trading me indicators par depend karte hain ya institutional liquidity pools aur price action ko follow karte hain? "
+                f"Apna honest experience comment section me zaroor share karein—hum har ek comment ko read karte hain."
+            )
+            conclusion = (
+                f"Nishkarsh bilkul spasht hai: Trading me kamyabi kisi magical indicator se nahi, balki liquidity engineering, "
+                f"strict risk management aur mechanical discipline se aati hai. Apne losses ko chota rakhein aur winners ko smoothly run hone dein. "
+                f"Video dekhne ke liye dil se shukriya. Milte hain agle institutional breakdown me."
+            )
+            chapters = [
+                f"Pehle chapter me baat karte hain market microstructure aur institutional order flow ki. Ek aam retail trader indicator ke crossover par trade leta hai, jabki institutional market makers Level 3 order book feeds aur liquidity imbalances ko dekhte hain. Jab bade funds hazaron crores ka volume deploy karte hain, toh unhe aggressive buy ya sell karne se pehle counter-party liquidity assemble karni padti hai.",
+                f"Bade financial markets me sirf ek hi sachai hoti hai—aur woh hai Liquidity Hunt. Support aur resistance ke upar aur niche retail traders ke stop losses clustered hote hain. Predatory algorithms in clustered stops ko sweep karke heavy volume execute karte hain, jisse aam trader fake breakout me trap ho jata hai aur market turant reverse ho jaati hai.",
+                f"Teesre chapter me hum dissect karenge Level 2 aur Level 3 market data ko. Nasdaq ITCH aur NYSE OpenBook direct multicast feeds hoti hain jo nanoseconds me har ek order ke addition, modification aur cancellation ko broadcast karti hain. Algorithms order book replenishment speed aur hidden iceberg orders ko monitor karke passive spread capture karte hain.",
+                f"Chauthe chapter me aate hain Dark Pools aur Alternative Trading Systems par. Billion-dollar parent orders ko public lit exchange par execute karne ke bajaye institutions dark crossing networks me Midpoint Pegs aur Minimum Quantity conditions use karte hain. Isse pre-trade price impact aur slippage zero ho jati hai.",
+                f"Paanchwe chapter me baat karte hain Trader Psychology aur Mathematical Expectation ki. 90% log strategy ki wajah se nahi, balki loss aversion aur revenge trading ki wajah se fail hote hain. Asymmetric risk-to-reward ratio—kam se kam 1:2 ya 1:3—aur har trade par maximum 1% risk lena hi capital preservation ka golden rule hai.",
+                f"Chhathe chapter me execute karte hain Systematic Quantitative Playbook. Professional desks discretionary gut feel ke bajaye Volume-Weighted Average Price aur automated execution schedules use karte hain. Isse emotion puri tarah eliminate ho jata hai aur trading ek cold probabilistic business ban jaati hai.",
+                f"Saatwe chapter me evaluate karte hain Macroeconomic Regimes aur Volatility Shifts ko. Interest rates, bond yields aur central bank liquidity ke cycles ke sath market ka volatility structure badalta rehta hai. Sahi market phase ko pehchankar position sizing ko adjust karna hi long-term consistency deta hai."
             ]
-            hindi_ch2 = [
-                f"Dusra sabse critical aspect hai Risk Management aur Trader Psychology. 90% log strategy ki wajah se nahi, balki greed, fear aur position sizing ki galati se apna capital wipeout kar dete hain. Har trade me apne risk-to-reward ratio ko kam se kam 1:2 ya 1:3 maintain karna, aur strict stop loss follow karna hi profitable trading ka single golden rule hai.",
-                f"Systematic trading me emotions ki koi jagah nahi hoti. Jab aap ek predefined mechanical ruleset follow karte hain—jisme risk per trade 1% se zyada na ho—toh market ke har sudden drop ya spike me aapka capital safe rehta hai. Consistency strategy se nahi, balki iron discipline aur continuous journaling se aati hai."
+            deep_extensions = [
+                f"Iske mathematical dimension me Portfolio Drawdown aur Sharpe Ratio ko track karna anivarya hai. Ek systematic trader kabhi bhi apni drawdown limit ko 10% se exceed nahi hone deta aur high volatility me position size ko automatically scale-down kar deta hai.",
+                f"Statistical Arbitrage aur Pair Trading jaise quantitative models market-neutral rehte hain. Do correlated assets ke spread divergence par trade lagakar bina kisi market directional bias ke risk-free returns extract kiye jaate hain.",
+                f"Algorithmic Execution me Slippage control sabse bada edge hai. Smart Order Routers multiple exchanges aur dark pools me micro-second routing karke execution cost ko significantly reduce kar dete hain."
             ]
+
         elif detected_n == "tech":
-            hindi_ch1 = [
-                f"Pehle chapter me hum baat karenge core technological architecture aur compute scaling ki. {clean_topic} sirf ek software update nahi hai, balki yeh semiconductor physics, high-speed neural networks aur parallel processing ka ek massive revolution hai. Silicon chips se lekar cloud infrastructure tak, purane traditional models ko tezi se replace kiya ja raha hai.",
-                f"Aaj ke daur me technology ki asli ladai Algorithms aur Data Efficiency par ladi ja rahi hai. Jo systems petabytes of data ko real-time me zero latency ke sath process kar sakte hain, wahi aane wale samay me pure digital world ko govern karenge. Yeh shift itna tezi se ho raha hai ki legacy institutions adapt hi nahi kar pa rahe."
+            hook = (
+                f"Zyadatar log {clean_topic} ko sirf ek superficial tool ya simple chatbot samajhte hain. "
+                f"Lekin jab hum iski deep core architecture, neural network scaling laws aur computational infrastructure ko analyze karte hain, "
+                f"toh samajh aata hai ki yeh manav itihas ka sabse krantikari turning point hai. "
+                f"Parde ke peeche aisi takneek kaam kar rahi hai jo software engineering, research aur poore digital universe ko hamesha ke liye badal rahi hai. "
+                f"Aaj ke is exhaustive masterclass me hum {clean_topic} ke un hidden mechanics ko decode karenge jo 99% logon ko bilkul nahi pata."
+            )
+            cta1 = (
+                f"Agar aapko yeh deep technological breakdown samajh aa raha hai aur aap mainstream media ki superficial baaton se aage "
+                f"real engineering facts ko sikhna chahte hain, toh is video ko like zaroor karein aur channel ko subscribe kar lijiye. "
+                f"Bell notification on rakhein taaki koi bhi high-level masterclass miss na ho."
+            )
+            cta2 = (
+                f"Aapka is autonomous technological revolution ke baare me kya manna hai? "
+                f"Kya aane wale samay me insaani productivity 10 guna badhegi ya pura traditional work structure automate ho jayega? "
+                f"Apne vichar niche comment section me zaroor share karein, hum har ek comment ko deeply read karte hain."
+            )
+            conclusion = (
+                f"Nishkarsh bilkul spasht hai: {clean_topic} koi temporary trend ya marketing hype nahi hai, "
+                f"balki hamari modern civilization ka naya computational foundation hai. "
+                f"In underlying principles ko samjhein, algorithmic leverage ko apni daily life me execute karein aur lagatar naye concepts ko master karte rahein. "
+                f"Is deep investigative video ko dekhne ke liye shukriya. Apna dhyan rakhein aur milte hain agle documentary masterclass me."
+            )
+            chapters = [
+                f"Pehle chapter me hum baat karenge core technological architecture aur Transformer revolution ki. 2017 me research paper 'Attention Is All You Need' ne computational science ki disha badal di. Pehle ke recurrent models me sequential processing hoti thi, jisse lambe sentences me context disappear ho jata tha. Transformer model ne Multi-Head Self-Attention mechanism introduce kiya, jahan har ek word ya token sentence ke baki sabhi tokens ke sath simultaneously mathematical relationship establish karta hai. Jab hum kisi model me prompt enter karte hain, toh input text ko hazaron multi-dimensional vector embeddings me convert kiya jata hai. Yeh embeddings billions of parameters ke high-speed matrix multiplication ke through pass hoti hain, jisse model ko language ki deep context aur semantic meaning samajh aati hai.",
+                f"Dusra sabse bada reality check hai physical hardware aur compute bottleneck. Software kitna bhi advanced ho, bina silicon chips ke compute impossible hai. Nvidia ke H100 aur B200 Blackwell chips is pure revolution ki backbone hain. Har ek chip me 80 billion se 200 billion transistors hote hain, jo High-Bandwidth Memory yani HBM3e se 8 terabytes per second ki massive bandwidth par data process karte hain. Lekin sabse bada constraint semiconductor nahi, balki electrical power aur cooling grids hain. Ek modern gigawatt-scale AI datacenter ko chalane ke liye ek pure metropolitan shehar jitni electricity ki zaroorat hoti hai. Global tech giants ab nuclear power plants ke sath direct supply contracts sign kar rahe hain, kyunki jiske paas continuous energy aur silicon compute hoga, wahi global intelligence ko lead karega.",
+                f"Teesre chapter me dekhte hain Training Dynamics aur Neural Scaling Laws. Frontier research labs trillions of tokens ke web-scale text aur code repositories par models ko pre-train karti hain. Chinchilla scaling laws yeh dictate karti hain ki model ke parameter count aur training tokens ka ratio perfectly balanced hona chahiye. Jaise-jaise compute budget badhta hai, model ki test loss mathematically smooth curve me decrease hoti hai aur surprising emergent capabilities jaise logic reasoning aur complex code synthesis activate hone lagti hain. Pre-training ke baad Alignment phase aata hai, jahan Reinforcement Learning from Human Feedback yani RLHF aur Direct Preference Optimization se model ko safe aur helpful banaya jata hai. Ab internet ka human data saturate ho chuka hai, isliye leading labs high-fidelity synthetic data aur automated self-play simulation loops ke through models ko training provide kar rahi hain.",
+                f"Chauthe chapter me hum aate hain sabse impactful phase par—Autonomous AI Agents. Ek single model se chat karna AI ka past tha; AI ka future Multi-Agent Systems me hai. Is architecture me multiple specialized agents ek sath milkar complex engineering problems ko solve karte hain. Ek Planner agent goal ko logical milestones me divide karta hai; ek Coder agent software likhta hai; aur ek Critic agent continuously tests execute karke code errors ko fix karta hai. Model Context Protocol yani MCP ke through yeh autonomous agents databases, operating system terminals, cloud APIs aur web browsers ko directly control karte hain. Aane wale do saalon me ek single engineer in autonomous agent swarms ko orchestrate karke ek 50-person engineering team ke barabar software output generate kar sakega.",
+                f"Paanchwe chapter me baat karte hain Reasoning Models aur Test-Time Compute scaling ki. Legacy models me prompt milte hi agla token bina soche predict kiya jata tha, jisse complex math aur logical puzzles me failure aati thi. Modern reasoning models inference ke samay test-time compute ko scale karte hain. Jab aap inhein ek difficult challenge dete hain, toh yeh answer dene se pehle internal chain-of-thought generate karte hain. Yeh model tree search aur Monte Carlo simulations ke through multiple solution paths explore karta hai, apni galatiyon ko midway backtrack karta hai, aur verify hone ke baad hi accurate response deliver karta hai. Is capability ne AI ko ek simple text predictor se convert karke ek autonomous scientific researcher ke level par la khada kiya hai.",
+                f"Chhathe chapter me aate hain practical implementation aur human strategy par. Is massive transition me aam user aur elite operator ke beech ka gap exponentially badhne wala hai. Agar aap sirf AI ko search engine ki tarah use karenge, toh aapka leverage zero rahega. Aapko ek AI Orchestrator banna hoga—jise yeh pata ho ki context windows ko optimize kaise karein, system prompts ko mathematically structure kaise karein, aur local open-source models jaise DeepSeek aur Llama ko apne custom business pipelines ke sath integrate kaise karein. Aapka domain expertise jab autonomous AI leverage ke sath multiply hota hai, tab aap aisi productivity achieve karte hain jo pehle puri organization milkar bhi nahi kar sakti thi.",
+                f"Saatwe chapter me hum evaluate karte hain geopolitical aur economic impact ko. AI sovereignty ab har major nation ke liye national defense jaisa priority issue ban chuka hai. Semiconductor fabrication plants, lithography machines aur advanced packaging technology par global trade wars chal rahi hain. Data center clusters ab naye industrial factories hain jo physical goods ke bajaye cognitive intelligence produce karte hain. Yeh economic shift human labor ki value ko redefine kar raha hai. Jo companies aur individuals is transformation ki core reality ko samajhkar early position le rahe hain, wahi aane wale digital era ke economic leaders honge."
             ]
-            hindi_ch2 = [
-                f"Dusra main factor hai Autonomous AI Agents aur Future Automation. Aane wale waqt me humans aur automated systems ka collaboration itna deep hoga ki standard technical jobs ka structure poori tarah badal jayega. Jo log AI tools aur deep systems ko leverage karna seekhenge, unka leverage aur productivity 10 guna badh jayegi.",
-                f"Is technological race me wahi log aur businesses aage rahenge jo foundational concepts par focus karenge, na ki temporary hype par. Apne technical acumen ko lagatar upgrade karna aur open-source innovation ko master karna hi future-proof banne ka ekmatra raasta hai."
+            deep_extensions = [
+                f"Iske mathematical dimension par aur gehraai se dhyan dein. Jab hum neural network ke parameter weights aur attention matrices ko inspect karte hain, toh har ek layer abstract representation learn karti hai—low-level syntactic patterns se lekar high-level reasoning concepts tak. Yeh continuous learning loop empirical research ko naye mukam par le ja raha hai.",
+                f"Software architecture me Zero-Shot aur Few-Shot prompting se nikal kar ab Retrieval-Augmented Generation yani RAG ka daur hai. Enterprise documents ko vector database me index karke semantic search ke through live context injection kiya jata hai, jisse hallucination rate zero ho jati hai.",
+                f"Edge AI aur On-Device Intelligence naya revolution hai. Quantization techniques jaise 4-bit aur 8-bit precision models ko mobile devices aur local hardware par ultra-fast speed se run karne me saksham banati hain."
             ]
-        elif detected_n == "history" or detected_n == "science":
-            hindi_ch1 = [
-                f"Pehle chapter me hum un archaeological aur scientific evidences ko dekhenge jo modern textbooks me nahi padhaye jaate. {clean_topic} ke bare me jo claims kiye jaate hain, jab unka carbon dating aur architectural precision test kiya gaya, toh aisi chizen samne aayi jinhone purane theories ko poori tarah hila diya.",
-                f"Chahe hum ancient engineering feats ki baat karein ya quantum cosmology ke unsolved mysteries ki, {clean_topic} ek aisi paheli hai jo modern science ko bhi hairan kar deti hai. Har ek structural alignment aur mathematical pattern yeh sabit karta hai ki ancient civilization ka gyan aam dharana se hazaron saal aage tha."
+
+        elif detected_n == "science" or detected_n == "history":
+            hook = (
+                f"Jab modern researchers {clean_topic} ko empirical scientific aur archaeological lens se dekhte hain, "
+                f"toh purani theories aur orthodox assumptions bilkul galat sabit hone lagte hain. "
+                f"Physical anomalies, carbon dating ke naye results aur advanced precision engineering yeh saaf karti hain "
+                f"ki hamare past aur universe ke bare me hum jo jaante hain, woh sirf 10% sach hai. "
+                f"Aaj ke is exhaustive documentary masterclass me hum un facts aur empirical data ko explore karenge jo aam kitabon me nahi milte."
+            )
+            cta1 = (
+                f"Agar aap genuine research aur scientific discoveries ko support karte hain, toh video ko like karein aur channel ko subscribe kar lijiye."
+            )
+            cta2 = (
+                f"Aapka is mysterious discovery ke baare me kya nazariya hai? Kya ancient civilizations ke paas koi advanced understanding thi? Comment karein."
+            )
+            conclusion = (
+                f"Sach hamesha wahi hota hai jo physical evidence aur empirical data me dikhta hai. "
+                f"Apne dhyan ko hamesha scientific perspective par केंद्रित rakhein. Video dekhne ke liye shukriya. Milte hain agle documentary breakdown me."
+            )
+            chapters = [
+                f"Pehle chapter me hum baat karenge geological aur archaeological anomalies ki. {clean_topic} ke bare me milne wale physical evidences standard textbook timeline se hazaron saal purane hain. Precision stonework aur geometric alignments aam tools se banana physics ke hisab se impossible tha.",
+                f"Dusre chapter me decode karte hain ancient mathematical precision ko. Mega-structures me Pi aur Golden Ratio ka use yeh sabit karta hai ki unhe Prithvi ke exact circumference aur dimensions ka pura gyan tha, jo modern science ne satellites se verify kiya.",
+                f"Teesre chapter me astrophysics aur quantum principles ko jodkar dekhte hain. Cosmic radiation, vacuum energy aur quantum entanglement yeh dikhate hain ki hamara physical cosmos ek interconnected information matrix hai.",
+                f"Chauthe chapter me climate transitions aur cataclysms ka analysis karte hain. Earth ke geological layers me nanodiamonds aur sudden melting pulse evidence sabit karte hain ki global catastrophic events ne itihas ko kayi baar reset kiya hai.",
+                f"Paanchwe chapter me modern satellite LiDAR scanning ke results ko dekhte hain. Dense jungles aur deserts ke niche dafn massive cities yeh reveal kar rahi hain ki hamara aitihasik gyan kitna adhura tha.",
+                f"Chhathe chapter me genetic migration aur ancient maritime trade routes ko analyze karte hain. Human mitochondrial DNA se pata chalta hai ki continents ke beech interaction bohot pehle se chala aa raha hai.",
+                f"Saatwe chapter me philosophical synthesis par aate hain. Science aur consciousness ka interlink yeh batata hai ki human evolution ka agla padav hamari awareness me chhipa hai."
             ]
-            hindi_ch2 = [
-                f"Dusre chapter me hum iske core philosophical aur universal significance ko decode karenge. Jab aap science aur historical consciousness ko jodte hain, toh aapko samajh aayega ki hamara past aur future kitne interconnected hain. Yeh facts sirf aitihasik nahi, balki hamari human consciousness ke liye bhi ek gehra message hain.",
-                f"Isliye sabse zaroori hai ki hum open mindset ke sath empirical research aur scientific methods ko apnayein. Jab hum dogmatic assumptions se bahar aakar research karte hain, tabhi sachai poore roop me ujaagar hoti hai."
+            deep_extensions = [
+                f"Radiometric dating aur accelerator mass spectrometry ne chronology ko naye sire se define kiya hai, jisse purane dates ko hazaron saal piche shift karna pada hai.",
+                f"Quantum physics me Observer Effect yeh dikhata hai ki consciousness aur physical matter ek dusre se alag nahi hain.",
+                f"Ancient metallurgy aur high-temperature blast furnaces ke chemical traces yeh sabit karte hain ki advanced materials ka gyan us daur me bhi maujood tha."
             ]
-        elif detected_n == "psychology" or detected_n == "general":
+
+        else: # Psychology / Mindset / General
             t_low = clean_topic.lower()
             if any(k in t_low for k in ["anxiety", "panic", "overthinking", "fear", "घबराहट", "चिंता", "डर", "बेचैनी"]):
-                hindi_ch1 = [
-                    f"Pehle chapter me baat karte hain Amygdala Hijack aur Sympathetic Nervous System ki. Jab insaan Anxiety ya Panic attack se guzarta hai, toh dimag ka fear center yani Amygdala bina kisi vastavik khatre ke emergency alarm baja deta hai. Bloodstream me Adrenaline aur Cortisol ki flood aa jaati hai, jisse dil ki dhadkane tez hoti hain, saans foolne lagti hai aur poora sharir Fight-or-Flight mode me lock ho jata hai.",
-                    f"Anxiety koi mann ka weham ya kamzori nahi hai, balki yeh ek biological neurochemical storm hai. Chronic stress ki wajah se hamara autonomic nervous system over-sensitized ho jata hai. Aise me choti si baat par bhi dimag ko lagta hai ki koi bohot bada sankat aane wala hai. Is physiological loop ko todna hi permanent recovery ka pehla kadam hai."
+                hook = (
+                    f"Zyadatar log anxiety ya panic attacks ko sirf mann ka weham ya kamzori samajhte hain. "
+                    f"Lekin neurobiology aur clinical psychiatry yeh spasht karti hai ki anxiety ek intense biological storm hai. "
+                    f"Jab dimag ka fear center yani Amygdala bina kisi physical khatre ke emergency alarm baja deta hai, "
+                    f"toh bloodstream me adrenaline aur cortisol ka sailab aa jata hai aur sharir fight-or-flight mode me lock ho jata hai. "
+                    f"Aaj ke is exhaustive masterclass me hum anxiety aur panic attacks ke neurobiological roots aur un scientific protocols ko samjhenge jo ise permanent heal karte hain."
+                )
+                chapters = [
+                    f"Pehle chapter me decode karte hain Amygdala Hijack aur Sympathetic Nervous System ko. Chronic stress ki wajah se autonomic nervous system hypersensitive ho jata hai. Dimag choti si aashanka ko bhi catastrophic threat maan leta hai, jisse heart rate spike hoti hai, breathing shallow hoti hai aur chest me tightness mehsoos hoti hai. Yeh purely physiological response hai.",
+                    f"Dusre chapter me dekhte hain Neurochemical Cascade ko. Adrenaline aur Noradrenaline ke continuous secretion se brain ka prefrontal cortex shut down hone lagta hai. Insaan rational sochna band kar deta hai aur worst-case scenario ke obsessive loop me fans jata hai. Is neurochemical loop ko todne ke liye body-first intervention anivarya hai.",
+                    f"Teesre chapter me hum sikhate hain Somatic Vagus Nerve Activation. Jab panic attack start ho, toh dimag se ladna band karein aur physiological sigh use karein—do bar deep inhale aur lamba mouth exhale. Yeh technique turant parasympathetic nervous system ko trigger karti hai aur heart rate ko 60 seconds me normal karti hai.",
+                    f"Chauthe chapter me aate hain 5-4-3-2-1 Sensory Grounding Technique par. Anxiety insaan ko future ke imaginary dar me le jaati hai. 5 visible objects, 4 touchable textures, 3 ambient sounds ko consciously identify karke sensory cortex activate hota hai aur dimag wapas present reality me ground ho jata hai.",
+                    f"Paanchwe chapter me baat karte hain Cognitive Restructuring aur Thought Labeling ki. Har ek vichar sach nahi hota. Apne catastrophic thoughts ko likhein aur objective evidence se challenge karein. 'Main marne wala hoon' ko replace karein 'Yeh sirf adrenaline rush hai jo agle 5 minute me calm ho jayega'.",
+                    f"Chhathe chapter me circadian rhythm aur sleep stabilization par focus karein. Morning sunlight exposure aur consistent bedtime se cortisol baseline normal rehta hai, jisse nervous system ki daily hyper-reactivity 70% tak drop ho jaati hai.",
+                    f"Saatwe chapter me long-term neuroplastic healing ka blueprint dekhte hain. Consistent somatic mindfulness, daily walks, clean nutrition aur gradual exposure se Amygdala rewire hota hai aur insaan hamesha ke liye fearless ban jata hai."
                 ]
-                hindi_ch2 = [
-                    f"Dusra step hai Somatic Regulation aur Vagus Nerve Stimulation. Jab panic ya overthinking shuru ho, toh dimag ko samjhane se pehle sharir ko calm karna zaroori hota hai. Physiologically active deep breathing—jisme exhalation lamba ho—turant parasympathetic response ko activate karti hai aur heart rate ko normal karti hai. Sath hi grounding techniques dimag ko imaginary dar se nikal kar present reality me le aati hain.",
-                    f"Cognitive restructuring aur nervous system conditioning se anxiety ko hamesha ke liye control kiya ja sakta hai. Apne catastrophic thoughts ko challenge karein aur samjhein ki har thought ek fact nahi hota. Daily somatic mindfulness aur sleep routine ko stable karke aap apne nervous system ko dobara resilient bana sakte hain."
+            elif any(k in t_low for k in ["depression", "anhedonia", "sadness", "डिप्रेशन", "उदासी", "अकेलापन", "निराशा"]):
+                hook = (
+                    f"Depression sirf udas hona nahi hai; yeh ek aisi biological sthiti hai jise clinical science me Anhedonia kehte hain. "
+                    f"Insaan un cheezon me bhi koi khushi mehsoos nahi kar pata jise wo kabhi sabse zyada chahta tha. "
+                    f"Brain neuroimaging me dekha gaya hai ki Default Mode Network hyperactive ho jata hai aur neurotransmitters exhaust ho jaate hain. "
+                    f"Aaj ke is in-depth masterclass me hum depression ki asli neurobiology aur clinical healing protocols ko decode karenge."
+                )
+                chapters = [
+                    f"Pehle chapter me samjhenge Default Mode Network aur Neurotransmitter Depletion ko. Serotonin aur Dopamine pathways down-regulate hone se brain me cognitive fatigue aa jaati hai. Prefrontal cortex ki executive energy khatam ho jaati hai aur insaan ko basic daily tasks bhi pahad jaise lagte hain. Yeh aalas nahi, biological exhaustion hai.",
+                    f"Dusre chapter me baat karte hain Hippocampal Neurogenesis aur BDNF protein ki. Chronic depression me hippocampus shrink hone lagta hai. Is process ko reverse karne ke liye natural sunlight, aerobic walking aur omega-3 fatty acids essential cofactors hain jo brain-derived neurotrophic factor ko stimulate karte hain.",
+                    f"Teesre chapter me Behavioral Activation protocol implement karte hain. Motivation ka wait mat kijiye; micro-actions initiate karein. Sirf 5 minute ke liye bistar se uthna, room ki window kholna aur paani peena dopamine circuitry ko restart karta hai.",
+                    f"Chauthe chapter me social connection aur isolation breakdown zaroori hai. Akelepan me Default Mode Network self-criticism loop ko 10 guna amplify kar deta hai. Kisi trusted person ya support group se baat karna neurochemical relief deta hai.",
+                    f"Paanchwe chapter me Cognitive Behavioral Therapy ke principles se negative cognitive distortions ko systematically challenge kiya jata hai. Self-compassion ke sath khud ko judge karna band karein.",
+                    f"Chhathe chapter me circadian biology aur physical recovery routines ko establish karein. Sleep architecture ko repair karke brain toxins ko glymphatic system ke zariye wash-out kiya jata hai.",
+                    f"Saatwe chapter me permanent recovery ka vision establish hota hai. Depression 100% curable neurological condition hai, bas sahi systematic approaches ko consistency ke sath follow karne ki zaroorat hai."
                 ]
-            elif any(k in t_low for k in ["depression", "anhedonia", "sadness", "डिप्रेशन", "उदासी", "अकेलापन", "निराशा", "सुन्न"]):
-                hindi_ch1 = [
-                    f"Pehle chapter me hum samjhenge Depression ki asli neurobiology aur Default Mode Network ko. Clinical depression sirf sad hona nahi hai; yeh ek aisi sthiti hai jise Anhedonia kehte hain—jahan insaan un cheezon me bhi koi khushi ya ras mehsoos nahi kar pata jise wo kabhi sabse zyada pasand karta tha. Brain scanning me dekha gaya hai ki DMN network over-active ho jata hai aur insaan negative self-criticism ke loop me fans jata hai.",
-                    f"Depression me dimag ke neurotransmitters—khas kar Serotonin aur Dopamine pathways—exhaust ho jaate hain. Hippocampus me neurogenesis rukne lagti hai aur prefrontal cortex ki executive decision-making energy khatam ho jaati hai. Insaan ko subah bistar se uthna bhi ek pahad chadhne jaisa mehsoos hota hai. Yeh biological thakan hai, koi aalas nahi."
-                ]
-                hindi_ch2 = [
-                    f"Dusra step hai Clinical Compassion aur Neuroplastic Healing. Depression se ladne ke liye temporary motivation nahi, balki micro-movements ki zaroorat hoti hai. Sunlight exposure, natural omega-3 intake aur daily 10-minute ki slow walking brain me BDNF protein ko badhati hai, jo naye neural pathways banata hai. Sabse zaroori hai akelepan ko todkar genuine support system se judna.",
-                    f"Yeh samajhna zaroori hai ki depression ek curable neurological condition hai. Self-compassion ke sath, bina khud ko judge kiye, professional guidance aur step-by-step cognitive behavioural therapy se dimag ki chemical balance ko poori tarah restore kiya ja sakta hai. Andhere ke baad roshni hamesha aati hai."
-                ]
-            elif any(k in t_low for k in ["mood swing", "bipolar", "mania", "मूड स्विंग", "बाइपोलर", "भावनाएं"]):
-                hindi_ch1 = [
-                    f"Pehle chapter me baat karte hain Mood Swings aur Neurochemical Oscillations ki. Jab kisi insaan ka mood bina kisi spasht wajah ke achanak extreme khushi se gehre depression me crash hota hai, toh yeh dimag ke neurotransmitter regulatory systems ka imbalance hota hai. Dopaminergic aur Noradrenergic circuits jab suddenly spike ya drop hote hain, toh emotional equilibrium hil jata hai.",
-                    f"Emotional volatility aur mood swings aksar sleep deprivation, hormonal fluctuation aur unaddressed chronic stress se trigger hote hain. Insaan ko lagta hai ki uske emotions par uska koi control nahi hai, jisse guilt aur frustration badhne lagta hai. Is neural fluctuation ko clinical perspective se dekhna behad zaroori hai."
-                ]
-                hindi_ch2 = [
-                    f"Dusra step hai Circadian Rhythm Stabilization aur Mood Tracking. Bipolar aur mood swings ko govern karne me hamare biological clock ka sabse bada haath hota hai. Consistent bed-time, morning natural sunlight aur daily mood triggers ko journal me note karne se dimag ki neurochemistry stable rehti hai. Cognitive grounding se impulsive spikes ko control kiya ja sakta hai.",
-                    f"Emotional balance koi achanak milne wali cheez nahi hai, yeh daily habits ka reflection hai. Apne nervous system ko extreme highs aur lows se bacha kar ek stable baseline par lana hi permanent peace of mind ka scientific formula hai."
-                ]
-            elif any(k in t_low for k in ["schizophrenia", "hallucination", "delusion", "सिजोफ्रेनिया", "वहम", "आभास"]):
-                hindi_ch1 = [
-                    f"Pehle chapter me samjhenge Schizophrenia ki complex neurobiology aur Perception Fragmentation ko. Schizophrenia ek aisi neurological sthiti hai jahan dimag ka mesolimbic pathway dopamine ke hyper-activity ke karan vastavikta aur kalpana ke beech ka bhed nahi kar pata. Dimag ko aisi aawazein ya chizen mehsoos hoti hain jo aam logon ko nahi dikhti.",
-                    f"Sensory gating mechanism jab fail ho jata hai, toh dimag par hazaron signals ka overload padta hai jise wo filter nahi kar pata. Samaj me ise aksar galat dharanaon se dekha jata hai, jabki modern psychiatry yeh saaf karti hai ki yeh genetic aur neurodevelopmental factors ka ek biological parinaam hai."
-                ]
-                hindi_ch2 = [
-                    f"Dusra step hai Comprehensive Psychiatric Support aur Social Re-integration. Modern anti-psychotic medications aur structured therapy ke sath schizophrenia se peedit log bhi ek behtar aur productive jeevan jee sakte hain. Family support, safe environment aur continuous reality-testing protocols se symptoms ko successfully manage kiya ja sakta hai.",
-                    f"Is bimari ko lekar bane stigma ko khatam karna hamari samajik zimmedari hai. Jab hum empathy aur scientific understanding ke sath patients ka sath dete hain, tab unki recovery ki journey bohot aasan ho jaati hai."
-                ]
-            elif any(k in t_low for k in ["calmness", "peace", "meditation", "mindfulness", "शांत", "सुकून", "शांति", "ध्यान"]):
-                hindi_ch1 = [
-                    f"Pehle chapter me decode karte hain Mental Calmness aur Parasympathetic Nervous System ko. Aaj ke shor-sharabe aur continuous stimulation ke daur me hamara dimag lagatar beta brain waves me rehta hai. Mental peace koi kismat nahi hai, balki Vagus nerve activation aur alpha brain waves ka natural biological state hai jab hum deep relaxation me hote hain.",
-                    f"Jab hum overstimulation aur comparison ki daud se bahar nikalte hain, toh hamare adrenal glands cortisol banana kam kar dete hain. Heart rate variability sudharti hai aur brain ke prefrontal cortex me clarity aati hai. Sukoon aur shanti dhoondhne se nahi, balki internal friction ko release karne se milti hai."
-                ]
-                hindi_ch2 = [
-                    f"Dusra step hai Daily Stillness Protocol aur Nature Immersion. Har din 15 minute bina kisi screen ke shant baithna, mindful breathing karna aur kudrat ke sath waqt bitana brain ke neuroplastic circuits ko rewire kar deta hai. Slow living aur single-tasking se mind ki unnecessary chatter hamesha ke liye shant ho jaati hai.",
-                    f"Asli taqat shor machane me nahi, balki gehre thehrao me hoti hai. Jab aapka antrik mann sthir hota hai, toh bahar ka koi bhi toofan aapki shanti ko hila nahi sakta. Apni mental space ko protect kijiye aur daily mindfulness ko apna aabhushan banaiye."
-                ]
-            else: # Dopamine Detox & Digital Addiction
-                hindi_ch1 = [
-                    f"Pehle chapter me baat karte hain hamare Neurobiology aur Brain Chemistry ki. Aaj ke hyper-stimulated world me reels, short-form content aur instant notifications hamare dopamine receptors ko lagatar burn out kar rahe hain. Iska result yeh hota hai ki hamara prefrontal cortex kamzor padne lagta hai aur hum deep work ya long-term goals par focus nahi kar paate.",
-                    f"Hamara dimag hamesha path of least resistance dhoondhta hai. Jab hum subah uthte hi screen scroll karte hain, toh natural dopamine baseline crash ho jata hai, jisse din bhar lethargy, procrastination aur mental fog bana rehta hai. Is biological trap ko samajhna hi personal freedom ki pehli shart hai."
-                ]
-                hindi_ch2 = [
-                    f"Dusra step hai ek scientific Recovery Protocol ko implement karna. Sirf temporary motivation se koi permanent badlav nahi aata. Aapko apne circadian rhythm ko sunlight se sync karna hoga, digital friction create karna hoga aur continuous deep work sessions ko schedule karna hoga. Jab yeh daily habits sync hoti hain, tabhi lasting neuroplastic transformation shuru hota hai.",
-                    f"Apni identity ko badalna sabse bada secret hai. Jab aap discipline ko ek punishment ki tarah nahi, balki self-respect ki tarah dekhte hain, tab focus karna effortless ho jata hai. Rozana ke 1% micro-improvements lambe samay me exponential results produce karte hain."
+            else: # Dopamine Detox & General Mindset
+                hook = (
+                    f"Aaj ke hyper-stimulated daur me hamara dimag continuous sensory overload aur dopamine exhaustion se guzar raha hai. "
+                    f"Reels, shorts, instant notifications aur constant scrolling ne hamare prefrontal cortex ko weak kar diya hai. "
+                    f"Iska parinaam yeh hai ki hum 10 minute bhi bina screen ke focus nahi kar paate aur deep work impossible lagta hai. "
+                    f"Aaj ke is exhaustive masterclass me hum Dopamine Fasting, Mental Reset aur Focus Restoration ka complete scientific protocol samjhenge."
+                )
+                chapters = [
+                    f"Pehle chapter me decode karte hain Dopamine Receptors aur Baseline Chemistry ko. Jab aap subah uthte hi phone scroll karte hain, toh instant artificial spike milta hai. Iske baad dopamine baseline severely crash ho jata hai, jisse din bhar procrastination, mental fog aur lethargy bani rehti hai.",
+                    f"Dusre chapter me samjhenge Prefrontal Cortex Hijack ko. High-stimulation habits brain ke executive control ko paralyze kar deti hain. Insaan hard tasks se bhaagne lagta hai aur continuous cheap stimulation ka ghulam ban jata hai.",
+                    f"Teesre chapter me 48-Hour Dopamine Detox protocol shuru hota hai. Sabhi high-stimulation triggers—social media, junk food, entertainment—par physical friction create karein. Phone ko grayscale mode par daalein aur dusre kamre me rakhein.",
+                    f"Chauthe chapter me Stillness aur Boredom Tolerance develop karein. Boredom dimag ka natural reset mechanism hai. Jab aap bina phone ke shant baithna seekhte hain, toh natural dopamine baseline dobara restore hone lagta hai.",
+                    f"Paanchwe chapter me Deep Work Sessions aur Single-Tasking par focus karein. 90-minute ke focused blocks me bina kisi interruption ke kaam karna brain ke neuroplasticity circuits ko rewire karta hai.",
+                    f"Chhathe chapter me Circadian Alignment aur Natural Sunlight immersion daily routine ka hissa banayein. Morning light cortisol ko optimize karti hai aur evening me restful sleep induce karti hai.",
+                    f"Saatwe chapter me Identity Shift aur Atomic Habits ke zariye permanent transformation locked ho jata hai. Discipline ko punishment nahi, balki self-respect banakar routine execute karein."
                 ]
 
-        hindi_ctas = [
-            f"Agar aapko yeh deep research valuable lag rahi hai aur aap genuine gyan aur facts ko support karte hain, toh is video ko like zaroor karein aur channel ko subscribe kar lijiye. Apne vichar comment section me zaroor share karein.",
-            f"Agar is analysis ne aapki soch me thoda bhi naya perspective add kiya hai, toh abhi subscribe karke bell icon dabayein. Niche comment karke batayein ki agla deep dive aap kis topic par dekhna chahte hain.",
-            f"Aise hi authentic aur deep research-backed content ke liye video ko like karein aur channel se judne ke liye subscribe karein. Aapka har ek comment hamare liye behad valuable hai."
-        ]
+            cta1 = (
+                f"Agar aapko yeh evidence-based mental health research pasand aa rahi hai, toh is video ko like zaroor karein aur channel ko subscribe kar lijiye. "
+                f"Apne doston ke sath zaroor share karein jise iski sabse zyada zaroorat hai."
+            )
+            cta2 = (
+                f"Aap apne daily life me focus aur mental clarity maintain karne ke liye kya protocol follow karte hain? "
+                f"Niche comment me share karein, hum har ek response ko appreciate karte hain."
+            )
+            conclusion = (
+                f"Nishkarsh spasht hai: Aapka dhyan aur mental energy aapki sabse badi sampatti hai. "
+                f"Cheap stimulation ke trap se bachein, apne nervous system ko protect karein aur intentional life jiyein. "
+                f"Video dekhne ke liye dil se shukriya. Milte hain agle transformative masterclass me."
+            )
+            deep_extensions = [
+                f"Somatic mindfulness aur daily vagus nerve conditioning se nervous system ki emotional resilience 10 guna badh jaati hai. Har din 15 minute deep relaxation me bitana dimag ko hamesha santulit rakhta hai.",
+                f"Nutrition aur Gut-Brain Axis mental health me 90% serotonin produce karta hai. Healthy fermented foods aur hydration brain fog ko permanent door kar dete hain.",
+                f"Daily gratitude journaling aur self-reflection default mode network ki chronic negativity ko rewire karke internal peace establish karta hai."
+            ]
 
-        hindi_conclusions = [
-            f"Isliye sabse pehla kadam hai awareness aur sahi protocol ko daily life me execute karna. Afwahon aur superficial baaton se bachein aur facts ke sath aage badhein. Video dekhne ke liye shukriya.",
-            f"Aakhirkar sach wahi hai jo data aur reality me dikhta hai. In foundational rules ko systematically apni routine me implement kijiye aur focused rahiye. Milte hain agle deep breakdown me.",
-            f"Zindagi me safalta kisi shortcut se nahi, balki underlying rules ko samajhkar continuously perform karne se aati hai. Shukriya, apna dhyan rakhein aur aage badhein."
-        ]
+    # 3. Dynamic Chapter Accumulator Loop
+    assembled_sections = [hook, chapters[0], cta1, chapters[1]]
+    curr_words = sum(len(s.split()) for s in assembled_sections)
 
-        hook = random.choice(hindi_hooks)
-        ch1 = random.choice(hindi_ch1)
-        cta = random.choice(hindi_ctas)
-        ch2 = random.choice(hindi_ch2)
-        conclusion = random.choice(hindi_conclusions)
-        full_text = f"{hook}\n\n{ch1}\n\n{cta}\n\n{ch2}\n\n{conclusion}"
+    remaining_chaps = list(chapters[2:])
+    ext_idx = 0
+    added_cta2 = False
+
+    while curr_words < target_words:
+        if curr_words > target_words * 0.55 and not added_cta2:
+            assembled_sections.append(cta2)
+            added_cta2 = True
+            curr_words = sum(len(s.split()) for s in assembled_sections)
+            continue
+
+        if remaining_chaps:
+            assembled_sections.append(remaining_chaps.pop(0))
+            curr_words = sum(len(s.split()) for s in assembled_sections)
+        elif ext_idx < len(deep_extensions):
+            assembled_sections.append(deep_extensions[ext_idx])
+            ext_idx += 1
+            curr_words = sum(len(s.split()) for s in assembled_sections)
+        else:
+            # If target_words is exceptionally large (e.g. 15-20+ min masterclass), cycle extensions
+            cycle_ext = deep_extensions[ext_idx % len(deep_extensions)]
+            ext_idx += 1
+            assembled_sections.append(cycle_ext)
+            curr_words = sum(len(s.split()) for s in assembled_sections)
+
+    assembled_sections.append(conclusion)
+    full_script = "\n\n".join(assembled_sections)
 
     return {
         "title": f"The Untold Truth Behind {clean_topic.title()}" if lang == "en" else f"{clean_topic.title()} Ka Asli Sach [Deep Analysis]",
-        "script": full_text,
+        "script": full_script,
         "niche": detected_n,
         "lang": lang
     }
