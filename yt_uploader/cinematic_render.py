@@ -99,7 +99,7 @@ def render_cinematic_longform(
     os.makedirs(temp_dir, exist_ok=True)
     concat_manifest = os.path.join(temp_dir, f"cinematic_concat_{int(t_start)}.txt")
 
-    clip_len_est = 4.5
+    clip_len_est = 6.0
     total_est = len(normalized_clips) * clip_len_est
     loops_needed = 1 if total_est >= audio_duration else max(1, int(audio_duration / total_est) + 1)
 
