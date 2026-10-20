@@ -182,6 +182,26 @@ class GitHubCloudWatcher:
             if resp.status_code in [204, 201, 200]:
                 logger.success(f"🚀 Successfully dispatched video generation to GitHub Cloud: '{prompt}'!")
                 return {"success": True, "message": "Dispatched to GitHub Actions Cloud Runner"}
+            elif resp.status_code == 422:
+                # Fallback to repository_dispatch if workflow_dispatch schema differs on remote main branch
+                logger.warning(f"Workflow dispatch inputs rejected (422), attempting repository_dispatch fallback...")
+                dispatch_url = f"https://api.github.com/repos/{owner}/{repo}/dispatches"
+                rep_payload = {
+                    "event_type": "cloud_render",
+                    "client_payload": {
+                        "prompt": prompt,
+                        "duration": str(duration),
+                        "channel": channel,
+                        "auto_upload": "true" if auto_upload else "false"
+                    }
+                }
+                rep_resp = requests.post(dispatch_url, headers=headers, json=rep_payload, timeout=15)
+                if rep_resp.status_code in [204, 201, 200]:
+                    logger.success(f"🚀 Dispatched via repository_dispatch to GitHub Cloud: '{prompt}'!")
+                    return {"success": True, "message": "Dispatched via repository_dispatch"}
+                else:
+                    logger.error(f"Failed to dispatch workflow: {resp.status_code} - {resp.text}")
+                    return {"success": False, "error": resp.text, "status_code": resp.status_code}
             else:
                 logger.error(f"Failed to dispatch workflow: {resp.status_code} - {resp.text}")
                 return {"success": False, "error": resp.text, "status_code": resp.status_code}
@@ -245,7 +265,7 @@ class GitHubCloudWatcher:
         self.sync_and_download_cloud_videos()
 
     def sync_and_download_cloud_videos(self):
-        """
+        r"""
         Polls GitHub Releases / Artifacts and automatically downloads any new completed 
         videos directly into C:\Users\janar\Downloads\ without manual user intervention!
         """
@@ -260,6 +280,8 @@ class GitHubCloudWatcher:
             if resp.status_code == 200:
                 releases = resp.json()
                 for rel in releases:
+                    if rel.get("tag_name") == "v1.0.0-assets":
+                        continue
                     for asset in rel.get("assets", []):
                         name = asset.get("name", "")
                         if name.endswith(".mp4"):
@@ -308,3 +330,15 @@ def get_cloud_watcher() -> GitHubCloudWatcher:
     if _watcher_instance is None:
         _watcher_instance = GitHubCloudWatcher()
     return _watcher_instance
+
+if __name__ == "__main__":
+    watcher = GitHubCloudWatcher()
+    logger.info("🚀 Starting 30-Second GitHub Cloud Watcher & Auto-Downloader Daemon...")
+    watcher.start_background_daemon()
+    try:
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        watcher.stop_daemon()
+        logger.info("Watcher stopped.")
+
