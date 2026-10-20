@@ -140,8 +140,8 @@ class CinematicMasterEngine:
             target_duration=actual_duration,
             prompt=topic,
             niche=niche,
-            avg_scene_duration=4.2,
-            max_online_downloads=6,
+            avg_scene_duration=6.0,
+            max_online_downloads=120,
             script_text=script_text
         )
 
@@ -151,10 +151,10 @@ class CinematicMasterEngine:
 
         for idx, raw_clip in enumerate(raw_unique_clips):
             norm_clip = os.path.join(norm_dir, f"m_{int(start_time)}_sc_{idx:02d}.mp4")
-            normalize_cinematic_clip(raw_clip, norm_clip, target_duration=4.5)
+            normalize_cinematic_clip(raw_clip, norm_clip, target_duration=6.0)
             normalized_clips.append(norm_clip)
 
-        logger.success(f"🎬 Prepared {len(normalized_clips)} STRICTLY UNIQUE clips! Coverage: {len(normalized_clips)*4.5:.1f}s vs audio {actual_duration:.1f}s (ZERO LOOPS)!")
+        logger.success(f"🎬 Prepared {len(normalized_clips)} STRICTLY UNIQUE clips! Coverage: {len(normalized_clips)*6.0:.1f}s vs audio {actual_duration:.1f}s (ZERO LOOPS)!")
 
         # 4. Background Music Selection
         bgm_path = select_cinematic_bgm(niche=niche, duration_needed=actual_duration)
