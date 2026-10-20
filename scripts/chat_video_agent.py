@@ -388,7 +388,9 @@ def produce_chat_video(
         target_duration=real_duration,
         prompt=title,
         niche=niche,
-        avg_scene_duration=4.2
+        avg_scene_duration=4.2,
+        max_online_downloads=6,
+        script_text=script_text
     )
 
     norm_clips = []
@@ -436,6 +438,7 @@ def produce_chat_video(
         json.dump(seo, f, indent=4)
 
     # 9. Smart Auto-Upload (if requested)
+    actual_file = dest_download if (dest_download and os.path.exists(dest_download)) else final_output_path
     upload_result = None
     if auto_upload:
         logger.info(f"🚀 Auto-upload requested! Launching smart YouTube Studio uploader...")
@@ -445,7 +448,7 @@ def produce_chat_video(
         try:
             upload_result = upload_video_to_studio(
                 channel_profile_dir=profile_dir,
-                video_file_path=final_output_path,
+                video_file_path=actual_file,
                 thumbnail_file_path="",  # STRICTLY SKIP THUMBNAILS PER USER MANDATE
                 seo_package=seo,
                 headless=True
@@ -461,7 +464,7 @@ def produce_chat_video(
     return {
         "success": True,
         "title": title,
-        "video_path": final_output_path,
+        "video_path": actual_file,
         "download_path": dest_download,
         "duration": real_duration,
         "seo": seo,
