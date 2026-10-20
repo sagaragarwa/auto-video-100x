@@ -244,7 +244,22 @@ def render_master_engine_panel():
                 key="input_master_prompt"
             )
         with a_col:
-            auto_up = st.checkbox("🚀 Auto-Upload", value=False, key="chk_master_auto_up", help="बनते ही चैनल पर अनलिस्टेड अपलोड करें")
+            auto_up = st.checkbox("🚀 Auto-Upload", value=False, key="chk_master_auto_up", help="बनते ही चैनल्स पर ऑटो-अपलोड करें")
+
+        # Multi-Platform Checkboxes
+        selected_platforms = []
+        if auto_up:
+            with st.container(border=True):
+                st.caption("🌐 **Target Upload Platforms (कहाँ-कहाँ अपलोड करना है):**")
+                cp1, cp2 = st.columns(2)
+                with cp1:
+                    up_yt = st.checkbox("📺 YouTube Studio", value=True, key="chk_plat_yt")
+                    if up_yt:
+                        selected_platforms.append("youtube")
+                with cp2:
+                    up_rumble = st.checkbox("🟢 Rumble Channels", value=True, key="chk_plat_rumble")
+                    if up_rumble:
+                        selected_platforms.append("rumble")
 
         if st.button("🎬 Generate 5X Master Documentary (वीडियो बनाएं)", type="primary", use_container_width=True, key="btn_run_master_engine"):
             if not master_prompt or not master_prompt.strip():
@@ -254,7 +269,11 @@ def render_master_engine_panel():
                     try:
                         from yt_uploader.master_engine import CinematicMasterEngine
                         engine = CinematicMasterEngine()
-                        res = engine.generate_autonomous_video(prompt=master_prompt.strip(), auto_upload=auto_up)
+                        res = engine.generate_autonomous_video(
+                            prompt=master_prompt.strip(),
+                            auto_upload=auto_up,
+                            platforms=selected_platforms if auto_up else None
+                        )
                         st.success(f"🎉 5X Master Video Complete in {res['render_time_seconds']}s! Size: {res['file_size_human']} | Delivered to Downloads!")
                         deliv_file = res.get('downloads_path') or res.get('video_path')
                         if deliv_file:
@@ -264,6 +283,9 @@ def render_master_engine_panel():
                                     st.video(deliv_file)
                                 except Exception as _v_err:
                                     logger.warning(f"Streamlit video preview note: {_v_err}")
+                        if res.get("upload_dispatch"):
+                            with st.expander("🚀 Multi-Platform Upload Telemetry (YouTube & Rumble)", expanded=True):
+                                st.json(res["upload_dispatch"])
                         with st.expander("📊 Viral SEO Package & Metadata (Unlisted)", expanded=False):
                             st.json(res['seo'])
                             st.json(res['plan'])
@@ -343,5 +365,149 @@ def render_github_cloud_panel():
                 save_github_config(cfg)
                 st.toast("GitHub Config Saved!")
                 st.rerun()
+
+def render_rumble_channel_manager():
+    """
+    Renders the Multi-Channel Rumble Manager & Auto-Uploader panel in Streamlit WebUI.
+    Provides 1-click persistent login for Rumble channels, automated licensing, and batch queue uploads.
+    """
+    from yt_uploader.rumble_uploader import (
+        load_rumble_channels, save_rumble_channels, open_rumble_login_window, upload_video_to_rumble,
+        RUMBLE_PROFILES_DIR
+    )
+
+    with st.expander("🟢 Multi-Channel Rumble Auto-Uploader (बिना API के 1-बार लॉगिन & ऑटो-मोनेटाइजेशन)", expanded=False):
+        st.markdown("""
+        **Rumble मल्टी-चैनल ऑटो-अपलोडर & मोनेटाइजेशन मैनेजर:**  
+        यहाँ आप अपने Rumble अकाउंट और उसके सभी सब-चैनल्स को **सिर्फ 1 बार लॉगिन** करके हमेशा के लिए सेव कर सकते हैं। इसके बाद जब भी कोई वीडियो बनेगी, वह ऑटोमैटिकली **बेस्ट टाइटल, डिस्क्रिप्शन, टैग्स** और आपके चुने हुए **लाइसेंस (Rumble Only / Exclusive)** के साथ सीधे Rumble पर पब्लिश हो जाएगी।  
+        """)
+
+        r_channels = load_rumble_channels()
+
+        st.markdown("##### 📌 आपके रजिस्टर्ड Rumble चैनल्स (Configured Rumble Channels):")
+
+        for ch_key, ch_info in list(r_channels.items()):
+            prof_dir = ch_info.get("profile_dir", "")
+            is_configured = os.path.exists(prof_dir) and len(os.listdir(prof_dir)) > 0 if os.path.exists(prof_dir) else False
+
+            with st.container(border=True):
+                c_head, c_status, c_act = st.columns([3, 2, 2], vertical_alignment="center")
+                with c_head:
+                    st.markdown(f"**🟢 {ch_info.get('name', ch_key)}**")
+                    st.caption(f"Key: `{ch_key}` | Niche: `{ch_info.get('niche', 'general')}` | License: `{ch_info.get('license', 'rumble_only')}`")
+                with c_status:
+                    if is_configured:
+                        st.success("✅ Logged In (सक्रिय)")
+                    else:
+                        st.warning("⚠️ Login Needed (लॉगिन करें)")
+                with c_act:
+                    if st.button(f"🔑 Login Rumble", key=f"btn_rlogin_{ch_key}", use_container_width=True):
+                        st.toast(f"Opening Chrome window for Rumble {ch_info.get('name')}...")
+                        import subprocess
+                        py_bin = get_python_exe()
+                        cmd = [py_bin, os.path.abspath("yt_uploader/main.py"), "rumble-login", "--channel", ch_key]
+                        subprocess.Popen(cmd)
+                        st.info("क्रोम विंडो खुल रही है। उसमें Rumble में लॉगिन करके विंडो बंद करें।")
+
+        # Section: Batch Video Uploader to Rumble
+        with st.expander("📤 Batch Video Uploader to Rumble (एक साथ कई वीडियो Rumble पर अपलोड करें)", expanded=False):
+            output_dir = os.path.abspath("output")
+            available_videos = []
+            if os.path.exists(output_dir):
+                for f in sorted(os.listdir(output_dir)):
+                    if f.endswith(".mp4") and not f.endswith(".temp.mp4"):
+                        fp = os.path.join(output_dir, f)
+                        sz_str = format_bytes(os.path.getsize(fp))
+                        available_videos.append((f, fp, sz_str))
+
+            if not available_videos:
+                st.info("output/ फोल्डर में कोई तैयार वीडियो नहीं मिली। पहले वीडियो जनरेट करें।")
+            else:
+                rb_col1, rb_col2, rb_col3 = st.columns([2, 1, 1])
+                with rb_col1:
+                    r_target_ch = st.selectbox(
+                        "अपलोड करने के लिए Rumble चैनल चुनें:",
+                        options=list(r_channels.keys()),
+                        format_func=lambda k: f"{r_channels[k].get('name')} ({k})",
+                        key="rumble_batch_target_ch"
+                    )
+                with rb_col2:
+                    r_license_choice = st.selectbox(
+                        "License Type:",
+                        options=["rumble_only", "exclusive", "personal"],
+                        format_func=lambda l: "Rumble Only (मोनेटाइज)" if l == "rumble_only" else ("Exclusive (यूट्यूब सहित)" if l == "exclusive" else "Personal (नो एड्स)"),
+                        key="rumble_batch_lic"
+                    )
+                with rb_col3:
+                    r_select_all = st.checkbox("Select All Videos", value=False, key="r_batch_select_all")
+
+                r_video_options = [f"{v[0]} ({v[2]})" for v in available_videos]
+                r_default_sel = r_video_options if r_select_all else []
+                r_selected_video_strs = st.multiselect(
+                    "Rumble पर अपलोड के लिए वीडियो चुनें:",
+                    options=r_video_options,
+                    default=r_default_sel,
+                    key="r_batch_selected_videos"
+                )
+
+                if st.button("🚀 Start Rumble Auto-Upload", type="primary", use_container_width=True, key="btn_start_rumble_batch"):
+                    if not r_selected_video_strs:
+                        st.warning("कृपया कम से कम एक वीडियो चुनें।")
+                    else:
+                        r_selected_fps = []
+                        for s in r_selected_video_strs:
+                            name = s.split(" (")[0]
+                            for v in available_videos:
+                                if v[0] == name:
+                                    r_selected_fps.append(v[1])
+                                    break
+
+                        from yt_uploader.seo_generator import generate_viral_seo_package
+                        st.info(f"🚀 शुरू हो रहा है: {len(r_selected_fps)} वीडियोज का Rumble पर अपलोड...")
+                        r_prog = st.progress(0)
+                        r_status = st.empty()
+
+                        for idx, vpath in enumerate(r_selected_fps, start=1):
+                            vname = os.path.basename(vpath)
+                            r_status.markdown(f"**▶️ [{idx}/{len(r_selected_fps)}] Rumble पर अपलोड हो रही है:** `{vname}`...")
+                            seo_pkg = generate_viral_seo_package(subject=vname, niche=r_channels[r_target_ch].get("niche", "general"))
+                            res = upload_video_to_rumble(
+                                channel_key=r_target_ch,
+                                video_file_path=vpath,
+                                seo_package=seo_pkg,
+                                license_type=r_license_choice,
+                                headless=False
+                            )
+                            if res.get("success"):
+                                st.success(f"✅ [{idx}/{len(r_selected_fps)}] `{vname}` Rumble पर अपलोड हो गई! Link: {res.get('url')}")
+                            else:
+                                st.error(f"❌ [{idx}/{len(r_selected_fps)}] `{vname}` Rumble अपलोड विफल: {res.get('error')}")
+                            r_prog.progress(idx / len(r_selected_fps))
+
+                        st.balloons()
+                        st.success("🎉 Rumble अपलोड प्रक्रिया संपन्न हुई!")
+
+        with st.expander("➕ Add New Rumble Channel (नया Rumble चैनल जोड़ें)"):
+            new_r_key = st.text_input("Rumble Channel Key (जैसे: rumble_tech, rumble_shorts):", key="new_r_key")
+            new_r_name = st.text_input("Rumble Channel Name (चैनल का नाम):", key="new_r_name")
+            new_r_sub = st.text_input("Sub-channel Name in Rumble (वैकल्पिक / Optional):", key="new_r_sub", help="अगर आपके मुख्य अकाउंट में सब-चैनल बना हुआ है")
+            new_r_niche = st.selectbox("Niche:", ["psychology", "trading", "science", "technology", "general"], key="new_r_niche")
+            new_r_lic = st.selectbox("Default License:", ["rumble_only", "exclusive", "personal"], key="new_r_lic")
+            if st.button("Save New Rumble Channel", key="btn_save_new_r_ch"):
+                if new_r_key.strip() and new_r_name.strip():
+                    clean_rk = new_r_key.strip().lower().replace(" ", "_")
+                    r_channels[clean_rk] = {
+                        "name": new_r_name.strip(),
+                        "profile_dir": os.path.join(RUMBLE_PROFILES_DIR, clean_rk),
+                        "sub_channel": new_r_sub.strip(),
+                        "niche": new_r_niche,
+                        "license": new_r_lic
+                    }
+                    save_rumble_channels(r_channels)
+                    st.success(f"Rumble Channel '{new_r_name}' सेव हो गया! अब 'Login Rumble' बटन दबाकर लॉगिन करें।")
+                    st.rerun()
+                else:
+                    st.error("कृपया चैनल की और नाम भरें।")
+
 
 
