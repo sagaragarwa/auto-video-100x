@@ -8,6 +8,12 @@ Aggregates and rotates free stock video providers to guarantee 100% visual varie
 
 import os
 import sys
+
+_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+_venv_site = os.path.join(_root, ".venv", "Lib", "site-packages")
+if os.path.exists(_venv_site) and _venv_site not in sys.path:
+    sys.path.insert(0, _venv_site)
+
 import json
 import time
 import random
@@ -15,11 +21,6 @@ import requests
 import urllib.request
 from typing import List, Tuple, Dict, Any, Optional
 from concurrent.futures import ThreadPoolExecutor
-
-_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-_venv_site = os.path.join(_root, ".venv", "Lib", "site-packages")
-if os.path.exists(_venv_site) and _venv_site not in sys.path:
-    sys.path.insert(0, _venv_site)
 
 try:
     from loguru import logger
@@ -246,8 +247,8 @@ def fetch_multi_source_brolls(terms: List[str], target_duration: float, cache_di
             if len(download_targets) >= target_limit:
                 break
 
-    # 3. Query Secondary (Pexels - if configured)
-    if PEXELS_API_KEY and len(download_targets) < target_limit:
+    # 3. Query Secondary (Pexels - Official API or Autonomous Keyless Direct CDN)
+    if len(download_targets) < target_limit:
         logger.info("🎬 Querying Pexels 4K/1080p cinematic library...")
         for term in terms[:5]:
             if len(download_targets) >= target_limit:

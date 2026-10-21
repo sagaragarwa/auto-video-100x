@@ -154,31 +154,43 @@ class GeminiKeyRing:
 KEY_RING = GeminiKeyRing()
 
 
-def call_gemini_rotator(prompt: str, model: str = "gemini-flash-latest", max_retries: int = 5) -> str:
-    """Executes Gemini generation with automated key-ring failover and load balancing."""
+def call_gemini_rotator(prompt: str, model: str = "gemini-flash-lite-latest", max_retries: int = 5) -> str:
+    """Executes Gemini generation with automated model fallback and key-ring failover."""
+    candidate_models = [model, "gemini-flash-lite-latest", "gemini-3.8-flash", "gemini-flash-latest"]
+    # De-duplicate while preserving order
+    models_to_try = []
+    for m in candidate_models:
+        if m not in models_to_try:
+            models_to_try.append(m)
+
     for attempt in range(max_retries):
         key = KEY_RING.get_next_key()
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={key}"
-        payload = {
-            "contents": [{"parts": [{"text": prompt}]}],
-            "generationConfig": {"temperature": 0.7, "topP": 0.95}
-        }
-        req_data = json.dumps(payload).encode("utf-8")
-        try:
-            req = urllib.request.Request(url, data=req_data, headers={"Content-Type": "application/json"}, method="POST")
-            with urllib.request.urlopen(req, timeout=90) as response:
-                res = json.loads(response.read().decode("utf-8"))
-                return res["candidates"][0]["content"]["parts"][0]["text"]
-        except urllib.error.HTTPError as e:
-            if e.code == 429:
-                logger.warning(f"Key rate limit hit (429), rotating to next key...")
+        for active_model in models_to_try:
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/{active_model}:generateContent?key={key}"
+            payload = {
+                "contents": [{"parts": [{"text": prompt}]}],
+                "generationConfig": {"temperature": 0.7, "topP": 0.95}
+            }
+            req_data = json.dumps(payload).encode("utf-8")
+            try:
+                req = urllib.request.Request(url, data=req_data, headers={"Content-Type": "application/json"}, method="POST")
+                with urllib.request.urlopen(req, timeout=90) as response:
+                    res = json.loads(response.read().decode("utf-8"))
+                    return res["candidates"][0]["content"]["parts"][0]["text"]
+            except urllib.error.HTTPError as e:
+                if e.code == 429:
+                    logger.warning(f"Key rate limit hit (429) on {active_model}, rotating...")
+                    time.sleep(1)
+                    break # try next key
+                elif e.code in (503, 404):
+                    logger.warning(f"Model {active_model} returned {e.code}, trying fallback model...")
+                    continue # try next model
+                else:
+                    logger.warning(f"Gemini API error (HTTP {e.code}): {e}")
+                    time.sleep(1)
+            except Exception as e:
+                logger.warning(f"Request exception on {active_model}: {e}")
                 time.sleep(1)
-            else:
-                logger.warning(f"Gemini API error (HTTP {e.code}): {e}")
-                time.sleep(2)
-        except Exception as e:
-            logger.warning(f"Request exception on attempt {attempt+1}: {e}")
-            time.sleep(2)
 
     raise RuntimeError(f"All Gemini Key-Ring attempts failed after {max_retries} retries!")
 
