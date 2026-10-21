@@ -10,11 +10,21 @@ import sys
 import json
 import time
 from typing import Dict, Any, Optional
-from loguru import logger
 
 _root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if _root not in sys.path:
     sys.path.insert(0, _root)
+
+_venv_site = os.path.join(_root, ".venv", "Lib", "site-packages")
+if os.path.exists(_venv_site) and _venv_site not in sys.path:
+    sys.path.insert(0, _venv_site)
+
+try:
+    from loguru import logger
+except ImportError:
+    import logging
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
+    logger = logging.getLogger("manual_auth_helper")
 
 from playwright.sync_api import sync_playwright
 
@@ -65,18 +75,23 @@ def launch_manual_login_session(channel_key: str, platform: str = "youtube") -> 
     start_url = "https://studio.youtube.com" if platform == "youtube" else "https://rumble.com/login"
 
     with sync_playwright() as p:
-        # Launch real persistent context to keep cookies alive
-        context = p.chromium.launch_persistent_context(
-            user_data_dir=abs_profile_dir,
-            headless=False,
-            viewport={"width": 1280, "height": 800},
-            args=[
+        # Prefer genuine installed Google Chrome if present on the machine
+        chrome_installed = os.path.exists(r"C:\Program Files\Google\Chrome\Application\chrome.exe")
+        launch_kwargs = {
+            "user_data_dir": abs_profile_dir,
+            "headless": False,
+            "viewport": {"width": 1280, "height": 800},
+            "args": [
                 "--disable-blink-features=AutomationControlled",
                 "--no-sandbox",
                 "--disable-dev-shm-usage"
             ],
-            user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36"
-        )
+            "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36"
+        }
+        if chrome_installed:
+            launch_kwargs["channel"] = "chrome"
+
+        context = p.chromium.launch_persistent_context(**launch_kwargs)
 
         page = context.pages[0] if context.pages else context.new_page()
         page.goto(start_url)

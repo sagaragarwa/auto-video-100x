@@ -143,14 +143,21 @@ def add_channel(req: AddChannelRequest):
 
 
 @app.post("/api/channels/manual-login")
-def trigger_manual_login(req: ManualLoginRequest, background_tasks: BackgroundTasks):
-    def run_login():
-        launch_manual_login_session(req.channel_key, req.platform)
+def trigger_manual_login(req: ManualLoginRequest):
+    py_exe = sys.executable
+    candidate_311 = os.path.expanduser(r"~\AppData\Roaming\uv\python\cpython-3.11.17-windows-x86_64-none\python.exe")
+    if os.path.exists(candidate_311):
+        py_exe = candidate_311
 
-    # Launch in separate thread so API doesn't block
-    t = threading.Thread(target=run_login, daemon=True)
-    t.start()
-    return {"success": True, "message": f"Visible genuine browser spawned for '{req.channel_key}'. Complete login in the opened window."}
+    script_path = os.path.join(_root, "omnichannel_powerhouse", "manual_auth_helper.py")
+    cmd = [py_exe, script_path, "--channel", req.channel_key, "--platform", req.platform]
+    env = os.environ.copy()
+    env["PYTHONPATH"] = f"{_root};{os.path.join(_root, '.venv', 'Lib', 'site-packages')};{env.get('PYTHONPATH', '')}"
+    
+    # Launch with a visible interactive helper console on Windows
+    create_flags = subprocess.CREATE_NEW_CONSOLE if sys.platform == "win32" else 0
+    subprocess.Popen(cmd, cwd=_root, env=env, creationflags=create_flags)
+    return {"success": True, "message": f"Visible genuine Chrome launched for '{req.channel_key}'. Complete login in the opened window."}
 
 
 @app.post("/api/dispatch")
