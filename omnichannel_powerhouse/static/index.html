@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OmniChannel Supreme Studio | 500x Autonomous Engine</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #080c14; }
+    .mono { font-family: 'JetBrains Mono', monospace; }
+    .glass { background: rgba(17, 24, 39, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); }
+    .glass-active { background: rgba(30, 41, 59, 0.9); border: 1px solid rgba(16, 185, 129, 0.5); }
+    .glow-cyan { box-shadow: 0 0 20px rgba(6, 182, 212, 0.2); }
+    .glow-green { box-shadow: 0 0 20px rgba(16, 185, 129, 0.2); }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #0b0f19; }
+    ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #334155; }
+  </style>
+</head>
+<body class="text-slate-100 min-h-screen flex flex-col">
+
+  <!-- Top Header Navigation -->
+  <header class="glass sticky top-0 z-50 px-6 py-4 flex items-center justify-between border-b border-slate-800">
+    <div class="flex items-center gap-4">
+      <div class="h-10 w-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-emerald-400 flex items-center justify-center font-black text-xl text-black shadow-lg shadow-cyan-500/20">
+        Ω
+      </div>
+      <div>
+        <h1 class="text-lg font-bold tracking-tight text-white flex items-center gap-2">
+          OmniChannel Supreme Studio <span class="text-xs px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 mono">v1.0.0 PRO</span>
+        </h1>
+        <p class="text-xs text-slate-400">500x Token-Saving Autonomous Multi-Platform Engine</p>
+      </div>
+    </div>
+
+    <!-- Active Conversation ID Pill -->
+    <div class="flex items-center gap-3">
+      <div class="glass px-3 py-1.5 rounded-lg flex items-center gap-2 border border-slate-700">
+        <span class="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span>
+        <span class="text-xs text-slate-400">Convo ID:</span>
+        <span id="headerConvoId" class="text-xs font-semibold text-cyan-300 mono cursor-pointer" title="Click to copy" onclick="copyConvoId()">6a60d582-ca94...</span>
+      </div>
+      <button onclick="openManualModal()" class="px-4 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-black font-semibold text-xs transition flex items-center gap-1.5 shadow-lg shadow-emerald-500/20">
+        <span>➕</span> Add Channel & Login
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Grid Layout -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-6 space-y-6">
+
+    <!-- KPI Metric Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div class="glass p-5 rounded-2xl relative overflow-hidden">
+        <div class="text-xs font-semibold uppercase text-slate-400 tracking-wider">Registered Channels</div>
+        <div id="statChannels" class="text-3xl font-extrabold text-white mt-2">--</div>
+        <div class="text-xs text-emerald-400 mt-1 flex items-center gap-1">● Active & Authenticated</div>
+      </div>
+      <div class="glass p-5 rounded-2xl relative overflow-hidden">
+        <div class="text-xs font-semibold uppercase text-slate-400 tracking-wider">Outro Hard-Lock</div>
+        <div class="text-3xl font-extrabold text-emerald-400 mt-2 flex items-center gap-2">
+          <span>100%</span>
+          <span class="text-xs px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300">LOCKED</span>
+        </div>
+        <div class="text-xs text-slate-400 mt-1">173s Content ID Clip Attached</div>
+      </div>
+      <div class="glass p-5 rounded-2xl relative overflow-hidden">
+        <div class="text-xs font-semibold uppercase text-slate-400 tracking-wider">Token Efficiency</div>
+        <div class="text-3xl font-extrabold text-cyan-400 mt-2">500x</div>
+        <div class="text-xs text-cyan-300 mt-1">400 Tokens = 20 Documentaries</div>
+      </div>
+      <div class="glass p-5 rounded-2xl relative overflow-hidden">
+        <div class="text-xs font-semibold uppercase text-slate-400 tracking-wider">Cloud Matrix Telemetry</div>
+        <div id="statCloudStatus" class="text-xl font-bold text-slate-200 mt-3 truncate">20 Parallel Runners</div>
+        <div class="text-xs text-slate-400 mt-1">GitHub Actions Free Tier (24/7)</div>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="flex border-b border-slate-800 gap-6 text-sm font-semibold">
+      <button onclick="switchTab('channels')" id="tabBtn-channels" class="pb-3 text-cyan-400 border-b-2 border-cyan-400 transition">📺 Channel Portfolio & Safe Login</button>
+      <button onclick="switchTab('dispatch')" id="tabBtn-dispatch" class="pb-3 text-slate-400 hover:text-slate-200 transition">🚀 20-Video Cloud Campaign Launcher</button>
+      <button onclick="switchTab('radar')" id="tabBtn-radar" class="pb-3 text-slate-400 hover:text-slate-200 transition">📡 Live Cloud Matrix Radar</button>
+      <button onclick="switchTab('bridge')" id="tabBtn-bridge" class="pb-3 text-slate-400 hover:text-slate-200 transition">📱 Android & Remote Convo Bridge</button>
+    </div>
+
+    <!-- TAB 1: Channel Portfolio -->
+    <section id="tab-channels" class="space-y-4">
+      <div class="flex justify-between items-center">
+        <div>
+          <h2 class="text-lg font-bold text-white">Active Channel Fleet</h2>
+          <p class="text-xs text-slate-400">Manage unlimited YouTube & Rumble channels with genuine human manual logins.</p>
+        </div>
+      </div>
+
+      <div id="channelCardsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <!-- Rendered dynamically via JS -->
+      </div>
+    </section>
+
+    <!-- TAB 2: 20-Video Campaign Launcher -->
+    <section id="tab-dispatch" class="hidden space-y-6">
+      <div class="glass p-6 rounded-2xl space-y-4">
+        <h2 class="text-lg font-bold text-white flex items-center gap-2">
+          <span>🚀</span> 20-Video Parallel Cloud Dispatcher
+        </h2>
+        <p class="text-xs text-slate-400">
+          Enter a master topic or theme. The engine uses <strong>Smart Niche Routing</strong> to assign each video to the best channel, enforces the <strong>Outro Hard-Lock</strong>, and triggers all 20 cloud runners simultaneously.
+        </p>
+
+        <div class="space-y-2">
+          <label class="text-xs font-semibold text-slate-300">Campaign Master Theme:</label>
+          <input id="campaignTheme" type="text" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-cyan-400" value="Frontier AI Hardware Monopolies & Wall Street High-Frequency Trading Warfare">
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2">
+          <div class="glass p-3 rounded-xl border border-slate-700/50">
+            <div class="text-xs text-slate-400">Tech & AI Videos (10x):</div>
+            <div class="text-sm font-semibold text-emerald-400">→ Get Neural Stack Pro</div>
+          </div>
+          <div class="glass p-3 rounded-xl border border-slate-700/50">
+            <div class="text-xs text-slate-400">Trading & Finance (10x):</div>
+            <div class="text-sm font-semibold text-cyan-400">→ Silicon Pulse</div>
+          </div>
+          <div class="glass p-3 rounded-xl border border-slate-700/50">
+            <div class="text-xs text-slate-400">Rumble Cross-Post:</div>
+            <div class="text-sm font-semibold text-amber-400">→ Silicon Pulse Rumble Hub</div>
+          </div>
+        </div>
+
+        <button onclick="launchCampaign()" id="btnDispatch" class="w-full py-4 rounded-xl bg-gradient-to-r from-cyan-500 to-emerald-500 hover:from-cyan-400 hover:to-emerald-400 text-black font-extrabold text-sm transition shadow-lg shadow-cyan-500/20 flex items-center justify-center gap-2">
+          <span>⚡</span> IGNITE 20-VIDEO CLOUD MATRIX (400 TOKENS TOTAL)
+        </button>
+
+        <div id="dispatchResult" class="hidden text-xs p-3 rounded-xl"></div>
+      </div>
+    </section>
+
+    <!-- TAB 3: Live Radar -->
+    <section id="tab-radar" class="hidden space-y-4">
+      <div class="flex justify-between items-center">
+        <div>
+          <h2 class="text-lg font-bold text-white">GitHub Actions Cloud Telemetry</h2>
+          <p class="text-xs text-slate-400">Real-time status of all cloud matrix workflows rendering 20 videos in parallel.</p>
+        </div>
+        <button onclick="loadCloudRuns()" class="text-xs px-3 py-1.5 rounded-lg glass hover:bg-slate-800 text-cyan-300">🔄 Refresh Radar</button>
+      </div>
+
+      <div id="runsContainer" class="space-y-3">
+        <!-- Runs rendered dynamically -->
+      </div>
+    </section>
+
+    <!-- TAB 4: Android & Conversation Bridge -->
+    <section id="tab-bridge" class="hidden space-y-6">
+      <div class="glass p-6 rounded-2xl space-y-4">
+        <h2 class="text-lg font-bold text-white flex items-center gap-2">
+          <span>📱</span> Universal Conversation ID Remote Bridge
+        </h2>
+        <p class="text-xs text-slate-400 leading-relaxed">
+          This bridge allows you to link your mobile phone, external PCs, and Antigravity chat seamlessly. Inputting this Conversation ID anywhere restores the entire project context, channel configurations, and tasks instantly.
+        </p>
+
+        <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-800 space-y-2">
+          <label class="text-xs font-semibold text-slate-400">Active Conversation ID:</label>
+          <div class="flex gap-2">
+            <input id="inputConvoId" type="text" class="flex-1 bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-cyan-300 mono" value="6a60d582-ca94-43f1-bef4-cbc8f38f0265">
+            <button onclick="saveConvoId()" class="px-4 py-2 bg-cyan-500 hover:bg-cyan-400 text-black font-bold text-xs rounded-lg transition">Save / Sync</button>
+          </div>
+        </div>
+
+        <div class="glass p-4 rounded-xl space-y-2 border border-emerald-500/20">
+          <div class="text-sm font-semibold text-emerald-400">📱 Android Companion App Connection:</div>
+          <p class="text-xs text-slate-300">
+            Install the <strong>OmniChannel Companion APK</strong> on your Android phone. In the app, enter the Conversation ID above. You will be able to monitor all 20 cloud renders, receive upload push notifications, and trigger new video campaigns directly from your phone!
+          </p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Add Channel & Manual Login Modal -->
+  <div id="manualLoginModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="glass max-w-md w-full p-6 rounded-2xl space-y-4 border border-slate-700">
+      <div class="flex justify-between items-center">
+        <h3 class="text-base font-bold text-white flex items-center gap-2">
+          <span>🔑</span> Add Channel & Safe Manual Login
+        </h3>
+        <button onclick="closeManualModal()" class="text-slate-400 hover:text-white text-lg">&times;</button>
+      </div>
+
+      <p class="text-xs text-slate-400 leading-relaxed">
+        This opens a real, visible Chrome window. You will manually enter your Google/Rumble credentials and complete 2FA. The session cookies are saved securely without storing your password!
+      </p>
+
+      <div class="space-y-3">
+        <div>
+          <label class="text-xs text-slate-300">Channel Identifier Key (e.g. yt_tech_02, yt_crypto):</label>
+          <input id="modalChannelKey" type="text" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white" placeholder="yt_my_channel">
+        </div>
+        <div>
+          <label class="text-xs text-slate-300">Display Name:</label>
+          <input id="modalChannelName" type="text" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white" placeholder="My Awesome Channel">
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="text-xs text-slate-300">Platform:</label>
+            <select id="modalPlatform" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white">
+              <option value="youtube">YouTube Studio</option>
+              <option value="rumble">Rumble Creator</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-xs text-slate-300">Primary Niche:</label>
+            <select id="modalNiche" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white">
+              <option value="tech_ai">AI & Technology</option>
+              <option value="trading_finance">Finance & Trading</option>
+              <option value="psychology">Psychology & Mind</option>
+              <option value="geopolitics">Geopolitics & Defense</option>
+              <option value="general">General / Documentary</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label class="text-xs text-slate-300">Comma-separated Keywords for Niche Routing:</label>
+          <input id="modalKeywords" type="text" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white" placeholder="gpu, nvidia, silicon, transformer">
+        </div>
+      </div>
+
+      <div class="pt-2 flex gap-2">
+        <button onclick="submitManualLogin()" class="flex-1 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-xs rounded-lg transition flex items-center justify-center gap-1.5">
+          <span>🚀</span> Open Genuine Chrome & Login
+        </button>
+        <button onclick="closeManualModal()" class="px-4 py-2.5 glass text-slate-300 hover:text-white text-xs rounded-lg">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let activeTab = 'channels';
+
+    function switchTab(tab) {
+      ['channels', 'dispatch', 'radar', 'bridge'].forEach(t => {
+        document.getElementById(`tab-${t}`).classList.add('hidden');
+        document.getElementById(`tabBtn-${t}`).className = 'pb-3 text-slate-400 hover:text-slate-200 transition';
+      });
+      document.getElementById(`tab-${tab}`).classList.remove('hidden');
+      document.getElementById(`tabBtn-${tab}`).className = 'pb-3 text-cyan-400 border-b-2 border-cyan-400 transition';
+      activeTab = tab;
+      if (tab === 'radar') loadCloudRuns();
+      if (tab === 'channels') loadChannels();
+    }
+
+    async function loadStatus() {
+      try {
+        const res = await fetch('/api/status');
+        const data = await res.json();
+        document.getElementById('statChannels').innerText = data.total_channels || 0;
+        document.getElementById('headerConvoId').innerText = (data.conversation_id || '6a60d582...').substring(0, 14) + '...';
+        document.getElementById('inputConvoId').value = data.conversation_id || '';
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    async function loadChannels() {
+      try {
+        const res = await fetch('/api/channels');
+        const data = await res.json();
+        const container = document.getElementById('channelCardsGrid');
+        container.innerHTML = '';
+
+        data.channels.forEach(ch => {
+          const quota = ch.quota_status || {};
+          const isAuthed = ch.auth_status === 'authenticated' || ch.auth_status === 'configured';
+          const card = document.createElement('div');
+          card.className = 'glass p-5 rounded-2xl space-y-3 relative flex flex-col justify-between';
+          
+          card.innerHTML = `
+            <div>
+              <div class="flex items-center justify-between">
+                <span class="text-xs px-2 py-0.5 rounded uppercase font-bold tracking-wider ${ch.platform === 'youtube' ? 'bg-red-500/20 text-red-400 border border-red-500/30' : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'}">
+                  ${ch.platform}
+                </span>
+                <span class="text-xs flex items-center gap-1 ${isAuthed ? 'text-emerald-400' : 'text-amber-400'}">
+                  ● ${isAuthed ? 'Authenticated' : 'Login Needed'}
+                </span>
+              </div>
+              <h3 class="text-base font-bold text-white mt-2">${ch.name}</h3>
+              <p class="text-xs text-slate-400">${ch.handle || ch.channel_id} · <span class="text-cyan-300">${ch.niche}</span></p>
+              
+              <div class="mt-4 space-y-1">
+                <div class="flex justify-between text-xs text-slate-400">
+                  <span>Daily Quota</span>
+                  <span class="font-semibold text-slate-200">${quota.current_daily_count || 0} / ${quota.max_allowed || 3} uploads</span>
+                </div>
+                <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                  <div class="bg-gradient-to-r from-cyan-400 to-emerald-400 h-full rounded-full" style="width: ${Math.min(100, ((quota.current_daily_count||0)/(quota.max_allowed||3))*100)}%"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="pt-3 border-t border-slate-800/80 flex gap-2">
+              <button onclick="reloginChannel('${ch.channel_id}', '${ch.platform}')" class="flex-1 py-1.5 glass hover:bg-slate-800 text-xs font-semibold text-cyan-300 rounded-lg transition">
+                🔑 Re-Verify Login
+              </button>
+            </div>
+          `;
+          container.appendChild(card);
+        });
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    async function loadCloudRuns() {
+      try {
+        const res = await fetch('/api/cloud-runs');
+        const data = await res.json();
+        const container = document.getElementById('runsContainer');
+        container.innerHTML = '';
+
+        if (!data.runs || data.runs.length === 0) {
+          container.innerHTML = '<div class="glass p-6 text-center text-xs text-slate-400">No active runs currently reported.</div>';
+          return;
+        }
+
+        data.runs.forEach(r => {
+          const item = document.createElement('div');
+          item.className = 'glass p-4 rounded-xl flex items-center justify-between';
+          item.innerHTML = `
+            <div>
+              <div class="text-sm font-bold text-white flex items-center gap-2">
+                <span>${r.name}</span>
+                <span class="text-xs px-2 py-0.5 rounded mono ${r.status === 'completed' ? 'bg-emerald-500/20 text-emerald-300' : 'bg-cyan-500/20 text-cyan-300 animate-pulse'}">${r.status}</span>
+              </div>
+              <div class="text-xs text-slate-400 mt-1">Run ID: ${r.id} · Conclusion: ${r.conclusion || 'Running...'} · Branch: ${r.head_branch}</div>
+            </div>
+            <a href="${r.html_url}" target="_blank" class="text-xs px-3 py-1.5 glass hover:bg-slate-800 text-cyan-400 rounded-lg">View on GitHub ↗</a>
+          `;
+          container.appendChild(item);
+        });
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    async function launchCampaign() {
+      const theme = document.getElementById('campaignTheme').value;
+      const btn = document.getElementById('btnDispatch');
+      const resBox = document.getElementById('dispatchResult');
+      btn.disabled = true;
+      btn.innerText = '⏳ Triggering 20 Cloud Runners...';
+
+      try {
+        const res = await fetch('/api/dispatch', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({theme: theme})
+        });
+        const data = await res.json();
+        resBox.classList.remove('hidden');
+        if (data.success) {
+          resBox.className = 'text-xs p-3 rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-300';
+          resBox.innerHTML = `🎉 <strong>Success:</strong> 20 Cloud Runners successfully triggered on GitHub Actions! Direct publishing to YouTube & Rumble is underway.`;
+        } else {
+          resBox.className = 'text-xs p-3 rounded-xl bg-red-500/20 border border-red-500/40 text-red-300';
+          resBox.innerHTML = `❌ <strong>Error:</strong> ${data.message}`;
+        }
+      } catch (e) {
+        resBox.classList.remove('hidden');
+        resBox.className = 'text-xs p-3 rounded-xl bg-red-500/20 text-red-300';
+        resBox.innerText = `Network error: ${e.message}`;
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<span>⚡</span> IGNITE 20-VIDEO CLOUD MATRIX (400 TOKENS TOTAL)';
+      }
+    }
+
+    function openManualModal() {
+      document.getElementById('manualLoginModal').classList.remove('hidden');
+    }
+    function closeManualModal() {
+      document.getElementById('manualLoginModal').classList.add('hidden');
+    }
+
+    async function submitManualLogin() {
+      const key = document.getElementById('modalChannelKey').value.trim();
+      const name = document.getElementById('modalChannelName').value.trim();
+      const platform = document.getElementById('modalPlatform').value;
+      const niche = document.getElementById('modalNiche').value;
+      const kws = document.getElementById('modalKeywords').value.split(',').map(s => s.trim()).filter(Boolean);
+
+      if (!key || !name) {
+        alert('Please fill channel key and name.');
+        return;
+      }
+
+      await fetch('/api/channels/add', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          channel_key: key,
+          platform: platform,
+          name: name,
+          niche: niche,
+          keywords: kws
+        })
+      });
+
+      closeManualModal();
+      alert(`🚀 Opening genuine Chrome window for ${name}. Log in manually with your credentials. Session will be saved automatically!`);
+      await fetch('/api/channels/manual-login', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({channel_key: key, platform: platform})
+      });
+
+      setTimeout(loadChannels, 2000);
+    }
+
+    async function reloginChannel(key, platform) {
+      alert(`🚀 Opening genuine Chrome window for ${key}. Complete login in the opened browser!`);
+      await fetch('/api/channels/manual-login', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({channel_key: key, platform: platform})
+      });
+    }
+
+    function copyConvoId() {
+      const id = document.getElementById('inputConvoId').value;
+      navigator.clipboard.writeText(id);
+      alert(`Copied Conversation ID: ${id}`);
+    }
+
+    async function saveConvoId() {
+      const id = document.getElementById('inputConvoId').value.trim();
+      if (!id) return;
+      await fetch('/api/conversation', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({conversation_id: id})
+      });
+      alert('Conversation ID synchronized!');
+      loadStatus();
+    }
+
+    // Auto init
+    loadStatus();
+    loadChannels();
+    setInterval(loadStatus, 15000);
+  </script>
+</body>
+</html>

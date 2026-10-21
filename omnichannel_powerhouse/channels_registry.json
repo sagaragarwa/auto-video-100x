@@ -1,0 +1,69 @@
+{
+  "updated_at": "2026-10-21 16:45:00",
+  "version": "1.0.0",
+  "channels": {
+    "yt_tech_01": {
+      "channel_id": "yt_tech_01",
+      "platform": "youtube",
+      "name": "Get Neural Stack Pro",
+      "handle": "@GetNeuralStack",
+      "yt_channel_id": "UCxWo4uJtZjElITEPfpB54eQ",
+      "niche": "tech_ai",
+      "voice_preferred": "en-US-BrianNeural",
+      "keywords": [
+        "transformer", "gpu", "nvidia", "deep learning", "silicon", "llm", "compute",
+        "neural network", "hardware", "quantum computing", "blackwell", "semiconductor",
+        "artificial intelligence", "gemini", "openai", "meta ai"
+      ],
+      "negative_keywords": [
+        "dark pool", "wall street", "options trading", "forex", "fed rates", "hedge fund"
+      ],
+      "profile_dir": "yt_uploader/profiles/ai_and_tech",
+      "auth_status": "authenticated",
+      "daily_max_uploads": 3,
+      "uploads_today": 1,
+      "last_upload_timestamp": "2026-10-21 12:45:00",
+      "auto_publish_visibility": "unlisted"
+    },
+    "yt_trading_01": {
+      "channel_id": "yt_trading_01",
+      "platform": "youtube",
+      "name": "Silicon Pulse",
+      "handle": "@SiliconPulsePro",
+      "yt_channel_id": "UCJB-HVgZMtokc05UwomQ6lA",
+      "niche": "trading_finance",
+      "voice_preferred": "en-US-ChristopherNeural",
+      "keywords": [
+        "dark pool", "wall street", "hedge fund", "options trading", "liquidity",
+        "federal reserve", "stock market crash", "high frequency trading", "algo trading",
+        "market maker", "citadel", "order flow", "macroeconomics", "recession"
+      ],
+      "negative_keywords": [
+        "transformer architecture", "silicon photolithography", "compiler optimization"
+      ],
+      "profile_dir": "yt_uploader/profiles/channel_trading",
+      "auth_status": "authenticated",
+      "daily_max_uploads": 3,
+      "uploads_today": 1,
+      "last_upload_timestamp": "2026-10-21 12:48:00",
+      "auto_publish_visibility": "unlisted"
+    },
+    "rumble_hub_01": {
+      "channel_id": "rumble_hub_01",
+      "platform": "rumble",
+      "name": "Silicon Pulse Rumble Network",
+      "handle": "siliconpulse",
+      "niche": "omnichannel_general",
+      "sub_channels": ["tech_frontier", "institutional_finance"],
+      "voice_preferred": "en-US-BrianNeural",
+      "keywords": ["all"],
+      "negative_keywords": [],
+      "profile_dir": "yt_uploader/profiles/rumble_main",
+      "auth_status": "configured",
+      "daily_max_uploads": 20,
+      "uploads_today": 0,
+      "last_upload_timestamp": "",
+      "license_type": "rumble_only"
+    }
+  }
+}

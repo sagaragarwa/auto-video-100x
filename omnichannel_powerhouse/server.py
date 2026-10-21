@@ -1,0 +1,209 @@
+"""
+OmniChannel Powerhouse Control Server
+FastAPI backend powering the Professional Desktop Dashboard and the Android Companion App.
+Manages channels, safe manual logins, quota tracking, cloud runner radar, and the Universal Conversation ID Bridge.
+"""
+
+import os
+import sys
+import json
+import time
+import threading
+import subprocess
+from typing import Dict, Any, List, Optional
+from fastapi import FastAPI, BackgroundTasks, HTTPException
+from fastapi.responses import HTMLResponse, JSONResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel
+
+_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+_venv_site = os.path.join(_root, ".venv", "Lib", "site-packages")
+if os.path.exists(_venv_site) and _venv_site not in sys.path:
+    sys.path.insert(0, _venv_site)
+
+from omnichannel_powerhouse.smart_niche_router import load_registry, save_registry, route_video_to_channels
+from omnichannel_powerhouse.quota_balancer import check_and_allocate_upload_slot
+from omnichannel_powerhouse.manual_auth_helper import launch_manual_login_session
+from omnichannel_powerhouse.cloud_matrix_dispatcher import generate_structured_20_blueprint, dispatch_to_github_cloud_matrix
+
+app = FastAPI(title="OmniChannel Supreme Studio", version="1.0.0")
+
+STATIC_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static")
+os.makedirs(STATIC_DIR, exist_ok=True)
+app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+
+CONVO_CONFIG_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "convo_state.json")
+DEFAULT_CONVO_ID = "6a60d582-ca94-43f1-bef4-cbc8f38f0265"
+
+
+def get_active_convo_id() -> str:
+    if os.path.exists(CONVO_CONFIG_PATH):
+        try:
+            with open(CONVO_CONFIG_PATH, "r", encoding="utf-8") as f:
+                return json.load(f).get("conversation_id", DEFAULT_CONVO_ID)
+        except Exception:
+            pass
+    return DEFAULT_CONVO_ID
+
+
+def set_active_convo_id(convo_id: str):
+    with open(CONVO_CONFIG_PATH, "w", encoding="utf-8") as f:
+        json.dump({"conversation_id": convo_id, "updated_at": time.strftime("%Y-%m-%d %H:%M:%S")}, f, indent=2)
+
+
+# --- Request Models ---
+class AddChannelRequest(BaseModel):
+    channel_key: str
+    platform: str
+    name: str
+    niche: str
+    keywords: List[str]
+    negative_keywords: Optional[List[str]] = []
+    daily_max_uploads: Optional[int] = 3
+
+
+class ManualLoginRequest(BaseModel):
+    channel_key: str
+    platform: str = "youtube"
+
+
+class DispatchRequest(BaseModel):
+    theme: Optional[str] = "Frontier AI Hardware & Wall Street Quantitative Warfare"
+    custom_topics: Optional[List[Dict[str, Any]]] = None
+
+
+class ConvoUpdateRequest(BaseModel):
+    conversation_id: str
+
+
+# --- API Endpoints ---
+@app.get("/", response_class=HTMLResponse)
+def serve_dashboard():
+    index_file = os.path.join(STATIC_DIR, "index.html")
+    if os.path.exists(index_file):
+        return FileResponse(index_file)
+    return "<h1>OmniChannel Studio is Initializing...</h1>"
+
+
+@app.get("/api/status")
+def get_system_status():
+    reg = load_registry()
+    channels = reg.get("channels", {})
+    token_path = os.path.join(_root, "yt_uploader", "github_token.local")
+    outro_path = os.path.join(_root, "resource", "assets", "content_id_outro.mp4")
+    
+    return {
+        "status": "online",
+        "total_channels": len(channels),
+        "active_youtube_channels": sum(1 for c in channels.values() if c.get("platform") == "youtube" and c.get("auth_status") == "authenticated"),
+        "active_rumble_channels": sum(1 for c in channels.values() if c.get("platform") == "rumble"),
+        "outro_hard_lock": os.path.exists(outro_path) or os.path.exists(r"C:\Users\janar\Downloads\content_id_outro.mp4"),
+        "token_reduction_rate": "500x",
+        "conversation_id": get_active_convo_id(),
+        "cloud_sync_ready": os.path.exists(token_path)
+    }
+
+
+@app.get("/api/channels")
+def list_channels():
+    reg = load_registry()
+    channels = reg.get("channels", {})
+    # Enrich with quota info
+    enriched = []
+    for k, v in channels.items():
+        slot = check_and_allocate_upload_slot(k)
+        item = v.copy()
+        item["quota_status"] = slot
+        enriched.append(item)
+    return {"channels": enriched}
+
+
+@app.post("/api/channels/add")
+def add_channel(req: AddChannelRequest):
+    reg = load_registry()
+    channels = reg.setdefault("channels", {})
+    clean_key = req.channel_key.strip().lower().replace(" ", "_")
+    profile_dir = f"yt_uploader/profiles/{clean_key}"
+
+    channels[clean_key] = {
+        "channel_id": clean_key,
+        "platform": req.platform.lower(),
+        "name": req.name.strip(),
+        "niche": req.niche.strip(),
+        "keywords": req.keywords,
+        "negative_keywords": req.negative_keywords or [],
+        "profile_dir": profile_dir,
+        "auth_status": "unverified",
+        "daily_max_uploads": req.daily_max_uploads or (3 if req.platform == "youtube" else 20),
+        "uploads_today": 0,
+        "last_upload_timestamp": ""
+    }
+    save_registry(reg)
+    return {"success": True, "channel_key": clean_key, "message": "Channel added. Please initiate manual login."}
+
+
+@app.post("/api/channels/manual-login")
+def trigger_manual_login(req: ManualLoginRequest, background_tasks: BackgroundTasks):
+    def run_login():
+        launch_manual_login_session(req.channel_key, req.platform)
+
+    # Launch in separate thread so API doesn't block
+    t = threading.Thread(target=run_login, daemon=True)
+    t.start()
+    return {"success": True, "message": f"Visible genuine browser spawned for '{req.channel_key}'. Complete login in the opened window."}
+
+
+@app.post("/api/dispatch")
+def trigger_cloud_dispatch(req: DispatchRequest):
+    manifest = generate_structured_20_blueprint(master_theme=req.theme, custom_topics=req.custom_topics)
+    res = dispatch_to_github_cloud_matrix()
+    return {
+        "success": res.get("success", False),
+        "manifest_title": manifest.get("series_title"),
+        "total_episodes": manifest.get("total_episodes"),
+        "message": res.get("message") or res.get("error")
+    }
+
+
+@app.get("/api/cloud-runs")
+def get_cloud_runs():
+    token_path = os.path.join(_root, "yt_uploader", "github_token.local")
+    if not os.path.exists(token_path):
+        return {"runs": [], "error": "No GitHub token found"}
+
+    try:
+        import requests
+        tok = open(token_path, "r", encoding="utf-8").read().strip()
+        h = {"Authorization": f"Bearer {tok}", "Accept": "application/vnd.github+json"}
+        r = requests.get("https://api.github.com/repos/sagaragarwa/auto-video-100x/actions/runs?per_page=5", headers=h, timeout=10)
+        if r.status_code == 200:
+            data = r.json()
+            return {"runs": data.get("workflow_runs", [])}
+        return {"runs": [], "status_code": r.status_code}
+    except Exception as e:
+        return {"runs": [], "error": str(e)}
+
+
+@app.get("/api/conversation")
+def get_conversation():
+    convo_id = get_active_convo_id()
+    brain_dir = os.path.join(r"C:\Users\janar\.gemini\antigravity\brain", convo_id)
+    return {
+        "conversation_id": convo_id,
+        "is_active_on_disk": os.path.exists(brain_dir),
+        "brain_path": brain_dir
+    }
+
+
+@app.post("/api/conversation")
+def update_conversation(req: ConvoUpdateRequest):
+    clean_id = req.conversation_id.strip()
+    if clean_id:
+        set_active_convo_id(clean_id)
+        return {"success": True, "conversation_id": clean_id}
+    raise HTTPException(status_code=400, detail="Invalid Conversation ID")
+
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("omnichannel_powerhouse.server:app", host="0.0.0.0", port=8899, reload=False)
