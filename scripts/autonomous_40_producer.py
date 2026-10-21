@@ -47,6 +47,7 @@ from yt_uploader.seo_generator import generate_viral_seo_package
 from yt_uploader.deep_script_generator import generate_deep_script_content
 
 CATALOG_PATH = os.path.join(_root, "master_40_series_catalog.json")
+USER_DOWNLOADS = os.path.join(os.path.expanduser("~"), "Downloads")
 
 def load_catalog() -> Dict[str, Any]:
     with open(CATALOG_PATH, "r", encoding="utf-8") as f:
@@ -56,7 +57,7 @@ async def synthesize_episode_audio(text: str, voice: str, out_audio: str, out_sr
     """
     Generates pristine Edge-TTS neural speech and synchronized SRT subtitles.
     """
-    communicate = edge_tts.Communicate(text, voice)
+    communicate = edge_tts.Communicate(text, voice, rate="+4%")
     submaker = edge_tts.SubMaker()
     
     with open(out_audio, "wb") as file:
@@ -117,49 +118,37 @@ def produce_single_episode(ep_info: Dict[str, Any], niche: str, voice: str) -> D
     duration = float(subprocess.check_output(cmd_p).decode().strip())
     logger.info(f"Audio synthesized successfully! Duration: {duration:.1f}s ({duration/60:.2f} mins)")
 
-    # 3. Scene Breakdown & Semantic Clip Gathering
+    # 3. Scene Breakdown & Semantic Clip Gathering (Zero Duplicate Hashes)
     director = CinematicDirector(niche=niche)
-    scenes = parse_srt_into_scenes(srt_path, target_scene_duration=6.0)
-    if not scenes:
-        scenes = [{"text": f"Scene {i} on {title}"} for i in range(int(duration/6.0)+1)]
-
-    queries = director.get_scene_visual_queries(scenes)
-    logger.info(f"Planned {len(scenes)} unique visual scenes...")
+    raw_unique_clips = director.gather_unique_clips_for_duration(
+        target_duration=min(duration, 700.0), # Assemble 120-160+ unique clips per episode
+        prompt=title,
+        niche=niche,
+        avg_scene_duration=4.5
+    )
 
     norm_dir = os.path.join(_root, "storage", "ep_norm_clips")
     os.makedirs(norm_dir, exist_ok=True)
     normalized_clips = []
 
-    for idx, q in enumerate(queries[:40]):
-        raw_clip = director.fetch_unique_scene_clip(q, idx)
-        if raw_clip and os.path.exists(raw_clip):
-            n_clip = os.path.join(norm_dir, f"ep_{ep_num:02d}_sc_{idx:02d}.mp4")
-            normalize_cinematic_clip(raw_clip, n_clip, target_duration=6.0)
-            normalized_clips.append(n_clip)
+    for idx, raw_clip in enumerate(raw_unique_clips):
+        n_clip = os.path.join(norm_dir, f"ep_{ep_num:02d}_sc_{idx:02d}.mp4")
+        normalize_cinematic_clip(raw_clip, n_clip, target_duration=4.8)
+        normalized_clips.append(n_clip)
 
-    # Supplement with diverse clips from local stock video cache for maximum visual retention
-    import glob
-    cache_clips = glob.glob(os.path.join(_root, "storage", "cache_videos", "**", "*.mp4"), recursive=True)
-    if cache_clips:
-        for idx, cc in enumerate(cache_clips[:35]):
-            n_clip = os.path.join(norm_dir, f"ep_{ep_num:02d}_cb_{idx:02d}.mp4")
-            if not os.path.exists(n_clip):
-                normalize_cinematic_clip(cc, n_clip, target_duration=6.0)
-            if n_clip not in normalized_clips:
-                normalized_clips.append(n_clip)
-
-    logger.success(f"Assembled {len(normalized_clips)} unique 1080p normalized clips!")
+    logger.success(f"🎬 Assembled {len(normalized_clips)} STRICTLY UNIQUE 1080p normalized clips for Episode {ep_num}!")
 
     # 4. Background Music
     bgm_path = select_cinematic_bgm(niche=niche, duration_needed=duration)
 
-    # 5. Render 1080p Master Video (Zero Subtitles per user mandate)
+    # 5. Render 1080p Master Video (Zero Subtitles, Broadcast Loudness, Signature Content ID Outro)
     out_dir = os.path.join(_root, "output", "master_40_series")
     os.makedirs(out_dir, exist_ok=True)
     safe_title = "".join(c for c in title if c.isalnum() or c in (" ", "_", "-")).replace(" ", "_")[:35]
     final_video = os.path.join(out_dir, f"Episode_{ep_num:02d}_{safe_title}.mp4")
+    content_id_outro = os.path.join(_root, "resource", "assets", "content_id_outro.mp4")
 
-    logger.info("Rendering final 1080p documentary with dynamic sidechain ducking (NO SUBTITLES)...")
+    logger.info("Rendering final 1080p documentary with dynamic sidechain ducking (-14 LUFS) & Content ID outro (NO SUBTITLES)...")
     render_cinematic_longform(
         normalized_clips=normalized_clips,
         audio_path=audio_path,
@@ -167,7 +156,9 @@ def produce_single_episode(ep_info: Dict[str, Any], niche: str, voice: str) -> D
         output_video_path=final_video,
         bgm_path=bgm_path,
         audio_duration=duration,
-        burn_subtitles=False
+        burn_subtitles=False,
+        outro_clip_path=content_id_outro if os.path.exists(content_id_outro) else None,
+        outro_duration=None  # ALWAYS PLAY FULL SIGNATURE OUTRO CLIP PER USER MANDATE
     )
 
     # 6. THUMBNAIL POLICY: STRICTLY SKIPPED PER USER MANDATE
@@ -178,11 +169,17 @@ def produce_single_episode(ep_info: Dict[str, Any], niche: str, voice: str) -> D
     seo = generate_viral_seo_package(subject=title, niche=niche)
     seo["visibility"] = "unlisted"  # Strictly unlisted for future uploads
 
+    # 8. Single-Source Auto-Delivery to Downloads & Ephemeral Temp Purge (Zero Disk Leak)
+    from yt_uploader.disk_sanitizer import safe_deliver_and_deduplicate, purge_ephemeral_clips, enforce_infinite_storage_headroom
+    dest_video = safe_deliver_and_deduplicate(final_video, USER_DOWNLOADS, move_instead_of_copy=True)
+    purge_ephemeral_clips(normalized_clips)
+    enforce_infinite_storage_headroom(min_free_gb=10.0)
+
     upload_meta_path = os.path.join(out_dir, f"Episode_{ep_num:02d}_upload_meta.json")
     future_upload_payload = {
         "episode": ep_num,
         "title": title,
-        "video_path": final_video,
+        "video_path": dest_video,
         "channel_key": channel_key,
         "visibility": "unlisted",
         "skip_thumbnail": True,
@@ -193,23 +190,11 @@ def produce_single_episode(ep_info: Dict[str, Any], niche: str, voice: str) -> D
     with open(upload_meta_path, "w", encoding="utf-8") as f:
         json.dump(future_upload_payload, f, indent=4)
 
-    # 8. Auto-delivery directly to User's Downloads folder
-    user_downloads = os.path.join(os.path.expanduser("~"), "Downloads")
-    dest_video = os.path.join(user_downloads, os.path.basename(final_video))
-    try:
-        import shutil
-        shutil.copyfile(final_video, dest_video)
-        logger.success(f"📥 AUTO-DELIVERED TO DOWNLOADS FOLDER: {dest_video}")
-    except Exception as e:
-        logger.warning(f"Could not auto-copy to Downloads: {e}")
-
-    # 9. Post-Episode 5GB Disk Governor Enforcement
-    enforce_5gb_disk_headroom(min_free_gb=5.0)
-
     elapsed = time.time() - t0
-    v_size = os.path.getsize(final_video)
+    target_f = dest_video if os.path.exists(dest_video) else final_video
+    v_size = os.path.getsize(target_f) if os.path.exists(target_f) else 0
     logger.success(f"✅ EPISODE {ep_num} COMPLETE in {elapsed:.1f}s ({elapsed/60:.2f} mins) | Size: {format_bytes(v_size)}")
-    logger.info(f"📦 Output Video: {final_video}")
+    logger.info(f"📦 Output Video Delivered: {dest_video}")
     logger.info(f"📋 Future Upload Payload (Unlisted): {upload_meta_path}")
 
     return future_upload_payload

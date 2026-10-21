@@ -24,6 +24,7 @@ if os.path.exists(_venv_site) and _venv_site not in sys.path:
     sys.path.insert(0, _venv_site)
 
 CONFIG_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "github_config.json")
+LOCAL_TOKEN_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "github_token.local")
 QUEUE_PATH = os.path.join(_root, "storage", "cloud_queue.json")
 
 DEFAULT_GITHUB_CONFIG = {
@@ -39,18 +40,29 @@ DEFAULT_GITHUB_CONFIG = {
 def load_github_config() -> Dict[str, Any]:
     if not os.path.exists(CONFIG_PATH):
         save_github_config(DEFAULT_GITHUB_CONFIG)
-        return DEFAULT_GITHUB_CONFIG.copy()
-    try:
-        with open(CONFIG_PATH, "r", encoding="utf-8") as f:
-            data = json.load(f)
-            # Ensure all keys exist
-            for k, v in DEFAULT_GITHUB_CONFIG.items():
-                if k not in data:
-                    data[k] = v
-            return data
-    except Exception as e:
-        logger.error(f"Failed to read github_config.json: {e}")
-        return DEFAULT_GITHUB_CONFIG.copy()
+        data = DEFAULT_GITHUB_CONFIG.copy()
+    else:
+        try:
+            with open(CONFIG_PATH, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                for k, v in DEFAULT_GITHUB_CONFIG.items():
+                    if k not in data:
+                        data[k] = v
+        except Exception as e:
+            logger.error(f"Failed to read github_config.json: {e}")
+            data = DEFAULT_GITHUB_CONFIG.copy()
+
+    # Priority token fallback to avoid committing secrets
+    if not data.get("github_token"):
+        if os.environ.get("GITHUB_TOKEN"):
+            data["github_token"] = os.environ.get("GITHUB_TOKEN").strip()
+        elif os.path.exists(LOCAL_TOKEN_PATH):
+            try:
+                with open(LOCAL_TOKEN_PATH, "r", encoding="utf-8") as tf:
+                    data["github_token"] = tf.read().strip()
+            except Exception:
+                pass
+    return data
 
 def save_github_config(data: Dict[str, Any]):
     os.makedirs(os.path.dirname(CONFIG_PATH), exist_ok=True)
@@ -301,11 +313,10 @@ class GitHubCloudWatcher:
 
         # 2. Poll Artifacts endpoint (Primary robust auto-delivery for 1080p Cloud Videos)
         try:
-            art_url = f"https://api.github.com/repos/{owner}/{repo}/actions/artifacts?per_page=60"
-            art_resp = requests.get(art_url, headers=headers, timeout=10)
-            if art_resp.status_code == 200:
-                artifacts = art_resp.json().get("artifacts", [])
-                for art in artifacts:
+                    # Filter by latest run ID if available so we only download the active Frontier AI batch
+                    if latest_run_id and art.get("workflow_run", {}).get("id") != latest_run_id:
+                        continue
+
                     if (art.get("name") == "master_video_1080p" or "1080p" in art.get("name", "")) and not art.get("expired"):
                         art_id = art.get("id")
                         zip_url = f"https://api.github.com/repos/{owner}/{repo}/actions/artifacts/{art_id}/zip"

@@ -110,7 +110,14 @@ def auto_detect_channel(video_name_or_subject: str) -> str:
         ],
         "technology": [
             "tech", "ai", "python", "software", "code", "coding", "gadget",
-            "computer", "machine learning", "hardware", "cyber", "robot"
+            "computer", "machine learning", "hardware", "cyber", "robot",
+            "transformer", "attention", "neural", "deep learning", "agent",
+            "swarm", "nvidia", "blackwell", "b200", "cuda", "gpu", "semiconductor",
+            "compute", "model", "deepseek", "rag", "vector", "alignment", "dpo",
+            "rlhf", "asml", "euv", "chinchilla", "scaling", "alphafold",
+            "quantization", "triton", "compiler", "photonic", "optical",
+            "multimodal", "robotics", "humanoid", "sovereign", "superintelligence",
+            "agi", "synthetic data", "reasoning", "jepa"
         ],
         "science": [
             "science", "space", "physics", "universe", "nasa", "planet",

@@ -49,4 +49,7 @@ htmlcov/
 output/
 *.mp4
 !assets/outro_clip.mp4
+*.local
+*.token
+yt_uploader/github_token.local
 
