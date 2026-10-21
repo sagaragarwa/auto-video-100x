@@ -112,7 +112,7 @@ def main():
         asyncio.run(synthesize_neural_hindi_speech(pkg["video_script"], voiceover_raw))
 
     # 2. Master Voiceover with Broadcast Vocal Chain
-    voiceover_mastered = os.path.join(TEMP_DIR, "hindi_voiceover_mastered.mp3")
+    voiceover_mastered = os.path.join(TEMP_DIR, "hindi_voiceover_mastered.m4a")
     master_voiceover_audio(voiceover_raw, voiceover_mastered)
     speech_duration = get_media_duration(voiceover_mastered)
     logger.info(f"⏳ Spoken Hindi Duration: {speech_duration:.1f}s ({speech_duration/60:.2f} Minutes)")

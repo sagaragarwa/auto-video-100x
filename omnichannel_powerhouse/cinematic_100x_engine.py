@@ -55,24 +55,22 @@ def master_voiceover_audio(in_vox_path: str, out_vox_path: str) -> str:
     """
     Applies institutional broadcast vocal chain:
     - 80Hz Highpass (eliminates mic thumps and low-end mud)
-    - 12kHz Lowpass (removes digital high-pitch hiss)
-    - +2.5dB Vocal Presence Treble Boost (at 4kHz for crystal intelligibility)
-    - Multiband dynamic compand (studio broadcast compression)
+    - 3.5kHz Equalizer presence air boost (+3dB)
+    - Dynamic Audio Normalization (dynaudnorm) for broadcast podcast/documentary vocal consistency
     """
     logger.info("🎙️ Mastering Voiceover with Broadcast Vocal Chain...")
     vocal_chain = (
         "highpass=f=80,"
-        "lowpass=f=12000,"
-        "treble=g=2.5:f=4000,"
-        "compand=attacks=0.02:decays=0.2:points=-80/-80|-45/-30|-20/-10|0/-1:soft-knee=6:gain=2.5"
+        "equalizer=f=3500:t=q:w=1.5:g=3.0,"
+        "dynaudnorm=p=0.95:m=10:s=12"
     )
     cmd = [
         "ffmpeg", "-y", "-i", in_vox_path,
         "-af", vocal_chain,
-        "-c:a", "libmp3lame", "-b:a", "192k", "-ar", "48000",
+        "-c:a", "aac", "-b:a", "192k", "-ar", "48000",
         out_vox_path
     ]
-    subprocess.run(cmd, check=True, capture_output=True)
+    subprocess.run(cmd, check=True)
     logger.success(f"✅ Voiceover mastered -> {out_vox_path}")
     return out_vox_path
 
@@ -265,9 +263,8 @@ def overlay_chapter_cards(
         *input_args,
         "-filter_complex", filter_complex_str,
         "-map", f"[{last_v}]",
-        "-map", "0:a:0",
         "-c:v", "libx264", "-preset", "ultrafast", "-crf", "24",
-        "-c:a", "copy",
+        "-an",
         "-movflags", "+faststart",
         out_video_path
     ]
