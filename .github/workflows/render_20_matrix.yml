@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - 'series_tasks.json'
+      - 'swarm_batch_manifest.json'
       - '.github/workflows/render_20_matrix.yml'
       - 'cloud_render_worker.py'
   workflow_dispatch:

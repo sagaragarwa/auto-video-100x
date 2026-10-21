@@ -245,6 +245,20 @@ def generate_mega_swarm_manifest(batch_size: int = 100) -> Dict[str, Any]:
     with open(SWARM_MANIFEST_PATH, "w", encoding="utf-8") as f:
         json.dump(manifest, f, indent=2)
 
+    # Sync first shard to series_tasks.json so legacy runners & cloud workers are always synchronized
+    series_tasks_file = os.path.join(_root, "series_tasks.json")
+    try:
+        shard_payload = {
+            "series_title": f"Mega Swarm Batch ({batch_size} Videos)",
+            "total_episodes": min(len(tasks), 20),
+            "updated_at": manifest["created_at"],
+            "tasks": tasks[:20]
+        }
+        with open(series_tasks_file, "w", encoding="utf-8") as f:
+            json.dump(shard_payload, f, indent=2)
+    except Exception as e:
+        logger.warning(f"Could not mirror shard to series_tasks.json: {e}")
+
     logger.success(f"💾 Mega Swarm Manifest compiled -> {SWARM_MANIFEST_PATH} ({len(tasks):,} Videos across {shards_count} Parallel 20-Runner Shards)")
     return manifest
 
@@ -263,7 +277,7 @@ def dispatch_mega_swarm(batch_size: int = 100) -> Dict[str, Any]:
 
     logger.info(f"🚀 Pushing {batch_size:,}-Video Mega Swarm Blueprint to GitHub origin main...")
     try:
-        subprocess.run(["git", "add", "swarm_batch_manifest.json", "omnichannel_powerhouse/"], cwd=_root, check=True)
+        subprocess.run(["git", "add", "swarm_batch_manifest.json", "series_tasks.json", "cloud_render_worker.py", ".github/workflows/", "omnichannel_powerhouse/"], cwd=_root, check=True)
         subprocess.run(["git", "commit", "-m", f"feat: ignite mega swarm cloud matrix ({batch_size:,} videos)"], cwd=_root, check=True)
         res = subprocess.run(["git", "push", remote_url, "main"], cwd=_root, capture_output=True, text=True)
         if res.returncode == 0:

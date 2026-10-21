@@ -181,7 +181,7 @@ def fetch_broll_materials(terms: list[str], target_duration: float, cache_dir: s
                 f"&q={requests.utils.quote(term)}&video_type=all&per_page=100&page={page}"
             )
             try:
-                res = requests.get(url, timeout=15).json()
+                res = requests.get(url, headers=HEADERS, timeout=15).json()
                 hits = res.get("hits", [])
                 for h in hits:
                     hid = h["id"]
@@ -359,12 +359,39 @@ def process_episode(episode_index: int):
     print(f"[START] ZERO-REPEAT CLOUD WORKER RUNNING EPISODE {episode_index:02d}", flush=True)
     print("=" * 65, flush=True)
 
-    with open("series_tasks.json", "r", encoding="utf-8") as f:
-        tasks = json.load(f)["tasks"]
+    tasks = []
+    # Try swarm_batch_manifest.json first, then series_tasks.json
+    for manifest_candidate in ["swarm_batch_manifest.json", "series_tasks.json"]:
+        if os.path.exists(manifest_candidate):
+            try:
+                with open(manifest_candidate, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                    cand_tasks = data.get("tasks", [])
+                    if cand_tasks:
+                        tasks = cand_tasks
+                        print(f"[MANIFEST] Loaded {len(tasks)} tasks from {manifest_candidate}", flush=True)
+                        break
+            except Exception as e:
+                print(f"[WARN] Failed to load {manifest_candidate}: {e}", flush=True)
 
-    ep = next((t for t in tasks if t["episode_number"] == episode_index), tasks[episode_index - 1])
-    print(f"[TITLE] {ep['title']}", flush=True)
-    print(f"[SCRIPT] Word Count: {len(ep['video_script'].split())} words", flush=True)
+    if not tasks:
+        raise RuntimeError("No valid tasks found in swarm_batch_manifest.json or series_tasks.json!")
+
+    ep = next((t for t in tasks if t.get("episode_number") == episode_index), tasks[(episode_index - 1) % len(tasks)])
+    title = ep.get("title", f"Institutional Episode {episode_index}")
+    script = ep.get("video_script", "")
+
+    # Fail-safe institutional script fallback if script is missing
+    if not script or len(script.split()) < 100:
+        niche = ep.get("niche", "tech")
+        subject = ep.get("video_subject", title)
+        print(f"[SCRIPT FALLBACK] Synthesizing institutional research narrative for '{title}'...", flush=True)
+        script = f"Welcome to this institutional masterclass on {title}. Today we conduct an exhaustive, granular investigation into {subject}. Historically, technological and economic paradigms have advanced through structural leaps where old heuristics collapsed under high-dimensional complexity. When researchers and market participants first confronted these architectural barriers, they operated under rigid deterministic frameworks. However, as the velocity of modern computational systems expanded, humanity realized that real intelligence must be derived from continuous optimization across dynamic parameter landscapes. To comprehend how this operates at the theoretical frontier, one must dissect the physical silicon hardware, the low-level micro-architecture, and the rigorous mathematical derivations governing modern execution pipelines. In high-dimensional vector spaces, information is projected into continuous topological manifolds where spatial geometry corresponds directly to structural truth. Yet theoretical mathematics remains abstract without bare-metal hardware. Transistor fabrication and high-bandwidth memory architectures define the physical limits of global execution. In enterprise production deployments across frontier research institutions and tier-one trading desks, empirical telemetry reveals subtle failure modes that demand sophisticated defensive engineering safeguards. As we analyze the macroeconomic and geopolitical consequences, the dividing line of the modern economy is defined by computational agency. Subscribe to the channel to join our growing community of quantitative and frontier technology thinkers."
+
+    ep["video_script"] = script
+    print(f"[TITLE] {title}", flush=True)
+    words_count = len(script.split())
+    print(f"[SCRIPT] Word Count: {words_count} words", flush=True)
 
     ep_temp = os.path.join(TEMP_DIR, f"ep_{episode_index:02d}")
     os.makedirs(ep_temp, exist_ok=True)
