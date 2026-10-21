@@ -71,6 +71,17 @@ class ManualLoginRequest(BaseModel):
     platform: str = "youtube"
 
 
+class EditChannelRequest(BaseModel):
+    channel_key: str
+    name: Optional[str] = None
+    niche: Optional[str] = None
+    keywords: Optional[List[str]] = None
+    negative_keywords: Optional[List[str]] = None
+    daily_max_uploads: Optional[int] = None
+    voice_preferred: Optional[str] = None
+    handle: Optional[str] = None
+
+
 class DeleteChannelRequest(BaseModel):
     channel_key: str
     delete_profile_folder: Optional[bool] = False
@@ -172,6 +183,34 @@ def add_channel(req: AddChannelRequest):
     }
     save_registry(reg)
     return {"success": True, "channel_key": clean_key, "message": "Channel added. Please initiate manual login."}
+
+
+@app.post("/api/channels/edit")
+def edit_channel(req: EditChannelRequest):
+    reg = load_registry()
+    channels = reg.setdefault("channels", {})
+    key = req.channel_key.strip()
+    if key not in channels:
+        raise HTTPException(status_code=404, detail=f"Channel '{key}' not found.")
+
+    ch = channels[key]
+    if req.name is not None:
+        ch["name"] = req.name.strip()
+    if req.niche is not None:
+        ch["niche"] = req.niche.strip()
+    if req.keywords is not None:
+        ch["keywords"] = req.keywords
+    if req.negative_keywords is not None:
+        ch["negative_keywords"] = req.negative_keywords
+    if req.daily_max_uploads is not None:
+        ch["daily_max_uploads"] = max(1, req.daily_max_uploads)
+    if req.voice_preferred is not None:
+        ch["voice_preferred"] = req.voice_preferred.strip()
+    if req.handle is not None:
+        ch["handle"] = req.handle.strip()
+
+    save_registry(reg)
+    return {"success": True, "channel": ch, "message": f"Channel '{key}' updated successfully."}
 
 
 @app.post("/api/channels/delete")

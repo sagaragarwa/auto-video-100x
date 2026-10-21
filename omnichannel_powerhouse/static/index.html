@@ -706,11 +706,14 @@
             </div>
 
             <div class="pt-3 border-t border-slate-800/80 flex gap-2">
-              <button onclick="reloginChannel('${ch.channel_id}', '${ch.platform}')" class="flex-1 py-1.5 glass hover:bg-slate-800 text-xs font-semibold text-cyan-300 rounded-lg transition">
-                🔑 Re-Verify Login
+              <button onclick='openEditModal(${JSON.stringify(ch)})' class="px-3 py-1.5 glass hover:bg-amber-500/20 text-xs font-semibold text-amber-300 rounded-lg border border-amber-500/30 transition flex items-center gap-1" title="Edit channel settings">
+                <span>✏️</span> Edit
               </button>
-              <button onclick="deleteChannel('${ch.channel_id}', '${ch.name}')" class="px-3 py-1.5 glass hover:bg-red-500/20 text-xs font-semibold text-red-400 rounded-lg border border-red-500/30 transition flex items-center gap-1" title="Remove channel">
-                <span>🗑️</span> Remove
+              <button onclick="reloginChannel('${ch.channel_id}', '${ch.platform}')" class="flex-1 py-1.5 glass hover:bg-slate-800 text-xs font-semibold text-cyan-300 rounded-lg transition">
+                🔑 Re-Verify
+              </button>
+              <button onclick="deleteChannel('${ch.channel_id}', '${ch.name}')" class="px-2.5 py-1.5 glass hover:bg-red-500/20 text-xs font-semibold text-red-400 rounded-lg border border-red-500/30 transition flex items-center gap-1" title="Remove channel">
+                <span>🗑️</span>
               </button>
             </div>
           `;
@@ -718,6 +721,70 @@
         });
       } catch (e) {
         console.error(e);
+      }
+    }
+
+
+    function openEditModal(ch) {
+      document.getElementById('editChannelKey').value = ch.channel_id;
+      document.getElementById('editChannelName').value = ch.name || '';
+      document.getElementById('editChannelNiche').value = ch.niche || '';
+      document.getElementById('editChannelKeywords').value = (ch.keywords || []).join(', ');
+      document.getElementById('editChannelNegKeywords').value = (ch.negative_keywords || []).join(', ');
+      document.getElementById('editChannelQuota').value = ch.daily_max_uploads || 3;
+      if (ch.voice_preferred) {
+        document.getElementById('editChannelVoice').value = ch.voice_preferred;
+      }
+      document.getElementById('editChannelModal').classList.remove('hidden');
+    }
+
+    function closeEditModal() {
+      document.getElementById('editChannelModal').classList.add('hidden');
+    }
+
+    async function saveChannelEdit() {
+      const key = document.getElementById('editChannelKey').value;
+      const name = document.getElementById('editChannelName').value.trim();
+      const niche = document.getElementById('editChannelNiche').value.trim();
+      const kwStr = document.getElementById('editChannelKeywords').value.trim();
+      const negStr = document.getElementById('editChannelNegKeywords').value.trim();
+      const quota = parseInt(document.getElementById('editChannelQuota').value) || 3;
+      const voice = document.getElementById('editChannelVoice').value;
+
+      const keywords = kwStr ? kwStr.split(',').map(s => s.trim()).filter(Boolean) : [];
+      const negative_keywords = negStr ? negStr.split(',').map(s => s.trim()).filter(Boolean) : [];
+
+      const btn = document.getElementById('btnSaveEdit');
+      btn.innerText = 'Saving...';
+      btn.disabled = true;
+
+      try {
+        const res = await fetch('/api/channels/edit', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            channel_key: key,
+            name,
+            niche,
+            keywords,
+            negative_keywords,
+            daily_max_uploads: quota,
+            voice_preferred: voice
+          })
+        });
+        const data = await res.json();
+        if (data.success) {
+          closeEditModal();
+          loadChannels();
+          alert('Channel settings updated successfully!');
+        } else {
+          alert('Failed to update: ' + (data.detail || 'Unknown error'));
+        }
+      } catch (e) {
+        alert('Error: ' + e);
+      } finally {
+        btn.innerText = '💾 Save Changes';
+        btn.disabled = false;
       }
     }
 
@@ -882,5 +949,66 @@
     loadChannels();
     setInterval(loadStatus, 15000);
   </script>
+  <!-- Edit Channel Modal -->
+  <div id="editChannelModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="glass p-6 rounded-2xl max-w-lg w-full space-y-4 border border-cyan-500/30 shadow-2xl">
+      <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+        <h3 class="text-base font-bold text-white flex items-center gap-2">
+          <span>✏️</span> Edit Channel & Routing DNA
+        </h3>
+        <button onclick="closeEditModal()" class="text-slate-400 hover:text-white text-lg font-bold">&times;</button>
+      </div>
+
+      <input type="hidden" id="editChannelKey">
+
+      <div class="grid grid-cols-2 gap-3">
+        <div class="space-y-1">
+          <label class="text-[11px] font-semibold text-slate-400">Channel Name:</label>
+          <input type="text" id="editChannelName" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-400">
+        </div>
+        <div class="space-y-1">
+          <label class="text-[11px] font-semibold text-slate-400">Niche Category:</label>
+          <input type="text" id="editChannelNiche" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-400">
+        </div>
+      </div>
+
+      <div class="space-y-1">
+        <label class="text-[11px] font-semibold text-slate-400">Target Keywords (Routing Match):</label>
+        <input type="text" id="editChannelKeywords" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-400" placeholder="Comma separated, e.g. ai, gpu, neural">
+      </div>
+
+      <div class="space-y-1">
+        <label class="text-[11px] font-semibold text-slate-400">Negative Keywords (Block Topics):</label>
+        <input type="text" id="editChannelNegKeywords" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-400" placeholder="Comma separated, e.g. crypto, forex">
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div class="space-y-1">
+          <label class="text-[11px] font-semibold text-slate-400">Daily Upload Quota:</label>
+          <input type="number" id="editChannelQuota" min="1" max="50" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-400">
+        </div>
+        <div class="space-y-1">
+          <label class="text-[11px] font-semibold text-slate-400">Preferred Voiceover Voice:</label>
+          <select id="editChannelVoice" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-400">
+            <option value="en-US-ChristopherNeural">Christopher (Institutional Tech)</option>
+            <option value="en-US-BrianNeural">Brian (Wall Street Authoritative)</option>
+            <option value="hi-IN-MadhurNeural">Madhur (Hindi Institutional)</option>
+            <option value="en-US-GuyNeural">Guy (Deep Documentary)</option>
+            <option value="en-US-JennyNeural">Jenny (Biotech / Science)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="flex gap-2 pt-2 border-t border-slate-800">
+        <button onclick="closeEditModal()" class="flex-1 py-2 rounded-xl glass hover:bg-slate-800 text-xs font-semibold text-slate-400 transition">
+          Cancel
+        </button>
+        <button onclick="saveChannelEdit()" id="btnSaveEdit" class="flex-1 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-black font-extrabold text-xs transition shadow-md shadow-amber-500/20">
+          💾 Save Changes
+        </button>
+      </div>
+    </div>
+  </div>
+
 </body>
 </html>
