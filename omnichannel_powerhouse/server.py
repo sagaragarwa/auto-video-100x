@@ -67,6 +67,11 @@ class ManualLoginRequest(BaseModel):
     platform: str = "youtube"
 
 
+class DeleteChannelRequest(BaseModel):
+    channel_key: str
+    delete_profile_folder: Optional[bool] = False
+
+
 class DispatchRequest(BaseModel):
     theme: Optional[str] = "Frontier AI Hardware & Wall Street Quantitative Warfare"
     custom_topics: Optional[List[Dict[str, Any]]] = None
@@ -140,6 +145,29 @@ def add_channel(req: AddChannelRequest):
     }
     save_registry(reg)
     return {"success": True, "channel_key": clean_key, "message": "Channel added. Please initiate manual login."}
+
+
+@app.post("/api/channels/delete")
+def delete_channel(req: DeleteChannelRequest):
+    reg = load_registry()
+    channels = reg.get("channels", {})
+    key = req.channel_key.strip()
+    if key in channels:
+        ch_info = channels.pop(key)
+        save_registry(reg)
+
+        if req.delete_profile_folder:
+            p_dir = ch_info.get("profile_dir")
+            if p_dir:
+                abs_p = os.path.join(_root, p_dir)
+                if os.path.exists(abs_p):
+                    import shutil
+                    try:
+                        shutil.rmtree(abs_p, ignore_errors=True)
+                    except Exception:
+                        pass
+        return {"success": True, "message": f"Channel '{key}' removed successfully."}
+    return {"success": False, "message": f"Channel '{key}' not found."}
 
 
 @app.post("/api/channels/manual-login")
