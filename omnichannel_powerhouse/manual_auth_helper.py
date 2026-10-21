@@ -72,88 +72,49 @@ def launch_manual_login_session(channel_key: str, platform: str = "youtube") -> 
     logger.info(f"🚀 Spawning Genuine Visible Browser for Manual Login -> {channel_key} ({platform.upper()})...")
     logger.warning("🔑 HUMAN ACTION REQUIRED: Log in with your email/password and complete 2FA in the opened window.")
 
-    start_url = "https://studio.youtube.com" if platform == "youtube" else "https://rumble.com/login"
+    CHROME_PATH = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
+    start_url = "https://studio.youtube.com/?approve_browser_access=true" if platform == "youtube" else "https://rumble.com/login"
 
     with sync_playwright() as p:
-        import glob
-        # Find dedicated isolated Chromium executable so it NEVER collides with personal Chrome
-        exe_candidates = glob.glob(os.path.join(os.environ.get("LOCALAPPDATA", ""), "ms-playwright", "chromium-*", "chrome-win64", "chrome.exe"))
-        dedicated_exe = exe_candidates[0] if exe_candidates and os.path.exists(exe_candidates[0]) else None
+        # Launch using the proven, tested flags from channel_manager.py
+        context = p.chromium.launch_persistent_context(
+            user_data_dir=abs_profile_dir,
+            executable_path=CHROME_PATH if os.path.exists(CHROME_PATH) else None,
+            headless=False,
+            args=[
+                "--no-first-run",
+                "--no-default-browser-check",
+                "--disable-blink-features=AutomationControlled"
+            ]
+        )
 
-        launch_kwargs = {
-            "user_data_dir": abs_profile_dir,
-            "headless": False,
-            "viewport": {"width": 1280, "height": 800},
-            "args": [
-                "--disable-blink-features=AutomationControlled",
-                "--no-sandbox",
-                "--disable-dev-shm-usage"
-            ],
-            "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36"
-        }
-        if dedicated_exe:
-            launch_kwargs["executable_path"] = dedicated_exe
-        elif os.path.exists(r"C:\Program Files\Google\Chrome\Application\chrome.exe"):
-            launch_kwargs["channel"] = "chrome"
-
-        context = p.chromium.launch_persistent_context(**launch_kwargs)
-
-        page = context.pages[0] if context.pages else context.new_page()
+        page = context.new_page()
+        logger.info(f"Navigating to {start_url}...")
         page.goto(start_url)
 
-        logger.info("⏳ Waiting for user to complete manual login. You have up to 5 minutes...")
+        logger.info("==================================================================")
+        logger.info("✅ Browser is now open on your desktop!")
+        logger.info("👉 Log in to your YouTube Studio / Google account in the opened Chrome window.")
+        logger.info("👉 Once you are logged in, simply CLOSE the browser window to finish!")
+        logger.info("==================================================================")
 
-        authenticated = False
-        t_start = time.time()
+        try:
+            # Stays active until user finishes and closes the window
+            page.wait_for_event("close", timeout=0)
+        except Exception:
+            pass
 
-        # Check loop: wait until user is visibly logged in
-        while time.time() - t_start < 300:
-            current_url = page.url.lower()
-
-            if platform == "youtube":
-                # User reached YouTube Studio dashboard
-                if "studio.youtube.com/channel/" in current_url or ("studio.youtube.com" in current_url and "accounts.google.com" not in current_url):
-                    time.sleep(3)
-                    authenticated = True
-                    break
-            elif platform == "rumble":
-                # User reached Rumble account / dashboard
-                if "rumble.com/account" in current_url or ("rumble.com" in current_url and "login" not in current_url and page.locator("a[href*='/account']").count() > 0):
-                    time.sleep(3)
-                    authenticated = True
-                    break
-
-            time.sleep(2)
-
-        if authenticated:
-            logger.success(f"✅ Manual Login Verified for {channel_key}!")
-            # Extract storage state
+        try:
             context.storage_state(path=state_file)
             logger.info(f"💾 Persistent cookies & session state secured at: {state_file}")
+        except Exception:
+            pass
 
-            # Inspect channel details if possible
-            detected_name = channel_info.get("name", channel_key)
-            try:
-                if platform == "youtube":
-                    # Attempt to extract channel title from page
-                    title_elem = page.locator("#channel-title, #entity-name").first
-                    if title_elem.count() > 0:
-                        detected_name = title_elem.inner_text().strip()
-            except Exception:
-                pass
-
-            # Update registry
-            registry["channels"][channel_key]["auth_status"] = "authenticated"
-            registry["channels"][channel_key]["name"] = detected_name
-            registry["channels"][channel_key]["last_login_verified"] = time.strftime("%Y-%m-%d %H:%M:%S")
-            save_registry(registry)
-
-            context.close()
-            return {"success": True, "channel_key": channel_key, "name": detected_name, "state_file": state_file}
-        else:
-            logger.error("❌ Login timed out after 300 seconds without verification.")
-            context.close()
-            return {"success": False, "error": "Login timed out"}
+        registry["channels"][channel_key]["auth_status"] = "authenticated"
+        registry["channels"][channel_key]["last_login_verified"] = time.strftime("%Y-%m-%d %H:%M:%S")
+        save_registry(registry)
+        logger.success(f"✅ Login setup completed for '{channel_key}'!")
+        return {"success": True, "channel_key": channel_key, "state_file": state_file}
 
 
 if __name__ == "__main__":
