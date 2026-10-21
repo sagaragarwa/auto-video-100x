@@ -1,0 +1,84 @@
+name: ⚡ 5X Cloud Autonomous Video Engine (Zero Local Load)
+
+on:
+  workflow_dispatch:
+    inputs:
+      prompt:
+        description: 'Single Master Prompt (e.g. 5 minute dopamine detox in hindi)'
+        required: true
+        default: '5 minute dopamine detox documentary in Hindi, auto upload to psychology channel'
+      duration:
+        description: 'Target Duration in seconds (e.g. 300)'
+        required: false
+        default: '300'
+      channel:
+        description: 'Target Channel (channel_psychology, channel_trading, or auto)'
+        required: false
+        default: 'auto'
+      auto_upload:
+        description: 'Auto-upload to YouTube Studio'
+        required: false
+        default: 'false'
+  repository_dispatch:
+    types: [cloud_render, keepalive_ping]
+  schedule:
+    # Auto-run every 6 hours to ensure runner availability and zero inactivity
+    - cron: '0 */6 * * *'
+
+concurrency:
+  group: cloud-master-render-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  cloud-render:
+    name: 🚀 Cloud FFmpeg 1080p Render (Zero Local CPU)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout Codebase
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install System Dependencies (FFmpeg & Devanagari Hindi Fonts)
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends ffmpeg fonts-noto-core fonts-noto-cjk fonts-deva
+
+      - name: Install Python Dependencies (Ultra-Fast 3s Setup)
+        run: |
+          pip install --upgrade pip
+          pip install loguru edge-tts requests pillow pydantic toml tomli
+
+      - name: Fetch Permanent Signature Content ID Outro Clip (100% Full Outro Guarantee)
+        run: |
+          mkdir -p resource/assets
+          curl -L -o resource/assets/content_id_outro.mp4 "https://github.com/sagaragarwa/auto-video-100x/releases/download/v1.0.0-assets/content_id_outro.mp4"
+
+      - name: Execute 5X Master Video Generation in Cloud
+        env:
+          PIXABAY_API_KEY: ${{ secrets.PIXABAY_API_KEY || '48724139-1fbe7e777966fce52b390343f' }}
+          PYTHONPATH: '.'
+        run: |
+          PROMPT="${{ github.event.inputs.prompt || github.event.client_payload.prompt || '5 minute dopamine detox documentary in Hindi' }}"
+          python -u yt_uploader/main.py master-engine --prompt "$PROMPT"
+
+      - name: Upload 1080p Video Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: master_video_1080p
+          path: output/*.mp4
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Publish Completed Video Release (Auto-Delivers to Local Downloads)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG_NAME="video-$(date +%s)"
+          gh release create "$TAG_NAME" output/*.mp4 --title "Cloud Master Video $(date +%Y-%m-%d-%H%M%S)" --notes "Automated 5X Cloud Autonomous Video" || true

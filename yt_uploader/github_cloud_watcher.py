@@ -182,6 +182,26 @@ class GitHubCloudWatcher:
             if resp.status_code in [204, 201, 200]:
                 logger.success(f"🚀 Successfully dispatched video generation to GitHub Cloud: '{prompt}'!")
                 return {"success": True, "message": "Dispatched to GitHub Actions Cloud Runner"}
+            elif resp.status_code == 422:
+                # Fallback to repository_dispatch if workflow_dispatch schema differs on remote main branch
+                logger.warning(f"Workflow dispatch inputs rejected (422), attempting repository_dispatch fallback...")
+                dispatch_url = f"https://api.github.com/repos/{owner}/{repo}/dispatches"
+                rep_payload = {
+                    "event_type": "cloud_render",
+                    "client_payload": {
+                        "prompt": prompt,
+                        "duration": str(duration),
+                        "channel": channel,
+                        "auto_upload": "true" if auto_upload else "false"
+                    }
+                }
+                rep_resp = requests.post(dispatch_url, headers=headers, json=rep_payload, timeout=15)
+                if rep_resp.status_code in [204, 201, 200]:
+                    logger.success(f"🚀 Dispatched via repository_dispatch to GitHub Cloud: '{prompt}'!")
+                    return {"success": True, "message": "Dispatched via repository_dispatch"}
+                else:
+                    logger.error(f"Failed to dispatch workflow: {resp.status_code} - {resp.text}")
+                    return {"success": False, "error": resp.text, "status_code": resp.status_code}
             else:
                 logger.error(f"Failed to dispatch workflow: {resp.status_code} - {resp.text}")
                 return {"success": False, "error": resp.text, "status_code": resp.status_code}
@@ -245,7 +265,7 @@ class GitHubCloudWatcher:
         self.sync_and_download_cloud_videos()
 
     def sync_and_download_cloud_videos(self):
-        """
+        r"""
         Polls GitHub Releases / Artifacts and automatically downloads any new completed 
         videos directly into C:\Users\janar\Downloads\ without manual user intervention!
         """
@@ -260,6 +280,8 @@ class GitHubCloudWatcher:
             if resp.status_code == 200:
                 releases = resp.json()
                 for rel in releases:
+                    if rel.get("tag_name") == "v1.0.0-assets":
+                        continue
                     for asset in rel.get("assets", []):
                         name = asset.get("name", "")
                         if name.endswith(".mp4"):
@@ -276,6 +298,42 @@ class GitHubCloudWatcher:
                                 logger.success(f"🎉 Successfully downloaded {name} to {local_dest}!")
         except Exception as e:
             logger.debug(f"Release sync error: {e}")
+
+        # 2. Poll Artifacts endpoint (Primary robust auto-delivery for 1080p Cloud Videos)
+        try:
+            art_url = f"https://api.github.com/repos/{owner}/{repo}/actions/artifacts?per_page=60"
+            art_resp = requests.get(art_url, headers=headers, timeout=10)
+            if art_resp.status_code == 200:
+                artifacts = art_resp.json().get("artifacts", [])
+                for art in artifacts:
+                    if (art.get("name") == "master_video_1080p" or "1080p" in art.get("name", "")) and not art.get("expired"):
+                        art_id = art.get("id")
+                        zip_url = f"https://api.github.com/repos/{owner}/{repo}/actions/artifacts/{art_id}/zip"
+                        r_red = requests.get(zip_url, headers=headers, allow_redirects=False, timeout=10)
+                        if r_red.status_code == 302 and "Location" in r_red.headers:
+                            blob_url = r_red.headers["Location"]
+                            temp_zip = os.path.join(user_downloads, f"cloud_art_{art_id}.zip")
+                            if not os.path.exists(temp_zip):
+                                with requests.get(blob_url, stream=True, timeout=180) as r_b:
+                                    r_b.raise_for_status()
+                                    with open(temp_zip, "wb") as f_z:
+                                        for chunk in r_b.iter_content(chunk_size=1048576):
+                                            if chunk:
+                                                f_z.write(chunk)
+                                import zipfile
+                                with zipfile.ZipFile(temp_zip, "r") as z:
+                                    for z_info in z.infolist():
+                                        if z_info.filename.endswith(".mp4"):
+                                            targ = os.path.join(user_downloads, os.path.basename(z_info.filename))
+                                            if not os.path.exists(targ) or os.path.getsize(targ) < z_info.file_size:
+                                                z.extract(z_info, user_downloads)
+                                                logger.success(f"🎉 Auto-Delivered Cloud Video from Artifact to Downloads: {targ}")
+                                try:
+                                    os.remove(temp_zip)
+                                except Exception:
+                                    pass
+        except Exception as e:
+            logger.debug(f"Artifact auto-sync note: {e}")
 
     def start_background_daemon(self):
         """
@@ -308,3 +366,15 @@ def get_cloud_watcher() -> GitHubCloudWatcher:
     if _watcher_instance is None:
         _watcher_instance = GitHubCloudWatcher()
     return _watcher_instance
+
+if __name__ == "__main__":
+    watcher = GitHubCloudWatcher()
+    logger.info("🚀 Starting 30-Second GitHub Cloud Watcher & Auto-Downloader Daemon...")
+    watcher.start_background_daemon()
+    try:
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        watcher.stop_daemon()
+        logger.info("Watcher stopped.")
+
