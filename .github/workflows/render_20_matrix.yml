@@ -32,6 +32,8 @@ jobs:
     name: Render Episode ${{ matrix.episode }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    env:
+      ACTIONS_RUNNER_FORCE_NODE24: "true"
     strategy:
       fail-fast: false
       max-parallel: 20  # 20 concurrent cloud runners in parallel!
@@ -49,13 +51,19 @@ jobs:
 
       - name: Install FFmpeg and Fonts
         run: |
-          sudo apt-get update
-          sudo apt-get install -y ffmpeg fonts-noto-core fonts-noto-cjk fonts-deva
+          sudo rm -f /etc/apt/sources.list.d/microsoft* /etc/apt/sources.list.d/azure* || true
+          sudo apt-get update -qq || true
+          sudo apt-get install -y --no-install-recommends ffmpeg fonts-noto-core fonts-noto-cjk fonts-deva
 
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+
+      - name: Fetch Permanent Signature Content ID Outro Clip (Mandatory Outro Lock)
+        run: |
+          mkdir -p resource/assets
+          curl -L -o resource/assets/content_id_outro.mp4 "https://github.com/sagaragarwa/auto-video-100x/releases/download/v1.0.0-assets/content_id_outro.mp4"
 
       - name: Render 1080p Master Video
         env:

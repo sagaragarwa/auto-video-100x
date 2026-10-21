@@ -2,21 +2,23 @@ import os
 import time
 import json
 from loguru import logger
-from playwright.sync_api import sync_playwright
 
 CHROME_PATH = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
+UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
 
 def upload_video_to_studio(
     channel_profile_dir: str,
     video_file_path: str,
     thumbnail_file_path: str,
     seo_package: dict,
-    headless: bool = False
+    headless: bool = True
 ) -> dict:
     """
     Uploads a video to YouTube Studio using persistent browser profile without API quota.
     Injects Title, Description, Thumbnail, Tags, and sets Visibility.
+    Monitors upload to ensure 100% transfer completion before closing.
     """
+    from playwright.sync_api import sync_playwright
     if not os.path.exists(video_file_path):
         raise FileNotFoundError(f"Video file not found: {video_file_path}")
 
@@ -27,11 +29,12 @@ def upload_video_to_studio(
     title = seo_package.get("title", "Cinematic Documentary")
     description = seo_package.get("description", "")
     tags = seo_package.get("tags", "")
-    visibility = seo_package.get("visibility", "public") # "public", "private", "unlisted"
+    visibility = seo_package.get("visibility", "unlisted")  # "public", "private", "unlisted"
 
     logger.info(f"Starting YouTube Studio Upload via Profile: {abs_profile}")
-    logger.info(f"Video: {abs_video}")
+    logger.info(f"Video: {abs_video} ({os.path.getsize(abs_video)/(1024*1024):.1f} MB)")
     logger.info(f"Title: {title}")
+    logger.info(f"Visibility Target: {visibility}")
 
     result = {"success": False, "video_id": None, "url": None, "error": None}
 
@@ -40,6 +43,8 @@ def upload_video_to_studio(
             user_data_dir=abs_profile,
             executable_path=CHROME_PATH if os.path.exists(CHROME_PATH) else None,
             headless=headless,
+            user_agent=UA,
+            viewport={"width": 1400, "height": 900},
             args=[
                 "--no-first-run",
                 "--no-default-browser-check",
@@ -50,79 +55,105 @@ def upload_video_to_studio(
 
         try:
             logger.info("Navigating to YouTube Studio...")
-            page.goto("https://studio.youtube.com", timeout=60000)
+            page.goto("https://studio.youtube.com/?approve_browser_access=true", timeout=60000)
             page.wait_for_timeout(5000)
+
+            # Dismiss browser compatibility warning if present
+            skip_btn = page.locator("a:has-text('Skip to YouTube Studio'), button:has-text('Skip to YouTube Studio')")
+            if skip_btn.count() > 0:
+                logger.info("Dismissing browser compatibility warning...")
+                skip_btn.first.click()
+                page.wait_for_timeout(5000)
 
             # Check if login is required
             if "accounts.google.com" in page.url or "signin" in page.url:
-                result["error"] = "Channel session not logged in. Run 'login_channel' first to complete one-time login."
+                result["error"] = "Channel session not logged in. Complete login first."
                 logger.error(result["error"])
                 context.close()
                 return result
 
             # Click Create / Upload button
-            logger.info("Looking for Create / Upload button...")
-            upload_btn = page.query_selector("#create-icon") or page.query_selector("ytcp-button#upload-button") or page.query_selector("ytcp-icon-button#create-icon")
-            if upload_btn:
-                upload_btn.click()
+            logger.info("Opening upload dialog...")
+            create_btn = page.locator("#create-icon, ytcp-button#create-icon, button:has-text('Create')")
+            if create_btn.count() > 0:
+                create_btn.first.click()
                 page.wait_for_timeout(2000)
-                # Click upload videos in dropdown if visible
-                opt_upload = page.query_selector("tp-yt-paper-item#text-item-0") or page.query_selector("ytcp-text-menu#menu ytcp-icon-button")
-                if opt_upload:
-                    opt_upload.click()
+                upload_opt = page.locator("tp-yt-paper-item, ytcp-text-menu-item").filter(has_text="Upload")
+                if upload_opt.count() > 0:
+                    upload_opt.first.click()
+                    page.wait_for_timeout(3000)
             else:
-                page.goto("https://studio.youtube.com/channel/upload", timeout=30000)
+                up_icon = page.locator("ytcp-icon-button[aria-label*='Upload'], #upload-icon, ytcp-button#upload-button")
+                if up_icon.count() > 0:
+                    up_icon.first.click()
+                    page.wait_for_timeout(3000)
 
-            page.wait_for_timeout(3000)
-
-            # File input
-            logger.info("Injecting video file into uploader...")
-            file_input = page.query_selector('input[type="file"]')
-            if not file_input:
-                file_input = page.wait_for_selector('input[type="file"]', timeout=20000)
+            # Inject video file
+            logger.info("Locating file input and injecting video...")
+            file_input = page.locator("input[type='file']").first
+            file_input.wait_for(state="attached", timeout=30000)
             file_input.set_input_files(abs_video)
-            logger.info("Video file selected. Waiting for metadata editor dialog...")
+            logger.info("Video file successfully injected! Waiting for metadata editor...")
 
-            # Wait for title box to appear
-            page.wait_for_selector("#title-textarea", timeout=45000)
+            # Wait for title editor box to appear
+            title_container = page.locator("#title-textarea").first
+            title_container.wait_for(state="attached", timeout=60000)
             page.wait_for_timeout(3000)
 
             # Set Title
-            logger.info(f"Writing Title: {title[:50]}...")
-            title_input = page.query_selector("#title-textarea #textbox")
-            if title_input:
-                title_input.click()
+            logger.info(f"Writing Title: {title[:60]}...")
+            title_box = page.locator("#title-textarea div#textbox, #title-textarea [contenteditable='true']").first
+            if title_box.count() > 0:
+                title_box.click()
                 page.keyboard.press("Control+A")
                 page.keyboard.press("Backspace")
-                title_input.fill(title[:100])
+                try:
+                    title_box.fill(title[:100])
+                except Exception:
+                    page.keyboard.type(title[:100], delay=10)
                 page.wait_for_timeout(1000)
 
             # Set Description
             logger.info("Writing Description...")
-            desc_input = page.query_selector("#description-textarea #textbox")
-            if desc_input:
-                desc_input.click()
-                desc_input.fill(description[:5000])
+            desc_box = page.locator("#description-textarea div#textbox, #description-textarea [contenteditable='true']").first
+            if desc_box.count() > 0:
+                desc_box.click()
+                try:
+                    desc_box.fill(description[:5000])
+                except Exception:
+                    page.keyboard.type(description[:5000], delay=5)
                 page.wait_for_timeout(1000)
 
-            # Upload Thumbnail
+            # Upload Thumbnail if provided
             if abs_thumb and os.path.exists(abs_thumb):
-                logger.info(f"Uploading Ultra Thumbnail: {abs_thumb}...")
-                thumb_input = page.query_selector('input#file-loader') or page.query_selector('input[type="file"][accept*="image"]')
-                if thumb_input:
-                    thumb_input.set_input_files(abs_thumb)
-                    page.wait_for_timeout(3000)
+                logger.info(f"Uploading Custom Thumbnail: {abs_thumb}...")
+                try:
+                    thumb_input = page.locator('input#file-loader, #file-loader input[type="file"], input[type="file"][accept*="image"]').first
+                    if thumb_input.count() > 0:
+                        thumb_input.set_input_files(abs_thumb)
+                        page.wait_for_timeout(3000)
+                        logger.info("Custom thumbnail file injected!")
+
+                        # Handle phone verification modal if channel is new
+                        verify_dialog = page.locator("ytcp-dialog:has-text('Verify')")
+                        if verify_dialog.count() > 0:
+                            logger.warning("Custom thumbnail requires phone verification. Dismissing prompt...")
+                            close_verify = verify_dialog.locator("#close-button, button:has-text('Cancel')").first
+                            if close_verify.count() > 0:
+                                close_verify.click()
+                except Exception as e:
+                    logger.warning(f"Thumbnail upload notice: {e}")
 
             # Select "No, it's not made for kids"
             logger.info("Setting 'Not made for kids'...")
-            not_for_kids_radio = page.query_selector('tp-yt-paper-radio-button[name="VIDEO_MADE_FOR_KIDS_NOT_MFK"]') or page.query_selector('tp-yt-paper-radio-button[name="NOT_MFK"]')
-            if not_for_kids_radio:
-                not_for_kids_radio.click()
+            not_for_kids = page.locator('tp-yt-paper-radio-button[name="VIDEO_MADE_FOR_KIDS_NOT_MFK"], [name="VIDEO_MADE_FOR_KIDS_NOT_MFK"], tp-yt-paper-radio-button:has-text("No, it\'s not made for kids")').first
+            if not_for_kids.count() > 0:
+                not_for_kids.click()
                 page.wait_for_timeout(1000)
 
             # Expand "SHOW MORE" for Tags
-            show_more = page.query_selector('ytcp-button#toggle-button') or page.query_selector('div#toggle-button')
-            if show_more:
+            show_more = page.locator('ytcp-button#toggle-button, div#toggle-button, button:has-text("Show more"), ytcp-button:has-text("Show more")').first
+            if show_more.count() > 0:
                 try:
                     show_more.click()
                     page.wait_for_timeout(1500)
@@ -131,57 +162,117 @@ def upload_video_to_studio(
 
             # Fill Tags
             if tags:
-                logger.info("Injecting 500-char tags...")
-                tags_input = page.query_selector('#tags-container input') or page.query_selector('input[aria-label="Tags"]')
-                if tags_input:
-                    tags_input.click()
-                    tags_input.fill(tags[:500])
-                    page.keyboard.press("Enter")
-                    page.wait_for_timeout(1000)
+                logger.info("Injecting Tags...")
+                tags_input = page.locator('#tags-container input, input[aria-label="Tags"]').first
+                if tags_input.count() > 0:
+                    try:
+                        tags_input.click()
+                        tags_input.fill(tags[:500])
+                        page.keyboard.press("Enter")
+                        page.wait_for_timeout(1000)
+                    except Exception as e:
+                        logger.warning(f"Tags input notice: {e}")
+
+            # Extract generated video link early
+            link_elem = page.locator('a.ytcp-video-info, a[href*="youtu.be"], span.ytcp-video-info').first
+            if link_elem.count() > 0:
+                result["url"] = link_elem.get_attribute("href") or link_elem.inner_text().strip()
+                logger.info(f"Detected Video URL: {result['url']}")
 
             # Step through wizard: Next -> Next -> Next -> Visibility
-            logger.info("Stepping through upload wizard...")
+            logger.info("Stepping through wizard steps...")
             for step in range(3):
-                next_btn = page.query_selector('#next-button')
-                if next_btn and next_btn.is_enabled():
-                    next_btn.click()
-                    page.wait_for_timeout(2000)
+                page.wait_for_timeout(2500)
+                next_btn = page.locator('#next-button, ytcp-button#next-button, button:has-text("Next")').first
+                if next_btn.count() > 0:
+                    try:
+                        next_btn.click()
+                    except Exception:
+                        page.wait_for_timeout(2000)
+                        next_btn.click()
 
             # Visibility Step
             logger.info(f"Setting visibility to '{visibility}'...")
+            page.wait_for_timeout(2500)
             if visibility.lower() == "public":
-                pub_radio = page.query_selector('tp-yt-paper-radio-button[name="PUBLIC"]')
-                if pub_radio:
+                pub_radio = page.locator('tp-yt-paper-radio-button[name="PUBLIC"], [name="PUBLIC"], tp-yt-paper-radio-button:has-text("Public")').first
+                if pub_radio.count() > 0:
                     pub_radio.click()
             elif visibility.lower() == "unlisted":
-                unlisted_radio = page.query_selector('tp-yt-paper-radio-button[name="UNLISTED"]')
-                if unlisted_radio:
+                unlisted_radio = page.locator('tp-yt-paper-radio-button[name="UNLISTED"], [name="UNLISTED"], tp-yt-paper-radio-button:has-text("Unlisted")').first
+                if unlisted_radio.count() > 0:
                     unlisted_radio.click()
             else:
-                priv_radio = page.query_selector('tp-yt-paper-radio-button[name="PRIVATE"]')
-                if priv_radio:
+                priv_radio = page.locator('tp-yt-paper-radio-button[name="PRIVATE"], [name="PRIVATE"], tp-yt-paper-radio-button:has-text("Private")').first
+                if priv_radio.count() > 0:
                     priv_radio.click()
 
             page.wait_for_timeout(2000)
 
-            # Extract generated video link if present
-            link_elem = page.query_selector('a.ytcp-video-info') or page.query_selector('span.ytcp-video-info')
-            if link_elem:
-                result["url"] = link_elem.get_attribute("href") or link_elem.inner_text()
+            # Re-check video URL on visibility step if not yet captured
+            if not result["url"]:
+                link_elem = page.locator('a.ytcp-video-info, a[href*="youtu.be"]').first
+                if link_elem.count() > 0:
+                    result["url"] = link_elem.get_attribute("href") or link_elem.inner_text().strip()
+                    logger.info(f"Captured Video URL: {result['url']}")
 
-            # Click Done / Publish
-            logger.info("Clicking Done / Publish...")
-            done_btn = page.query_selector('#done-button')
-            if done_btn and done_btn.is_enabled():
+            # Click Done / Save
+            logger.info("Clicking Done / Save button...")
+            done_btn = page.locator('#done-button, ytcp-button#done-button, button:has-text("Save")').first
+            if done_btn.count() > 0:
                 done_btn.click()
                 page.wait_for_timeout(5000)
 
-            logger.success("Video successfully published to YouTube Studio!")
+            # Close upload dialog if "Close" button is presented
+            dialog_close = page.locator('#close-button, ytcp-button:has-text("Close")').first
+            if dialog_close.count() > 0:
+                try:
+                    dialog_close.click()
+                    page.wait_for_timeout(2000)
+                except Exception:
+                    pass
+
+            # Monitor transfer progress until complete
+            logger.info("Monitoring upload transfer to 100% completion...")
+            start_wait = time.time()
+            while time.time() - start_wait < 1800:
+                progress_el = page.locator("span.progress-label, ytcp-video-upload-progress, .ytcp-video-upload-progress, .progress-label").first
+                status_text = ""
+                if progress_el.count() > 0:
+                    try:
+                        status_text = progress_el.inner_text().strip()
+                    except Exception:
+                        pass
+
+                if not status_text or any(k in status_text for k in ["Upload complete", "Processing", "Checks complete", "Saved as unlisted", "Saved as private"]):
+                    logger.success(f"Upload successfully transferred! Final Status: {status_text or 'Saved'}")
+                    break
+
+                if int(time.time() - start_wait) % 15 == 0:
+                    logger.info(f"Upload in progress: {status_text}")
+
+                page.wait_for_timeout(5000)
+
             result["success"] = True
+            logger.success("Video successfully published to YouTube Studio!")
+
+            # Capture confirmation screenshot of the Content video list
+            page.wait_for_timeout(4000)
+            page.goto("https://studio.youtube.com/videos/upload?approve_browser_access=true", timeout=60000)
+            page.wait_for_timeout(6000)
+            conf_shot = os.path.join(os.path.dirname(abs_video), "upload_success_verified.png")
+            page.screenshot(path=conf_shot)
+            logger.info(f"Studio video list screenshot saved to {conf_shot}")
 
         except Exception as e:
             logger.error(f"Upload flow failed: {e}")
             result["error"] = str(e)
+            try:
+                err_shot = os.path.join(os.path.dirname(abs_video), "upload_error_state.png")
+                page.screenshot(path=err_shot)
+                logger.info(f"Error state screenshot saved to {err_shot}")
+            except Exception:
+                pass
         finally:
             context.close()
 

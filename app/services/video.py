@@ -1264,22 +1264,31 @@ def combine_videos(
                 )
             next_candidate_index = candidate_index
     
-    # loop processed clips until the video duration covers the audio duration and the small safety margin.
-    if video_duration < required_video_duration:
+    # ZERO-REPEAT HARD LOCK: Strictly forbid visual looping or duplicate scenes
+    if video_duration < required_video_duration and processed_clips:
         logger.warning(
-            f"video duration ({video_duration:.2f}s) is shorter than required duration "
-            f"({required_video_duration:.2f}s), looping clips to match audio length."
+            f"[ZERO-REPEAT HARD LOCK] Video duration ({video_duration:.2f}s) is shorter than required ({required_video_duration:.2f}s). "
+            f"Visual repetition is STRICTLY FORBIDDEN by user policy. "
+            f"Scaling playback speeds of {len(processed_clips)} unique clips to cover full {required_video_duration:.2f}s without repeating any scene."
         )
-        base_clips = processed_clips.copy()
-        for clip in itertools.cycle(base_clips):
-            if video_duration >= required_video_duration:
-                break
-            processed_clips.append(clip)
-            video_duration += clip.duration
+        # Proportionally time-stretch each unique clip so the entire audio duration is covered with 100% unique visuals
+        stretch_factor = video_duration / required_video_duration
+        stretched_clips = []
+        new_total_duration = 0.0
+        for p_clip in processed_clips:
+            try:
+                # Slow down clip proportionally to expand duration
+                scaled_clip = p_clip.with_speed_scaled(stretch_factor)
+                stretched_clips.append(scaled_clip)
+                new_total_duration += scaled_clip.duration
+            except Exception:
+                stretched_clips.append(p_clip)
+                new_total_duration += p_clip.duration
+        processed_clips = stretched_clips
+        video_duration = new_total_duration
         logger.info(
-            f"video duration: {video_duration:.2f}s, audio duration: {audio_duration:.2f}s, "
-            f"required duration: {required_video_duration:.2f}s, "
-            f"looped {len(processed_clips)-len(base_clips)} clips"
+            f"[ZERO-REPEAT HARD LOCK] Stretched {len(processed_clips)} unique clips to {video_duration:.2f}s. "
+            f"ZERO duplicate scenes across entire documentary."
         )
      
     # merge video clips progressively, avoid loading all videos at once to avoid memory overflow
@@ -1684,16 +1693,31 @@ def append_outro_clip(video_path: str, outro_clip_path: str = None) -> bool:
         if not outro_clip_path:
             root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
             candidates = [
+                os.path.join(root, "resource", "assets", "content_id_outro.mp4"),
                 os.path.join(root, "assets", "outro_clip.mp4"),
                 os.path.abspath("assets/outro_clip.mp4"),
+                os.path.join(os.path.expanduser("~"), "Downloads", "content_id_outro.mp4"),
             ]
             for c in candidates:
-                if os.path.exists(c) and os.path.getsize(c) > 1000:
+                if os.path.exists(c) and os.path.getsize(c) > 50000:
                     outro_clip_path = c
                     break
 
-        if not outro_clip_path or not os.path.exists(outro_clip_path):
-            return False
+            if not outro_clip_path or not os.path.exists(outro_clip_path):
+                # Auto-download from GitHub release to guarantee outro lock
+                target = os.path.join(root, "resource", "assets", "content_id_outro.mp4")
+                os.makedirs(os.path.dirname(target), exist_ok=True)
+                url = "https://github.com/sagaragarwa/auto-video-100x/releases/download/v1.0.0-assets/content_id_outro.mp4"
+                try:
+                    import requests
+                    logger.info(f"Downloading permanent signature outro clip from {url}...")
+                    r = requests.get(url, timeout=120)
+                    if r.status_code == 200 and len(r.content) > 50000:
+                        with open(target, "wb") as f_out:
+                            f_out.write(r.content)
+                        outro_clip_path = target
+                except Exception as dl_err:
+                    logger.warning(f"Outro download failed: {dl_err}")
 
         if not os.path.exists(video_path) or os.path.getsize(video_path) < 1000:
             return False
