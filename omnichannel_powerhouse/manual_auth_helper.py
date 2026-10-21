@@ -75,8 +75,11 @@ def launch_manual_login_session(channel_key: str, platform: str = "youtube") -> 
     start_url = "https://studio.youtube.com" if platform == "youtube" else "https://rumble.com/login"
 
     with sync_playwright() as p:
-        # Prefer genuine installed Google Chrome if present on the machine
-        chrome_installed = os.path.exists(r"C:\Program Files\Google\Chrome\Application\chrome.exe")
+        import glob
+        # Find dedicated isolated Chromium executable so it NEVER collides with personal Chrome
+        exe_candidates = glob.glob(os.path.join(os.environ.get("LOCALAPPDATA", ""), "ms-playwright", "chromium-*", "chrome-win64", "chrome.exe"))
+        dedicated_exe = exe_candidates[0] if exe_candidates and os.path.exists(exe_candidates[0]) else None
+
         launch_kwargs = {
             "user_data_dir": abs_profile_dir,
             "headless": False,
@@ -88,7 +91,9 @@ def launch_manual_login_session(channel_key: str, platform: str = "youtube") -> 
             ],
             "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36"
         }
-        if chrome_installed:
+        if dedicated_exe:
+            launch_kwargs["executable_path"] = dedicated_exe
+        elif os.path.exists(r"C:\Program Files\Google\Chrome\Application\chrome.exe"):
             launch_kwargs["channel"] = "chrome"
 
         context = p.chromium.launch_persistent_context(**launch_kwargs)

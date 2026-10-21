@@ -3,9 +3,17 @@ title Channel Manual Safe Login Helper
 color 0a
 
 cd /d "%~dp0"
+set PYTHONPATH=%cd%;%cd%\.venv\Lib\site-packages;%PYTHONPATH%
+
+set PY_EXE=python
+if exist "%USERPROFILE%\AppData\Roaming\uv\python\cpython-3.11.17-windows-x86_64-none\python.exe" (
+    set PY_EXE="%USERPROFILE%\AppData\Roaming\uv\python\cpython-3.11.17-windows-x86_64-none\python.exe"
+) else if exist ".venv\Scripts\python.exe" (
+    set PY_EXE=".venv\Scripts\python.exe"
+)
 
 echo ==============================================================================
-echo             OMNICHANNEL MANUAL SAFE LOGIN (NATIVE CHROME)
+echo             OMNICHANNEL MANUAL SAFE LOGIN (ISOLATED CHROMIUM)
 echo ==============================================================================
 echo.
 if "%~1"=="" (
@@ -14,29 +22,13 @@ if "%~1"=="" (
     set CH_KEY=%~1
 )
 
-set PROFILE_DIR=%cd%\yt_uploader\profiles\%CH_KEY%
-if not exist "%PROFILE_DIR%" mkdir "%PROFILE_DIR%"
-
 echo.
-echo [1/2] Opening Genuine Google Chrome for '%CH_KEY%'...
-echo [2/2] Isolated Profile Path: %PROFILE_DIR%
+echo [1/2] Launching Dedicated Isolated Chromium for '%CH_KEY%'...
+echo [2/2] Please log in with your credentials and complete 2FA in the opened window.
 echo.
 
-set CHROME_EXE="C:\Program Files\Google\Chrome\Application\chrome.exe"
-if not exist %CHROME_EXE% (
-    set CHROME_EXE="C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"
-)
+%PY_EXE% "omnichannel_powerhouse\manual_auth_helper.py" --channel "%CH_KEY%" --platform youtube
 
-start "" %CHROME_EXE% --user-data-dir="%PROFILE_DIR%" --no-first-run --no-default-browser-check "https://studio.youtube.com/?approve_browser_access=true"
-
-echo ==============================================================================
-echo Chrome is now opening directly on your desktop!
 echo.
-echo 1. Enter your Google Email and Password in the opened Chrome window.
-echo 2. Complete 2FA / OTP verification on your phone.
-echo 3. Once you see YouTube Studio, you can close Chrome.
-echo.
-echo Your session and cookies will be locked in this channel profile forever!
-echo ==============================================================================
-echo.
+echo Done! Session saved.
 pause
