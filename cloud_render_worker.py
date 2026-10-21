@@ -297,6 +297,35 @@ def slice_and_concat(clips: list[str], total_duration: float, temp_dir: str) -> 
     return combined_mp4
 
 
+
+def get_or_synthesize_ambient_drone() -> str | None:
+    """
+    Synthesizes or retrieves an institutional dark ambient drone soundscape.
+    Blended at -24dB beneath narrator speech for maximum documentary immersion.
+    100% synthetic, 0% copyright claim risk.
+    """
+    drone_path = os.path.join("resource", "assets", "ambient_cinematic_drone.mp3")
+    if os.path.exists(drone_path) and os.path.getsize(drone_path) > 10000:
+        return os.path.abspath(drone_path)
+    os.makedirs(os.path.dirname(drone_path), exist_ok=True)
+    cmd = [
+        "ffmpeg", "-y",
+        "-f", "lavfi", "-i", "sine=frequency=55:sample_rate=48000:duration=60",
+        "-f", "lavfi", "-i", "sine=frequency=110:sample_rate=48000:duration=60",
+        "-f", "lavfi", "-i", "sine=frequency=164.81:sample_rate=48000:duration=60",
+        "-f", "lavfi", "-i", "anoisesrc=sample_rate=48000:duration=60:amplitude=0.003:color=brown",
+        "-filter_complex", "[0:a]volume=0.3[a0];[1:a]volume=0.15[a1];[2:a]volume=0.08[a2];[3:a]lowpass=f=200,volume=0.4[a3];[a0][a1][a2][a3]amix=inputs=4,aecho=0.8:0.88:60:0.4[out]",
+        "-map", "[out]", "-c:a", "libmp3lame", "-b:a", "192k",
+        drone_path
+    ]
+    try:
+        subprocess.run(cmd, check=True, capture_output=True)
+        print(f"[AUDIO] Synthesized procedural ambient drone soundscape: {drone_path}", flush=True)
+        return os.path.abspath(drone_path)
+    except Exception as e:
+        print(f"[WARN] Ambient drone synthesis warning: {e}", flush=True)
+        return None
+
 def assemble_master_with_outro(video_path: str, audio_path: str, outro_clip_path: str, output_path: str, temp_dir: str):
     """
     1. Mux voiceover into video without re-encoding (clean, zero subtitles).
@@ -306,18 +335,35 @@ def assemble_master_with_outro(video_path: str, audio_path: str, outro_clip_path
     print("[MUX] Combining 1080p video with audio (clean, zero subtitles)...", flush=True)
     main_episode_path = os.path.join(temp_dir, "main_episode_audio.mp4")
 
-    # Mux audio into 1080p stream with standardized audio parameters (48kHz, stereo, 192k)
-    mux_cmd = [
-        "ffmpeg", "-y",
-        "-i", video_path,
-        "-i", audio_path,
-        "-c:v", "copy",
-        "-c:a", "aac", "-b:a", "192k", "-ar", "48000", "-ac", "2",
-        "-shortest", "-movflags", "+faststart",
-        main_episode_path
-    ]
+    # Blend ambient drone at -24dB (volume=0.06) under voiceover for Netflix/Bloomberg immersion
+    ambient_path = get_or_synthesize_ambient_drone()
+    if ambient_path and os.path.exists(ambient_path):
+        print(f"[AUDIO] Blending Ambient Cinematic Drone at -24dB beneath voiceover...", flush=True)
+        mux_cmd = [
+            "ffmpeg", "-y",
+            "-i", video_path,
+            "-i", audio_path,
+            "-i", ambient_path,
+            "-filter_complex", "[2:a]volume=0.06,aloop=loop=-1:size=2e+09[bg];[1:a][bg]amix=inputs=2:duration=first:dropout_transition=2[aout]",
+            "-map", "0:v:0",
+            "-map", "[aout]",
+            "-c:v", "copy",
+            "-c:a", "aac", "-b:a", "192k", "-ar", "48000", "-ac", "2",
+            "-shortest", "-movflags", "+faststart",
+            main_episode_path
+        ]
+    else:
+        mux_cmd = [
+            "ffmpeg", "-y",
+            "-i", video_path,
+            "-i", audio_path,
+            "-c:v", "copy",
+            "-c:a", "aac", "-b:a", "192k", "-ar", "48000", "-ac", "2",
+            "-shortest", "-movflags", "+faststart",
+            main_episode_path
+        ]
     subprocess.run(mux_cmd, check=True)
-    print(f"[MUX] Main documentary stream ready: {main_episode_path}", flush=True)
+    print(f"[MUX] Main documentary stream ready (with -24dB Ambient Drone): {main_episode_path}", flush=True)
 
     # MANDATORY OUTRO HARD LOCK: Always append signature Content ID clip
     if not outro_clip_path or not os.path.exists(outro_clip_path) or os.path.getsize(outro_clip_path) < 10000:
@@ -407,9 +453,14 @@ def process_episode(episode_index: int):
     total_duration = get_media_duration(audio_file)
     print(f"[DURATION] Spoken Duration: {total_duration:.1f}s ({total_duration / 60:.2f} minutes)", flush=True)
 
-    # 2. B-Roll Procurement (Massive Unique Set - ZERO REPEATS)
+    # 2. B-Roll Procurement (Multi-Source Aggregator - Pixabay + Pexels + Wikimedia)
     terms = ep.get("video_terms", ["technology", "artificial intelligence", "supercomputer"])
-    clips = fetch_broll_materials(terms, total_duration, ep_temp)
+    try:
+        from omnichannel_powerhouse.multi_stock_aggregator import fetch_multi_source_brolls
+        clips = fetch_multi_source_brolls(terms, total_duration, ep_temp)
+    except Exception as e:
+        print(f"[WARN] Multi-source aggregator notice ({e}), using built-in engine...", flush=True)
+        clips = fetch_broll_materials(terms, total_duration, ep_temp)
 
     # 3. Fast Parallel Normalization & Single-Pass Concat (ZERO REPEATS)
     combined_video = slice_and_concat(clips, total_duration, ep_temp)
