@@ -36,6 +36,10 @@ STATIC_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static")
 os.makedirs(STATIC_DIR, exist_ok=True)
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
+OUTPUT_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "output")
+os.makedirs(OUTPUT_DIR, exist_ok=True)
+app.mount("/output", StaticFiles(directory=OUTPUT_DIR), name="output")
+
 CONVO_CONFIG_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "convo_state.json")
 DEFAULT_CONVO_ID = "6a60d582-ca94-43f1-bef4-cbc8f38f0265"
 
