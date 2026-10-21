@@ -25,6 +25,10 @@ from omnichannel_powerhouse.smart_niche_router import load_registry, save_regist
 from omnichannel_powerhouse.quota_balancer import check_and_allocate_upload_slot
 from omnichannel_powerhouse.manual_auth_helper import launch_manual_login_session
 from omnichannel_powerhouse.cloud_matrix_dispatcher import generate_structured_20_blueprint, dispatch_to_github_cloud_matrix
+from omnichannel_powerhouse.gemini_script_engine import generate_documentary_package, create_dynamic_20_series_with_gemini, get_gemini_api_key
+from omnichannel_powerhouse.gemini_key_rotator import KEY_RING
+from omnichannel_powerhouse.swarm_fleet_manager import generate_fleet_matrix, get_swarm_summary, NICHE_CLUSTERS
+from omnichannel_powerhouse.repo_swarm_dispatcher import dispatch_mega_swarm, generate_mega_swarm_manifest, SWARM_MANIFEST_PATH
 
 app = FastAPI(title="OmniChannel Supreme Studio", version="1.0.0")
 
@@ -79,6 +83,29 @@ class DispatchRequest(BaseModel):
 
 class ConvoUpdateRequest(BaseModel):
     conversation_id: str
+
+
+class GeminiScriptRequest(BaseModel):
+    topic: str
+    niche: Optional[str] = "tech"
+    words: Optional[int] = 2000
+
+
+class GeminiSeriesRequest(BaseModel):
+    master_theme: Optional[str] = "Frontier AI Hardware & Wall Street Quantitative Warfare"
+
+
+class SwarmDispatchRequest(BaseModel):
+    batch_size: int = 100
+
+
+class AddKeyRequest(BaseModel):
+    api_key: str
+    label: Optional[str] = ""
+
+
+class FleetPartitionRequest(BaseModel):
+    total_channels: int = 1000
 
 
 # --- API Endpoints ---
@@ -237,6 +264,94 @@ def update_conversation(req: ConvoUpdateRequest):
         set_active_convo_id(clean_id)
         return {"success": True, "conversation_id": clean_id}
     raise HTTPException(status_code=400, detail="Invalid Conversation ID")
+
+
+@app.get("/api/gemini/status")
+def gemini_status():
+    key = get_gemini_api_key()
+    return {
+        "configured": bool(key),
+        "key_masked": f"{key[:6]}...{key[-4:]}" if key else "",
+        "model": "gemini-flash-latest",
+        "free_tier_limits": "1,500 RPD (Requests Per Day) / 15 RPM"
+    }
+
+
+@app.post("/api/gemini/generate-script")
+def gemini_generate_script(req: GeminiScriptRequest):
+    try:
+        pkg = generate_documentary_package(topic=req.topic, niche=req.niche, target_words=req.words)
+        return {"success": True, "package": pkg}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/gemini/create-series")
+def gemini_create_series(req: GeminiSeriesRequest, background_tasks: BackgroundTasks):
+    # Run in background so request doesn't timeout
+    background_tasks.add_task(create_dynamic_20_series_with_gemini, req.master_theme)
+    return {
+        "success": True,
+        "message": f"Gemini 20-episode generation initiated in background for theme: '{req.master_theme}'. Will update series_tasks.json autonomously."
+    }
+
+
+@app.get("/api/swarm/status")
+def swarm_status():
+    fleet = get_swarm_summary()
+    keys_status = KEY_RING.get_status()
+    manifest_exists = os.path.exists(SWARM_MANIFEST_PATH)
+    last_batch = {}
+    if manifest_exists:
+        try:
+            with open(SWARM_MANIFEST_PATH, "r", encoding="utf-8") as f:
+                d = json.load(f)
+                last_batch = {
+                    "total_videos": d.get("total_videos", 0),
+                    "created_at": d.get("created_at"),
+                    "shards": d.get("total_shards_of_20", 0)
+                }
+        except Exception:
+            pass
+
+    return {
+        "fleet": fleet,
+        "key_ring": keys_status,
+        "clusters": NICHE_CLUSTERS,
+        "last_batch": last_batch,
+        "available_options": [
+            {"size": 100, "label": "100 Videos Batch (Daily Fleet Blitz)", "shards": 5},
+            {"size": 500, "label": "500 Videos Batch (Weekly Multi-Niche Campaign)", "shards": 25},
+            {"size": 1000, "label": "1,000 Videos Batch (Monthly Dominance Matrix)", "shards": 50},
+            {"size": 10000, "label": "10,000 Videos Mega Swarm (Multi-Repo Farm)", "shards": 500}
+        ]
+    }
+
+
+@app.post("/api/swarm/dispatch")
+def swarm_dispatch(req: SwarmDispatchRequest):
+    target_size = req.batch_size
+    if target_size not in [100, 500, 1000, 10000]:
+        target_size = max(20, min(10000, target_size))
+    res = dispatch_mega_swarm(batch_size=target_size)
+    return res
+
+
+@app.post("/api/swarm/keys/add")
+def swarm_add_key(req: AddKeyRequest):
+    success = KEY_RING.add_key(req.api_key, label=req.label)
+    return {"success": success, "status": KEY_RING.get_status()}
+
+
+@app.get("/api/swarm/keys")
+def swarm_get_keys():
+    return KEY_RING.get_status()
+
+
+@app.post("/api/swarm/fleet/partition")
+def swarm_partition_fleet(req: FleetPartitionRequest):
+    res = generate_fleet_matrix(total_channels=max(10, min(10000, req.total_channels)))
+    return {"success": True, "fleet_size": res["fleet_size"], "clusters": len(res.get("clusters", []))}
 
 
 if __name__ == "__main__":

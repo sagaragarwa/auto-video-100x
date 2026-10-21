@@ -81,6 +81,8 @@
     <!-- Navigation Tabs -->
     <div class="flex border-b border-slate-800 gap-6 text-sm font-semibold">
       <button onclick="switchTab('channels')" id="tabBtn-channels" class="pb-3 text-cyan-400 border-b-2 border-cyan-400 transition">📺 Channel Portfolio & Safe Login</button>
+      <button onclick="switchTab('gemini')" id="tabBtn-gemini" class="pb-3 text-slate-400 hover:text-slate-200 transition">✨ Gemini AI Script Studio</button>
+      <button onclick="switchTab('swarm')" id="tabBtn-swarm" class="pb-3 text-slate-400 hover:text-slate-200 transition">⚡ 10K Mega Swarm Control Room</button>
       <button onclick="switchTab('dispatch')" id="tabBtn-dispatch" class="pb-3 text-slate-400 hover:text-slate-200 transition">🚀 20-Video Cloud Campaign Launcher</button>
       <button onclick="switchTab('radar')" id="tabBtn-radar" class="pb-3 text-slate-400 hover:text-slate-200 transition">📡 Live Cloud Matrix Radar</button>
       <button onclick="switchTab('bridge')" id="tabBtn-bridge" class="pb-3 text-slate-400 hover:text-slate-200 transition">📱 Android & Remote Convo Bridge</button>
@@ -97,6 +99,234 @@
 
       <div id="channelCardsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <!-- Rendered dynamically via JS -->
+      </div>
+    </section>
+
+    <!-- TAB 1.5: Gemini AI Script Studio -->
+    <section id="tab-gemini" class="hidden space-y-6">
+      <div class="glass p-6 rounded-2xl space-y-4">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-800 pb-4">
+          <div>
+            <h2 class="text-lg font-bold text-white flex items-center gap-2">
+              <span>✨</span> Gemini AI Institutional Script Engine
+            </h2>
+            <p class="text-xs text-slate-400">Generate PhD-level 6-beat documentary scripts, 3-word viral thumbnail punchlines, and algorithmic SEO on-demand.</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              Free Tier Active (1,500 RPD)
+            </span>
+            <span id="geminiKeyBadge" class="text-xs px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 border border-slate-700 font-mono">--</span>
+          </div>
+        </div>
+
+        <div class="space-y-3 pt-2">
+          <div class="text-sm font-bold text-cyan-300 flex items-center gap-2">
+            <span>⚡</span> On-Demand Documentary Script Generator
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div class="md:col-span-2 space-y-1">
+              <label class="text-xs font-semibold text-slate-300">Documentary Topic or Concept:</label>
+              <input id="geminiTopicInput" type="text" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-cyan-400" placeholder="e.g. The Sub-Millisecond War: High Frequency Trading & Microwave Networks">
+            </div>
+            <div class="space-y-1">
+              <label class="text-xs font-semibold text-slate-300">Target Channel Niche:</label>
+              <select id="geminiNicheSelect" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-cyan-400">
+                <option value="tech">AI & Frontier Tech (Get Neural Stack Pro)</option>
+                <option value="finance">Quant Trading & Markets (Silicon Pulse)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="flex gap-3 pt-1">
+            <button onclick="generateGeminiScript(1200)" id="btnGeminiShort" class="flex-1 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-semibold text-xs border border-slate-700 transition">
+              ⚡ Generate 10-Min Script (~1,200 Words)
+            </button>
+            <button onclick="generateGeminiScript(2500)" id="btnGeminiLong" class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-xs transition shadow-md shadow-cyan-500/20">
+              🔥 Generate Institutional 20-Min Script (~2,500 Words)
+            </button>
+          </div>
+        </div>
+
+        <div id="geminiResultCard" class="hidden space-y-4 pt-4 border-t border-slate-800">
+          <div class="flex items-center justify-between">
+            <h3 id="geminiResultTitle" class="text-base font-extrabold text-white">--</h3>
+            <span id="geminiResultPunchline" class="px-3 py-1 bg-amber-500/20 border border-amber-500/40 text-amber-300 text-xs font-extrabold rounded-lg tracking-wider">--</span>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div class="glass p-3 rounded-xl border border-slate-800 text-xs space-y-1">
+              <span class="text-slate-400 font-semibold">SEO Description & Timestamps:</span>
+              <pre id="geminiResultDesc" class="text-slate-300 font-sans whitespace-pre-wrap max-h-36 overflow-y-auto bg-slate-900/50 p-2 rounded-lg"></pre>
+            </div>
+            <div class="glass p-3 rounded-xl border border-slate-800 text-xs space-y-1">
+              <span class="text-slate-400 font-semibold">B-Roll Footage Terms & Tags:</span>
+              <div id="geminiResultTerms" class="flex flex-wrap gap-1 max-h-36 overflow-y-auto p-1"></div>
+            </div>
+          </div>
+
+          <div class="space-y-1">
+            <div class="flex justify-between items-center">
+              <span class="text-xs font-semibold text-slate-300">Narrator Voiceover Script:</span>
+              <button onclick="copyGeminiScript()" id="btnCopyScript" class="text-xs text-cyan-400 hover:text-cyan-300 font-semibold">📋 Copy Script</button>
+            </div>
+            <div id="geminiResultScript" class="p-4 bg-slate-900/90 border border-slate-800 rounded-xl text-xs text-slate-200 font-sans whitespace-pre-wrap max-h-64 overflow-y-auto leading-relaxed"></div>
+          </div>
+        </div>
+
+        <div class="glass p-5 rounded-xl border border-cyan-500/20 bg-cyan-950/10 space-y-3 pt-4">
+          <div class="text-sm font-bold text-white flex items-center gap-2">
+            <span>📚</span> Autonomous 20-Episode Series Architect
+          </div>
+          <p class="text-xs text-slate-400">Gemini will plan 10 Tech and 10 Quant Finance episodes, write complete institutional scripts for each, and autonomously update <code class="text-cyan-300">series_tasks.json</code>.</p>
+          <div class="flex gap-2">
+            <input id="geminiMasterTheme" type="text" class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-cyan-400" value="Frontier AI Compute Architecture & Wall Street Algorithmic War">
+            <button onclick="generateGeminiSeries()" id="btnGenSeries" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-black font-extrabold text-xs transition whitespace-nowrap shadow-md shadow-emerald-500/20">
+              🚀 Build 20-Episode Series
+            </button>
+          </div>
+          <div id="geminiSeriesStatus" class="hidden text-xs text-emerald-400 font-semibold"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 1.7: 10K Mega Swarm Control Room -->
+    <section id="tab-swarm" class="hidden space-y-6">
+      <div class="glass p-6 rounded-2xl space-y-5 border border-cyan-500/30 shadow-2xl shadow-cyan-950/40">
+        
+        <!-- Header Banner -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-800 pb-4">
+          <div>
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-extrabold bg-gradient-to-r from-cyan-500/20 to-purple-500/20 text-cyan-300 border border-cyan-500/40 mb-2">
+              <span class="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span>
+              INSTITUTIONAL PARALLEL CLOUD MATRIX (100 - 10,000 VIDEOS)
+            </div>
+            <h2 class="text-xl font-extrabold text-white">Mega Swarm Command Matrix</h2>
+            <p class="text-xs text-slate-400">Dispatch massive video production campaigns across 10 Niche Hubs and 1,000-10,000 channels with 0% PC load.</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-xs px-3 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 font-semibold flex items-center gap-1.5">
+              <span>🔒</span> Outro Hard-Locked (173s)
+            </span>
+            <span class="text-xs px-3 py-1.5 rounded-lg bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 font-semibold flex items-center gap-1.5">
+              <span>🚫</span> 0% Burned Subtitles
+            </span>
+          </div>
+        </div>
+
+        <!-- Tier Selection Cards -->
+        <div class="space-y-3">
+          <label class="text-xs font-extrabold uppercase tracking-wider text-slate-300">Select Production Batch Scale:</label>
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+            
+            <label class="glass p-4 rounded-xl border border-slate-700/70 hover:border-cyan-400 cursor-pointer transition flex flex-col justify-between space-y-3 relative overflow-hidden group">
+              <input type="radio" name="swarmBatch" value="100" checked class="absolute top-4 right-4 accent-cyan-400">
+              <div>
+                <div class="text-xs font-extrabold text-cyan-400">TIER 1</div>
+                <div class="text-xl font-black text-white mt-1">100 Videos</div>
+                <div class="text-xs text-slate-400 mt-1">Daily Fleet Blitz</div>
+              </div>
+              <div class="pt-2 border-t border-slate-800 text-[11px] text-slate-300">
+                5 Parallel 20-Runners<br><span class="text-emerald-400 font-semibold">~30 Mins Cloud Time</span>
+              </div>
+            </label>
+
+            <label class="glass p-4 rounded-xl border border-slate-700/70 hover:border-cyan-400 cursor-pointer transition flex flex-col justify-between space-y-3 relative overflow-hidden group">
+              <input type="radio" name="swarmBatch" value="500" class="absolute top-4 right-4 accent-cyan-400">
+              <div>
+                <div class="text-xs font-extrabold text-emerald-400">TIER 2</div>
+                <div class="text-xl font-black text-white mt-1">500 Videos</div>
+                <div class="text-xs text-slate-400 mt-1">Weekly Multi-Niche Campaign</div>
+              </div>
+              <div class="pt-2 border-t border-slate-800 text-[11px] text-slate-300">
+                25 Parallel 20-Runners<br><span class="text-emerald-400 font-semibold">10 Niche Hubs Covered</span>
+              </div>
+            </label>
+
+            <label class="glass p-4 rounded-xl border border-slate-700/70 hover:border-cyan-400 cursor-pointer transition flex flex-col justify-between space-y-3 relative overflow-hidden group">
+              <input type="radio" name="swarmBatch" value="1000" class="absolute top-4 right-4 accent-cyan-400">
+              <div>
+                <div class="text-xs font-extrabold text-purple-400">TIER 3</div>
+                <div class="text-xl font-black text-white mt-1">1,000 Videos</div>
+                <div class="text-xs text-slate-400 mt-1">Monthly Dominance Matrix</div>
+              </div>
+              <div class="pt-2 border-t border-slate-800 text-[11px] text-slate-300">
+                50 Parallel Shards<br><span class="text-purple-400 font-semibold">1,000 Channel Fleet</span>
+              </div>
+            </label>
+
+            <label class="glass p-4 rounded-xl border-2 border-amber-500/50 bg-amber-950/10 hover:border-amber-400 cursor-pointer transition flex flex-col justify-between space-y-3 relative overflow-hidden group">
+              <input type="radio" name="swarmBatch" value="10000" class="absolute top-4 right-4 accent-amber-400">
+              <div>
+                <div class="text-xs font-extrabold text-amber-400">TIER 4 (MAX SWARM)</div>
+                <div class="text-xl font-black text-white mt-1">10,000 Videos</div>
+                <div class="text-xs text-slate-400 mt-1">Multi-Repo Cloud Farm</div>
+              </div>
+              <div class="pt-2 border-t border-slate-800 text-[11px] text-slate-300">
+                500 Shards Matrix<br><span class="text-amber-400 font-semibold">10,000 Channel Fleet</span>
+              </div>
+            </label>
+
+          </div>
+        </div>
+
+        <!-- Master Ignite Button -->
+        <div class="space-y-2 pt-2">
+          <button onclick="igniteMegaSwarm()" id="btnIgniteSwarm" class="w-full py-4 rounded-2xl bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 hover:from-amber-400 hover:to-rose-400 text-black font-black text-sm uppercase tracking-wider transition shadow-xl shadow-orange-500/25 flex items-center justify-center gap-3">
+            <span>🔥</span> IGNITE SELECTED CLOUD VIDEO SWARM (0% PC CPU LOAD)
+          </button>
+          <div id="swarmDispatchOutput" class="hidden text-xs p-3.5 rounded-xl border"></div>
+        </div>
+
+        <!-- 10 Niche Hubs Cluster Radar -->
+        <div class="glass p-5 rounded-xl space-y-3 border border-slate-800">
+          <div class="flex justify-between items-center">
+            <h3 class="text-sm font-bold text-white flex items-center gap-2">
+              <span>🌐</span> 10 Institutional Niche Clusters (Algorithmic Dominance)
+            </h3>
+            <span class="text-[11px] text-slate-400">100% Isolated Browser Fingerprints</span>
+          </div>
+          <div class="grid grid-cols-2 md:grid-cols-5 gap-2 text-xs">
+            <div class="p-2.5 rounded-lg bg-slate-900 border border-slate-800"><span class="text-cyan-400 font-bold">01.</span> AI & Supercomputing</div>
+            <div class="p-2.5 rounded-lg bg-slate-900 border border-slate-800"><span class="text-emerald-400 font-bold">02.</span> Dark Pools & Quant Finance</div>
+            <div class="p-2.5 rounded-lg bg-slate-900 border border-slate-800"><span class="text-cyan-400 font-bold">03.</span> ASML & 2nm Silicon</div>
+            <div class="p-2.5 rounded-lg bg-slate-900 border border-slate-800"><span class="text-amber-400 font-bold">04.</span> Sovereign Debt & Macro</div>
+            <div class="p-2.5 rounded-lg bg-slate-900 border border-slate-800"><span class="text-purple-400 font-bold">05.</span> Orbital Physics & Space</div>
+            <div class="p-2.5 rounded-lg bg-slate-900 border border-slate-800"><span class="text-rose-400 font-bold">06.</span> Cyber Warfare & Zero-Day</div>
+            <div class="p-2.5 rounded-lg bg-slate-900 border border-slate-800"><span class="text-emerald-400 font-bold">07.</span> Nuclear Fusion & 100GW</div>
+            <div class="p-2.5 rounded-lg bg-slate-900 border border-slate-800"><span class="text-cyan-400 font-bold">08.</span> CRISPR & Synthetic Bio</div>
+            <div class="p-2.5 rounded-lg bg-slate-900 border border-slate-800"><span class="text-blue-400 font-bold">09.</span> Kinetic AI & Drone Swarms</div>
+            <div class="p-2.5 rounded-lg bg-slate-900 border border-slate-800"><span class="text-amber-400 font-bold">10.</span> Liquidity & Crypto Micro</div>
+          </div>
+        </div>
+
+        <!-- Gemini Multi-Key Ring Manager -->
+        <div class="glass p-5 rounded-xl border border-slate-800 space-y-3">
+          <div class="flex justify-between items-center">
+            <div>
+              <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                <span>🔑</span> Gemini Multi-Key Ring Manager (Infinite Free Script Scaling)
+              </h3>
+              <p class="text-[11px] text-slate-400">Add multiple free Google AI Studio keys to automatically scale daily capacity (1,500 RPD per key).</p>
+            </div>
+            <span id="keyRingTotalCap" class="text-xs px-2.5 py-1 rounded bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30">
+              Capacity: 1,500 RPD
+            </span>
+          </div>
+
+          <div class="flex gap-2">
+            <input id="inputNewApiKey" type="text" placeholder="Paste additional Gemini API key (AQ.Ab8... / AIzaSy...)" class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-4 py-2 text-xs text-white focus:outline-none focus:border-cyan-400">
+            <button onclick="addKeyToRing()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-cyan-300 text-xs font-bold border border-slate-700 transition">
+              + Add Key to Pool
+            </button>
+          </div>
+
+          <div id="keyRingList" class="flex flex-wrap gap-2 pt-1 text-xs">
+            <!-- Rendered dynamically -->
+          </div>
+        </div>
+
       </div>
     </section>
 
@@ -243,7 +473,7 @@
     let activeTab = 'channels';
 
     function switchTab(tab) {
-      ['channels', 'dispatch', 'radar', 'bridge'].forEach(t => {
+      ['channels', 'gemini', 'swarm', 'dispatch', 'radar', 'bridge'].forEach(t => {
         document.getElementById(`tab-${t}`).classList.add('hidden');
         document.getElementById(`tabBtn-${t}`).className = 'pb-3 text-slate-400 hover:text-slate-200 transition';
       });
@@ -252,6 +482,178 @@
       activeTab = tab;
       if (tab === 'radar') loadCloudRuns();
       if (tab === 'channels') loadChannels();
+    }
+
+    async function loadSwarmStatus() {
+      try {
+        const res = await fetch('/api/swarm/status');
+        const data = await res.json();
+        
+        if (data.key_ring) {
+          document.getElementById('keyRingTotalCap').innerText = `Capacity: ${(data.key_ring.total_capacity_rpd || 1500).toLocaleString()} RPD`;
+          const container = document.getElementById('keyRingList');
+          container.innerHTML = '';
+          (data.key_ring.keys || []).forEach(k => {
+            const badge = document.createElement('span');
+            badge.className = 'px-3 py-1 rounded-lg bg-slate-900 border border-slate-800 text-slate-300 text-xs font-mono flex items-center gap-1.5';
+            badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400"></span> ${k.label}: ${k.masked}`;
+            container.appendChild(badge);
+          });
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    async function igniteMegaSwarm() {
+      const selectedRadio = document.querySelector('input[name="swarmBatch"]:checked');
+      const batchSize = selectedRadio ? parseInt(selectedRadio.value) : 100;
+      const btn = document.getElementById('btnIgniteSwarm');
+      const out = document.getElementById('swarmDispatchOutput');
+      
+      const origText = btn.innerHTML;
+      btn.innerHTML = `<span>⏳</span> IGNITING ${batchSize.toLocaleString()}-VIDEO CLOUD MATRIX...`;
+      btn.disabled = true;
+
+      try {
+        const res = await fetch('/api/swarm/dispatch', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({batch_size: batchSize})
+        });
+        const data = await res.json();
+        out.classList.remove('hidden');
+        if (data.success) {
+          out.className = 'text-xs p-3.5 rounded-xl border bg-emerald-500/10 border-emerald-500/30 text-emerald-300 font-semibold';
+          out.innerText = `🎉 SUCCESS: ${data.message} (${data.total_shards} parallel shards ignited on GitHub Actions!)`;
+        } else {
+          out.className = 'text-xs p-3.5 rounded-xl border bg-red-500/10 border-red-500/30 text-red-300 font-semibold';
+          out.innerText = `❌ Error: ${data.error || 'Failed to dispatch'}`;
+        }
+      } catch (e) {
+        out.classList.remove('hidden');
+        out.className = 'text-xs p-3.5 rounded-xl border bg-red-500/10 border-red-500/30 text-red-300 font-semibold';
+        out.innerText = `❌ Exception: ${e}`;
+      } finally {
+        btn.innerHTML = origText;
+        btn.disabled = false;
+      }
+    }
+
+    async function addKeyToRing() {
+      const input = document.getElementById('inputNewApiKey');
+      const key = input.value.trim();
+      if (!key) return;
+
+      try {
+        const res = await fetch('/api/swarm/keys/add', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({api_key: key})
+        });
+        const data = await res.json();
+        if (data.success) {
+          input.value = '';
+          loadSwarmStatus();
+          alert('Key added to Key-Ring successfully!');
+        }
+      } catch (e) {
+        alert('Error adding key: ' + e);
+      }
+    }
+
+    async function loadGeminiStatus() {
+      try {
+        const res = await fetch('/api/gemini/status');
+        const data = await res.json();
+        document.getElementById('geminiKeyBadge').innerText = data.key_masked || 'Not Configured';
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    let currentGeneratedScript = '';
+
+    async function generateGeminiScript(words) {
+      const topic = document.getElementById('geminiTopicInput').value.trim();
+      if (!topic) {
+        alert('Please enter a documentary topic or concept!');
+        return;
+      }
+      const niche = document.getElementById('geminiNicheSelect').value;
+      const btn = words > 1500 ? document.getElementById('btnGeminiLong') : document.getElementById('btnGeminiShort');
+      const origText = btn.innerText;
+      btn.innerText = '⏳ Synthesizing Institutional Script via Gemini...';
+      btn.disabled = true;
+
+      try {
+        const res = await fetch('/api/gemini/generate-script', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({topic, niche, words})
+        });
+        const data = await res.json();
+        if (data.success && data.package) {
+          const pkg = data.package;
+          document.getElementById('geminiResultCard').classList.remove('hidden');
+          document.getElementById('geminiResultTitle').innerText = pkg.title || topic;
+          document.getElementById('geminiResultPunchline').innerText = pkg.thumbnail_punchline || 'DEEP DIVE';
+          document.getElementById('geminiResultDesc').innerText = pkg.description || '';
+          document.getElementById('geminiResultScript').innerText = pkg.video_script || '';
+          currentGeneratedScript = pkg.video_script || '';
+
+          const termsContainer = document.getElementById('geminiResultTerms');
+          termsContainer.innerHTML = '';
+          (pkg.video_terms || []).forEach(term => {
+            const span = document.createElement('span');
+            span.className = 'px-2 py-0.5 rounded bg-slate-800 text-cyan-300 text-[10px] border border-slate-700';
+            span.innerText = term;
+            termsContainer.appendChild(span);
+          });
+        } else {
+          alert('Failed to generate script: ' + (data.detail || 'Unknown error'));
+        }
+      } catch (e) {
+        alert('Error: ' + e);
+      } finally {
+        btn.innerText = origText;
+        btn.disabled = false;
+      }
+    }
+
+    function copyGeminiScript() {
+      if (!currentGeneratedScript) return;
+      navigator.clipboard.writeText(currentGeneratedScript).then(() => {
+        const btn = document.getElementById('btnCopyScript');
+        btn.innerText = '✅ Copied to Clipboard!';
+        setTimeout(() => btn.innerText = '📋 Copy Script', 2000);
+      });
+    }
+
+    async function generateGeminiSeries() {
+      const theme = document.getElementById('geminiMasterTheme').value.trim();
+      const btn = document.getElementById('btnGenSeries');
+      const statusBox = document.getElementById('geminiSeriesStatus');
+      btn.innerText = '⏳ Triggered in Background...';
+      btn.disabled = true;
+
+      try {
+        const res = await fetch('/api/gemini/create-series', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({master_theme: theme})
+        });
+        const data = await res.json();
+        statusBox.classList.remove('hidden');
+        statusBox.innerText = data.message || 'Series generator running in background!';
+      } catch (e) {
+        alert('Error: ' + e);
+      } finally {
+        setTimeout(() => {
+          btn.innerText = '🚀 Build 20-Episode Series';
+          btn.disabled = false;
+        }, 3000);
+      }
     }
 
     async function loadStatus() {
