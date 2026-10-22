@@ -445,10 +445,33 @@ def process_episode(episode_index: int):
     audio_file = os.path.join(ep_temp, "voiceover.mp3")
     final_output = os.path.join(OUTPUT_DIR, f"episode_{episode_index}_master.mp4")
 
-    # 1. Voiceover (Pure Audio, Zero Subtitles)
-    is_hindi = any(0x0900 <= ord(c) <= 0x097F for c in ep["video_script"][:500])
+    # 1. Voiceover (Pure Audio with Phonetic Transliteration & Shure SM7B DSP)
+    try:
+        from omnichannel_powerhouse.voice_router import transliterate_tech_terms
+        clean_script = transliterate_tech_terms(ep["video_script"])
+    except Exception:
+        clean_script = ep["video_script"]
+
+    is_hindi = any(0x0900 <= ord(c) <= 0x097F for c in clean_script[:500])
     voice = "hi-IN-MadhurNeural" if is_hindi else "en-US-ChristopherNeural"
-    asyncio.run(generate_pure_audio(ep["video_script"], voice, audio_file))
+    raw_audio = os.path.join(ep_temp, "voiceover_raw.mp3")
+    asyncio.run(generate_pure_audio(clean_script, voice, raw_audio))
+
+    # Apply Broadcast DSP Vocal Chain
+    print("[DSP] Applying Shure SM7B Vocal Mastering Chain...", flush=True)
+    vocal_chain = (
+        "highpass=f=80,"
+        "equalizer=f=250:t=q:w=1.2:g=2.2,"
+        "equalizer=f=3500:t=q:w=1.2:g=2.5,"
+        "equalizer=f=6800:t=q:w=1.5:g=-2.5,"
+        "dynaudnorm=p=0.95:m=10:s=12"
+    )
+    subprocess.run([
+        "ffmpeg", "-y", "-i", raw_audio,
+        "-af", vocal_chain,
+        "-c:a", "libmp3lame", "-b:a", "192k",
+        audio_file
+    ], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
     total_duration = get_media_duration(audio_file)
     print(f"[DURATION] Spoken Duration: {total_duration:.1f}s ({total_duration / 60:.2f} minutes)", flush=True)
