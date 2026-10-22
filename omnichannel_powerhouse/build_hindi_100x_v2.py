@@ -102,18 +102,15 @@ def main():
     start_time = time.time()
     logger.info("🎬 Initiating 100x Ultra-Cinematic V2 Documentary Production (Hindi)...")
 
-    # 1. Voiceover File (Check cache or synthesize)
-    voiceover_raw = os.path.join(TEMP_DIR, "hindi_voiceover.mp3")
-    if not os.path.exists(voiceover_raw) or os.path.getsize(voiceover_raw) < 100000:
-        logger.info("🎙️ Synthesizing Studio Hindi Neural Voiceover (hi-IN-MadhurNeural)...")
-        # Reuse existing or fallback script
-        from omnichannel_powerhouse.build_hindi_20min_demo import generate_hindi_institutional_script, synthesize_neural_hindi_speech
-        pkg = generate_hindi_institutional_script()
-        asyncio.run(synthesize_neural_hindi_speech(pkg["video_script"], voiceover_raw))
-
-    # 2. Master Voiceover with Broadcast Vocal Chain
+    # 1. Voiceover File (Check cache or synthesize with 1000x Ultra-Voice Router)
     voiceover_mastered = os.path.join(TEMP_DIR, "hindi_voiceover_mastered.m4a")
-    master_voiceover_audio(voiceover_raw, voiceover_mastered)
+    if not os.path.exists(voiceover_mastered) or os.path.getsize(voiceover_mastered) < 100000:
+        logger.info("🎙️ Synthesizing 1000x Ultra-Voiceover (Gemini Flash Native TTS + Broadcast DSP)...")
+        from omnichannel_powerhouse.build_hindi_20min_demo import generate_hindi_institutional_script
+        from omnichannel_powerhouse.voice_router import synthesize_ultra_voice
+        pkg = generate_hindi_institutional_script()
+        synthesize_ultra_voice(pkg["video_script"], voiceover_mastered, persona="cinematic_narrator", lang="hi")
+
     speech_duration = get_media_duration(voiceover_mastered)
     logger.info(f"⏳ Spoken Hindi Duration: {speech_duration:.1f}s ({speech_duration/60:.2f} Minutes)")
 

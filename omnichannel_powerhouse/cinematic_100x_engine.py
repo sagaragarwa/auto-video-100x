@@ -61,6 +61,7 @@ def master_voiceover_audio(in_vox_path: str, out_vox_path: str) -> str:
     logger.info("🎙️ Mastering Voiceover with Broadcast Vocal Chain...")
     vocal_chain = (
         "highpass=f=80,"
+        "equalizer=f=250:t=q:w=1.2:g=2.0,"
         "equalizer=f=3500:t=q:w=1.5:g=3.0,"
         "dynaudnorm=p=0.95:m=10:s=12"
     )
