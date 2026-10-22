@@ -3,7 +3,7 @@
   "videos": [
     {
       "id": "unlisted_001",
-      "video_id": "pending_upload",
+      "video_id": "D0vD2zd2594",
       "title": "The $500B Monopoly Nobody Is Allowed to Talk About: Inside ASML's 13.5nm Secret",
       "title_alternatives": [
         "Why China Cannot Copy This One 13.5nm Machine (Even With $1 Trillion)",
@@ -19,11 +19,11 @@
       "channel_id": "yt_tech_01",
       "channel_name": "Get Neural Stack Pro",
       "platform": "youtube",
-      "video_url": "https://studio.youtube.com/videos",
-      "studio_edit_url": "https://studio.youtube.com/videos",
+      "video_url": "https://youtu.be/D0vD2zd2594",
+      "studio_edit_url": "https://studio.youtube.com/video/D0vD2zd2594/edit",
       "studio_upload_url": "https://studio.youtube.com/videos",
       "local_video_path": "/output/demo_ai_15min_hindi_100pct_locked_master.mp4",
-      "status": "unlisted_pending_thumbnail",
+      "status": "uploaded_unlisted",
       "duration_sec": 964.9,
       "duration_formatted": "16:05",
       "thumbnail_punchline": "THE 13.5nm SECRET",
@@ -47,7 +47,13 @@
           "file": "/output/demo_20min_hindi_thumbnail_C_threat_crimson.jpg"
         }
       ],
-      "hashtags": ["#ASML", "#Semiconductors", "#ChipWar", "#TechDocumentary", "#NVIDIA"],
+      "hashtags": [
+        "#ASML",
+        "#Semiconductors",
+        "#ChipWar",
+        "#TechDocumentary",
+        "#NVIDIA"
+      ],
       "tags": [
         "ASML",
         "semiconductor monopoly",
@@ -71,9 +77,10 @@
         "Get Neural Stack Pro"
       ],
       "tags_csv": "ASML, semiconductor monopoly, ASML EUV lithography, chip war documentary, TSMC Taiwan, extreme ultraviolet lithography, Nvidia Blackwell B200, high NA EUV, semiconductor supply chain, Carl Zeiss optics, Moore's law dead, advanced packaging CoWoS, China chip sanctions, silicon wafer manufacturing, ASML 13.5nm laser, chip geopolitics documentary, how microchips are made hindi, tech documentary hindi, future of artificial intelligence hardware, Get Neural Stack Pro",
-      "description": "How did a quiet Dutch company in Veldhoven build the world's most inescapable monopoly? Discover the shocking physics, espionage, and geopolitical warfare behind ASML's 13.5nm Extreme Ultraviolet (EUV) machines—the only devices on Earth capable of printing advanced AI microchips.\n\nFrom blasting 50,000 molten tin droplets every single second with high-powered CO2 lasers to Carl Zeiss mirrors so smooth that if scaled to the size of Germany, the highest bump would be less than a millimeter, this documentary decodes the single point of failure of the modern global economy.\n\nTIMESTAMPS & CHAPTERS:\n00:00 - The Monopoly That Rules the Global Economy\n02:15 - 13.5nm Physics: Blasting Molten Tin at 50,000 Droplets/Sec\n05:40 - The Carl Zeiss Optical Miracle: Smoothest Surfaces on Earth\n08:30 - The Taiwan Chokepoint: Why TSMC Holds the Keys\n11:45 - The $380M High-NA EUV Machine: Breaking the 2nm Barrier\n14:10 - The Sovereign Ultimatum & AI Hardware Cold War\n16:08 - Vintage Blue-Laser Master Content ID Outro\n\n📌 KEY REFERENCES & CITATIONS:\n- ASML Holding N.V. Annual SEC 20-F Filings (2025/2026)\n- US CHIPS and Science Act Title I Technology Allocations\n- Carl Zeiss SMT Extreme Ultraviolet Reflectivity Telemetry\n\n💬 WHAT DO YOU THINK? Will China or the West succeed in breaking ASML's 13.5nm monopoly before 2030? Drop your analysis in the comments below.\n\n🔔 Subscribe to Get Neural Stack Pro for institutional-grade deep tech investigations.\n\n#ASML #Semiconductors #ChipWar #TechDocumentary #NVIDIA",
-      "pinned_comment": "🔥 Pinned Question for Viewers: If ASML's single factory in Veldhoven or TSMC's Fab 18 in Tainan halted production for just 90 days, which industry collapses first: Smartphones, Automotive, or AI Data Centers? Let's discuss in the thread below 👇",
-      "uploaded_at": "2026-10-22 14:52:10"
+      "description": "How did a quiet Dutch company in Veldhoven build the world's most inescapable monopoly? Discover the shocking physics, espionage, and geopolitical warfare behind ASML's 13.5nm Extreme Ultraviolet (EUV) machines\u2014the only devices on Earth capable of printing advanced AI microchips.\n\nFrom blasting 50,000 molten tin droplets every single second with high-powered CO2 lasers to Carl Zeiss mirrors so smooth that if scaled to the size of Germany, the highest bump would be less than a millimeter, this documentary decodes the single point of failure of the modern global economy.\n\nTIMESTAMPS & CHAPTERS:\n00:00 - The Monopoly That Rules the Global Economy\n02:15 - 13.5nm Physics: Blasting Molten Tin at 50,000 Droplets/Sec\n05:40 - The Carl Zeiss Optical Miracle: Smoothest Surfaces on Earth\n08:30 - The Taiwan Chokepoint: Why TSMC Holds the Keys\n11:45 - The $380M High-NA EUV Machine: Breaking the 2nm Barrier\n14:10 - The Sovereign Ultimatum & AI Hardware Cold War\n16:08 - Vintage Blue-Laser Master Content ID Outro\n\n\ud83d\udccc KEY REFERENCES & CITATIONS:\n- ASML Holding N.V. Annual SEC 20-F Filings (2025/2026)\n- US CHIPS and Science Act Title I Technology Allocations\n- Carl Zeiss SMT Extreme Ultraviolet Reflectivity Telemetry\n\n\ud83d\udcac WHAT DO YOU THINK? Will China or the West succeed in breaking ASML's 13.5nm monopoly before 2030? Drop your analysis in the comments below.\n\n\ud83d\udd14 Subscribe to Get Neural Stack Pro for institutional-grade deep tech investigations.\n\n#ASML #Semiconductors #ChipWar #TechDocumentary #NVIDIA",
+      "pinned_comment": "\ud83d\udd25 Pinned Question for Viewers: If ASML's single factory in Veldhoven or TSMC's Fab 18 in Tainan halted production for just 90 days, which industry collapses first: Smartphones, Automotive, or AI Data Centers? Let's discuss in the thread below \ud83d\udc47",
+      "uploaded_at": "2026-10-22 14:52:10",
+      "updated_at": "2026-10-22 18:53:34"
     },
     {
       "id": "unlisted_002",
@@ -96,7 +103,7 @@
       "video_url": "https://rumble.com/v12345-dark-pools.html",
       "studio_edit_url": "https://rumble.com/user/siliconpulse/videos",
       "local_video_path": "/output/demo_ai_10min_hindi_master.mp4",
-      "status": "unlisted_pending_thumbnail",
+      "status": "thumbnail_attached",
       "duration_sec": 605.2,
       "duration_formatted": "10:05",
       "thumbnail_punchline": "WHALES HID THIS",
@@ -114,7 +121,13 @@
           "file": "/output/demo_20min_hindi_thumbnail_B_secret_amber.jpg"
         }
       ],
-      "hashtags": ["#DarkPools", "#WallStreet", "#AlgoTrading", "#StockMarket", "#FinanceDocumentary"],
+      "hashtags": [
+        "#DarkPools",
+        "#WallStreet",
+        "#AlgoTrading",
+        "#StockMarket",
+        "#FinanceDocumentary"
+      ],
       "tags": [
         "Dark Pools",
         "Wall Street",
@@ -133,9 +146,10 @@
         "Silicon Pulse Network"
       ],
       "tags_csv": "Dark Pools, Wall Street, high frequency trading, HFT algorithms, Citadel Securities, order flow payment, market maker secret, microwave transmission trading, stock market manipulation documentary, dark pool trading explained hindi, how hedge funds cheat retail, sub millisecond execution, financial markets documentary, quant trading documentary, Silicon Pulse Network",
-      "description": "More than 45% of all US stock trades never touch the public NYSE or NASDAQ exchange. Instead, trillions of dollars flow silently through unregulated private exchanges known as Dark Pools.\n\nIn this investigative documentary, Silicon Pulse decodes the microwave networks spanning from Chicago to New Jersey, laser transmission towers, and collocated server racks that let quantitative hedge funds execute trades in microseconds before retail investors even see the bid.\n\nTIMESTAMPS & CHAPTERS:\n00:00 - The $40 Trillion Invisible Stock Market\n02:30 - How Dark Pools Hide Institutional Whale Orders\n05:15 - Microwave Towers vs Fiber Optics: The Speed of Light War\n07:45 - Payment for Order Flow & Front-Running Mechanics\n09:30 - The Future of Algorithmic Regulation & Outro\n\n📌 REGULATORY FILINGS & SOURCES:\n- SEC Rule 611 Order Protection Analysis\n- FINRA Alternative Trading Systems (ATS) Transparency Reports\n\n💬 Did you know your broker might be routing your orders to a dark pool? Share your broker and experiences below.\n\n#DarkPools #WallStreet #AlgoTrading #StockMarket #FinanceDocumentary",
-      "pinned_comment": "📊 Question: If dark pools were banned tomorrow, would market volatility surge or would pricing become fairer for everyday investors? Let us know your view below 👇",
-      "uploaded_at": "2026-10-22 15:10:00"
+      "description": "More than 45% of all US stock trades never touch the public NYSE or NASDAQ exchange. Instead, trillions of dollars flow silently through unregulated private exchanges known as Dark Pools.\n\nIn this investigative documentary, Silicon Pulse decodes the microwave networks spanning from Chicago to New Jersey, laser transmission towers, and collocated server racks that let quantitative hedge funds execute trades in microseconds before retail investors even see the bid.\n\nTIMESTAMPS & CHAPTERS:\n00:00 - The $40 Trillion Invisible Stock Market\n02:30 - How Dark Pools Hide Institutional Whale Orders\n05:15 - Microwave Towers vs Fiber Optics: The Speed of Light War\n07:45 - Payment for Order Flow & Front-Running Mechanics\n09:30 - The Future of Algorithmic Regulation & Outro\n\n\ud83d\udccc REGULATORY FILINGS & SOURCES:\n- SEC Rule 611 Order Protection Analysis\n- FINRA Alternative Trading Systems (ATS) Transparency Reports\n\n\ud83d\udcac Did you know your broker might be routing your orders to a dark pool? Share your broker and experiences below.\n\n#DarkPools #WallStreet #AlgoTrading #StockMarket #FinanceDocumentary",
+      "pinned_comment": "\ud83d\udcca Question: If dark pools were banned tomorrow, would market volatility surge or would pricing become fairer for everyday investors? Let us know your view below \ud83d\udc47",
+      "uploaded_at": "2026-10-22 15:10:00",
+      "updated_at": "2026-10-22 18:53:43"
     }
   ]
 }

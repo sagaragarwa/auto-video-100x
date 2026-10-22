@@ -1,28 +1,44 @@
 {
-    "channel_trading": {
-        "name": "Silicon Pulse",
-        "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_trading",
-        "niche": "trading",
-        "visibility": "public",
-        "handle": "@SiliconPulsePro",
-        "studio_url": "https://studio.youtube.com/channel/UCJB-HVgZMtokc05UwomQ6lA"
-    },
-    "ai_and_tech": {
-        "name": "Neural Stack",
-        "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\ai_and_tech",
-        "niche": "technology",
-        "visibility": "public"
-    },
-    "channel_psychology": {
-        "name": "Psychology & Mental Health Channel",
-        "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_psychology",
-        "niche": "psychology",
-        "visibility": "public"
-    },
-    "motival": {
-        "name": "tfg",
-        "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\motival",
-        "niche": "general",
-        "visibility": "public"
-    }
+  "channel_trading": {
+    "name": "Silicon Pulse",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_trading",
+    "niche": "trading",
+    "platform": "youtube",
+    "daily_max_uploads": 5,
+    "language": "en",
+    "voice_preferred": "en-US-ChristopherNeural",
+    "visibility": "unlisted",
+    "handle": "@SiliconPulsePro",
+    "studio_url": "https://studio.youtube.com/channel/UCJB-HVgZMtokc05UwomQ6lA"
+  },
+  "ai_and_tech": {
+    "name": "Neural Stack",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\ai_and_tech",
+    "niche": "technology",
+    "platform": "youtube",
+    "daily_max_uploads": 5,
+    "language": "en",
+    "voice_preferred": "en-US-GuyNeural",
+    "visibility": "unlisted"
+  },
+  "channel_psychology": {
+    "name": "Psychology & Mental Health Channel",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_psychology",
+    "niche": "psychology",
+    "platform": "youtube",
+    "daily_max_uploads": 5,
+    "language": "en",
+    "voice_preferred": "en-US-BrianNeural",
+    "visibility": "unlisted"
+  },
+  "motival": {
+    "name": "tfg",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\motival",
+    "niche": "general",
+    "platform": "youtube",
+    "daily_max_uploads": 5,
+    "language": "en",
+    "voice_preferred": "en-US-ChristopherNeural",
+    "visibility": "unlisted"
+  }
 }

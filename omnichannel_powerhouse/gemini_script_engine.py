@@ -37,13 +37,14 @@ def get_gemini_api_key() -> str:
     return os.environ.get("GEMINI_API_KEY", "")
 
 
-def call_gemini(prompt: str, model: str = "models/gemma-4-26b-a4b-it", max_retries: int = 5) -> str:
+def call_gemini(prompt: str, model: str = "gemini-3.5-flash", max_retries: int = 5) -> str:
     clean_model = model.replace("models/", "")
     payload = {
         "contents": [{"parts": [{"text": prompt}]}],
         "generationConfig": {
             "temperature": 0.7,
             "topP": 0.95,
+            "maxOutputTokens": 8192
         }
     }
     req_data = json.dumps(payload).encode("utf-8")

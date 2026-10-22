@@ -304,7 +304,7 @@ def upload_video_to_studio(
                                     if pin_opt.count() > 0:
                                         pin_opt.click()
                                         page.wait_for_timeout(1500)
-                                        confirm_pin = page.locator("yt-button-renderer#confirm-button button, button:has-text('Pin')").first
+                                        confirm_pin = page.locator("tp-yt-paper-dialog yt-button-renderer#confirm-button button, ytd-popup-container yt-button-renderer#confirm-button button, tp-yt-paper-dialog button:has-text('Pin')").first
                                         if confirm_pin.count() > 0:
                                             confirm_pin.click()
                                             page.wait_for_timeout(2000)
@@ -312,9 +312,9 @@ def upload_video_to_studio(
                 except Exception as e:
                     logger.warning(f"Comment pinning notice: {e}")
 
-            # Capture confirmation screenshot of the Content video list
+            # Capture confirmation screenshot of the Content video list (clean URL, no /upload)
             page.wait_for_timeout(3000)
-            page.goto("https://studio.youtube.com/videos/upload?approve_browser_access=true", timeout=60000)
+            page.goto("https://studio.youtube.com/videos?approve_browser_access=true", timeout=60000)
             page.wait_for_timeout(5000)
             conf_shot = os.path.join(os.path.dirname(abs_video), "upload_success_verified.png")
             page.screenshot(path=conf_shot)

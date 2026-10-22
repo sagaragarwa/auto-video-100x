@@ -57,11 +57,11 @@ def generate_fallback_chapters(duration_s: float, topic: str) -> str:
 def generate_deep_seo(
     topic: str,
     script_text: Optional[str] = None,
-    duration_s: float = 960.0,
-    channel_name: str = "Get Neural Stack Pro",
+    duration_s: float = 2400.0,
+    channel_name: str = "Neural Stack",
     platform: str = "youtube",
-    niche: str = "tech",
-    language: str = "hi"
+    niche: str = "technology",
+    language: str = "en"
 ) -> Dict[str, Any]:
     """
     Produces complete 98/100 Algorithmic SEO package.

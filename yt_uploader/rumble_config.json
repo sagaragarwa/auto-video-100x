@@ -1,0 +1,35 @@
+{
+  "rumble_psychology": {
+    "name": "Rumble Psychology & Mental Health",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles_rumble\\rumble_psychology",
+    "sub_channel": "",
+    "niche": "psychology",
+    "platform": "rumble",
+    "daily_max_uploads": 20,
+    "language": "en",
+    "voice_preferred": "en-US-BrianNeural",
+    "license": "rumble_only"
+  },
+  "rumble_trading": {
+    "name": "Rumble Trading & Finance Channel",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles_rumble\\rumble_trading",
+    "sub_channel": "",
+    "niche": "trading",
+    "platform": "rumble",
+    "daily_max_uploads": 20,
+    "language": "en",
+    "voice_preferred": "en-US-ChristopherNeural",
+    "license": "rumble_only"
+  },
+  "rumble_general": {
+    "name": "Rumble Main / General Channel",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles_rumble\\rumble_general",
+    "sub_channel": "",
+    "niche": "technology",
+    "platform": "rumble",
+    "daily_max_uploads": 20,
+    "language": "en",
+    "voice_preferred": "en-US-GuyNeural",
+    "license": "rumble_only"
+  }
+}
