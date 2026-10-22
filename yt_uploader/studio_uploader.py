@@ -256,10 +256,66 @@ def upload_video_to_studio(
             result["success"] = True
             logger.success("Video successfully published to YouTube Studio!")
 
+            # Extract clean Video ID
+            if result.get("url"):
+                url_str = result["url"]
+                if "youtu.be/" in url_str:
+                    result["video_id"] = url_str.split("youtu.be/")[1].split("?")[0].strip()
+                elif "watch?v=" in url_str:
+                    result["video_id"] = url_str.split("watch?v=")[1].split("&")[0].strip()
+                logger.info(f"Clean Video ID extracted: {result.get('video_id')}")
+
+            # Post & Pin High-Velocity Comment if provided
+            pinned_comment = seo_package.get("pinned_comment")
+            if pinned_comment and result.get("video_id"):
+                try:
+                    logger.info("Posting high-velocity pinned comment on watch page...")
+                    watch_url = f"https://www.youtube.com/watch?v={result['video_id']}"
+                    page.goto(watch_url, timeout=45000)
+                    page.wait_for_timeout(5000)
+
+                    # Scroll down to load comments section
+                    page.mouse.wheel(0, 600)
+                    page.wait_for_timeout(3000)
+
+                    # Click comment placeholder
+                    comment_box = page.locator("#placeholder-area, ytd-comment-simplebox-renderer #placeholder-area").first
+                    if comment_box.count() > 0:
+                        comment_box.click()
+                        page.wait_for_timeout(1500)
+
+                        input_div = page.locator("#contenteditable-root[contenteditable='true'], ytd-commentbox #contenteditable-root").first
+                        if input_div.count() > 0:
+                            input_div.fill(pinned_comment)
+                            page.wait_for_timeout(1000)
+
+                            submit_btn = page.locator("#submit-button button, button:has-text('Comment')").first
+                            if submit_btn.count() > 0:
+                                submit_btn.click()
+                                page.wait_for_timeout(4000)
+                                logger.info("High-velocity comment posted! Now pinning to top...")
+
+                                # Click 3-dot action menu on user's newly posted comment
+                                menu_btn = page.locator("ytd-comment-thread-renderer #action-menu yt-icon-button, ytd-comment-thread-renderer #action-menu button").first
+                                if menu_btn.count() > 0:
+                                    menu_btn.click()
+                                    page.wait_for_timeout(1500)
+                                    pin_opt = page.locator("ytd-menu-service-item-renderer:has-text('Pin'), tp-yt-paper-item:has-text('Pin')").first
+                                    if pin_opt.count() > 0:
+                                        pin_opt.click()
+                                        page.wait_for_timeout(1500)
+                                        confirm_pin = page.locator("yt-button-renderer#confirm-button button, button:has-text('Pin')").first
+                                        if confirm_pin.count() > 0:
+                                            confirm_pin.click()
+                                            page.wait_for_timeout(2000)
+                                            logger.success("Comment successfully pinned to top of video!")
+                except Exception as e:
+                    logger.warning(f"Comment pinning notice: {e}")
+
             # Capture confirmation screenshot of the Content video list
-            page.wait_for_timeout(4000)
+            page.wait_for_timeout(3000)
             page.goto("https://studio.youtube.com/videos/upload?approve_browser_access=true", timeout=60000)
-            page.wait_for_timeout(6000)
+            page.wait_for_timeout(5000)
             conf_shot = os.path.join(os.path.dirname(abs_video), "upload_success_verified.png")
             page.screenshot(path=conf_shot)
             logger.info(f"Studio video list screenshot saved to {conf_shot}")

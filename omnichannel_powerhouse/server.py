@@ -500,6 +500,11 @@ def get_unlisted_videos():
     return {"videos": []}
 
 
+class AutoUploadRequest(BaseModel):
+    video_id: str
+    channel_key: Optional[str] = None
+
+
 @app.post("/api/unlisted-videos/update-status")
 def update_unlisted_video_status(req: UnlistedStatusUpdateRequest):
     if not os.path.exists(UNLISTED_QUEUE_PATH):
@@ -521,6 +526,37 @@ def update_unlisted_video_status(req: UnlistedStatusUpdateRequest):
         return {"success": True, "video_id": req.video_id, "new_status": req.status}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/unlisted-videos/auto-upload-now")
+def trigger_auto_upload_now(req: AutoUploadRequest):
+    try:
+        from omnichannel_powerhouse.studio_upload_manager import launch_upload_in_background
+        launch_upload_in_background(req.video_id, req.channel_key)
+        return {"success": True, "message": f"Autonomous Playwright upload launched for {req.video_id}!"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/daemon/status")
+def get_daemon_telemetry():
+    from omnichannel_powerhouse.perpetual_genius_daemon import get_daemon
+    daemon = get_daemon()
+    return daemon.get_status()
+
+
+@app.post("/api/daemon/start")
+def start_perpetual_daemon():
+    from omnichannel_powerhouse.perpetual_genius_daemon import get_daemon
+    daemon = get_daemon()
+    return daemon.start()
+
+
+@app.post("/api/daemon/stop")
+def stop_perpetual_daemon():
+    from omnichannel_powerhouse.perpetual_genius_daemon import get_daemon
+    daemon = get_daemon()
+    return daemon.stop()
 
 
 
