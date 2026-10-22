@@ -35,6 +35,21 @@ except ImportError:
     logger = logging.getLogger("tier1_producer")
 
 import edge_tts
+
+def run_async(coro):
+    """Safely runs an async coroutine across both synchronous threads and active event loops."""
+    try:
+        loop = asyncio.get_running_loop()
+    except RuntimeError:
+        loop = None
+
+    if loop and loop.is_running():
+        import concurrent.futures
+        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
+            return pool.submit(asyncio.run, coro).result()
+    else:
+        return asyncio.run(coro)
+
 from omnichannel_powerhouse.gemini_script_engine import call_gemini
 from omnichannel_powerhouse.deep_seo_engine import generate_deep_seo
 from cloud_render_worker import (
@@ -237,7 +252,7 @@ def render_tier1_master_video(
     final_output = os.path.join(OUTPUT_DIR, f"tier1_{channel_key}_{ts}_master.mp4")
 
     # 1. Synthesize Audio
-    asyncio.run(synthesize_tier1_voiceover(script_data["video_script"], voice, audio_file))
+    run_async(synthesize_tier1_voiceover(script_data["video_script"], voice, audio_file))
     total_duration = get_media_duration(audio_file)
     logger.info(f"⏱️ Spoken Duration: {total_duration:.1f}s ({total_duration/60:.2f} minutes)")
 

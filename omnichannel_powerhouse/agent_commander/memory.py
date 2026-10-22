@@ -19,8 +19,9 @@ DB_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__)
 
 
 def init_db():
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(DB_PATH, timeout=30.0)
     cur = conn.cursor()
+    cur.execute('PRAGMA journal_mode=WAL')
     cur.execute("""
     CREATE TABLE IF NOT EXISTS sessions (
         id TEXT PRIMARY KEY,
@@ -51,7 +52,7 @@ init_db()
 def create_session(title: str = "New Conversation") -> str:
     s_id = f"sess_{int(time.time()*1000)}"
     now = time.strftime("%Y-%m-%d %H:%M:%S")
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(DB_PATH, timeout=30.0)
     cur = conn.cursor()
     cur.execute("INSERT INTO sessions (id, title, created_at, updated_at) VALUES (?, ?, ?, ?)", (s_id, title, now, now))
     conn.commit()
@@ -60,7 +61,7 @@ def create_session(title: str = "New Conversation") -> str:
 
 
 def list_sessions() -> List[Dict[str, Any]]:
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(DB_PATH, timeout=30.0)
     conn.row_factory = sqlite3.Row
     cur = conn.cursor()
     cur.execute("SELECT * FROM sessions ORDER BY updated_at DESC")
@@ -78,7 +79,7 @@ def save_message(
     tool_calls: Optional[List[Dict[str, Any]]] = None
 ) -> int:
     now = time.strftime("%Y-%m-%d %H:%M:%S")
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(DB_PATH, timeout=30.0)
     cur = conn.cursor()
     cur.execute("""
     INSERT INTO messages (session_id, role, content, thinking, tool_calls, timestamp)
@@ -92,7 +93,7 @@ def save_message(
 
 
 def get_session_messages(session_id: str) -> List[Dict[str, Any]]:
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(DB_PATH, timeout=30.0)
     conn.row_factory = sqlite3.Row
     cur = conn.cursor()
     cur.execute("SELECT * FROM messages WHERE session_id = ? ORDER BY id ASC", (session_id,))

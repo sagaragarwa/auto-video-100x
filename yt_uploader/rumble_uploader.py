@@ -196,7 +196,6 @@ def upload_video_to_rumble(
             if "login.php" in page.url or "signin" in page.url:
                 result["error"] = f"Rumble profile '{channel_key}' not logged in. Run 'open_rumble_login_window' first."
                 logger.error(result["error"])
-                context.close()
                 return result
 
             # 1. Inject Video File
@@ -338,6 +337,9 @@ def upload_video_to_rumble(
             logger.error(f"Rumble upload failed: {e}")
             result["error"] = str(e)
         finally:
-            context.close()
+            try:
+                context.close()
+            except Exception:
+                pass
 
     return result

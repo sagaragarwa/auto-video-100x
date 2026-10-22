@@ -278,15 +278,16 @@ def tool_read_file(relative_path: str) -> Dict[str, Any]:
         return {"success": False, "error": str(e)}
 
 
-def tool_git_ops(action: str = "status", commit_message: str = "update") -> Dict[str, Any]:
+def tool_git_ops(action: str = "status", message: str = "", commit_message: str = "") -> Dict[str, Any]:
     """Executes Git operations ('status', 'commit', 'push')."""
+    actual_msg = message or commit_message or "update from AI Commander"
     try:
         if action == "status":
             res = subprocess.run(["git", "status", "-s"], cwd=_root, capture_output=True, text=True)
             return {"success": True, "output": res.stdout}
         elif action == "commit":
             subprocess.run(["git", "add", "."], cwd=_root, check=True)
-            res = subprocess.run(["git", "commit", "-m", commit_message], cwd=_root, capture_output=True, text=True)
+            res = subprocess.run(["git", "commit", "-m", actual_msg], cwd=_root, capture_output=True, text=True)
             return {"success": True, "output": res.stdout or res.stderr}
         elif action == "push":
             token_path = os.path.join(_root, "yt_uploader", "github_token.local")
@@ -295,6 +296,35 @@ def tool_git_ops(action: str = "status", commit_message: str = "update") -> Dict
             res = subprocess.run(["git", "push", remote, "main"], cwd=_root, capture_output=True, text=True)
             return {"success": res.returncode == 0, "output": res.stdout or res.stderr}
         return {"success": False, "error": f"Unknown git action '{action}'"}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
+def tool_list_unlisted_queue() -> Dict[str, Any]:
+    """Lists all videos in the Unlisted Queue waiting for thumbnail review or scheduled upload."""
+    if not os.path.exists(QUEUE_FILE):
+        return {"total_count": 0, "videos": []}
+    try:
+        q_data = json.load(open(QUEUE_FILE, encoding="utf-8"))
+        vids = q_data.get("videos", [])
+        summary_vids = []
+        for v in vids:
+            summary_vids.append({
+                "id": v.get("id"),
+                "title": v.get("title"),
+                "channel": v.get("channel_name") or v.get("channel_id"),
+                "platform": v.get("platform", "youtube"),
+                "status": v.get("status"),
+                "video_id": v.get("video_id"),
+                "video_url": v.get("video_url"),
+                "duration": v.get("duration_formatted"),
+                "seo_score": v.get("seo_score", 98)
+            })
+        return {
+            "total_count": len(vids),
+            "updated_at": q_data.get("updated_at"),
+            "videos": summary_vids
+        }
     except Exception as e:
         return {"success": False, "error": str(e)}
 
@@ -345,6 +375,7 @@ TOOL_REGISTRY = {
     "tool_upload_youtube_unlisted": tool_upload_youtube_unlisted,
     "tool_upload_rumble": tool_upload_rumble,
     "tool_list_channels": tool_list_channels,
+    "tool_list_unlisted_queue": tool_list_unlisted_queue,
     "tool_update_channel_quota": tool_update_channel_quota,
     "tool_add_channel": tool_add_channel,
     "tool_dispatch_swarm": tool_dispatch_swarm,
@@ -357,6 +388,11 @@ TOOL_REGISTRY = {
 
 
 GEMINI_FUNCTION_DECLARATIONS = [
+    {
+        "name": "tool_list_unlisted_queue",
+        "description": "List all manufactured videos in the Unlisted Queue waiting for thumbnail review, upload, or publish.",
+        "parameters": {"type": "OBJECT", "properties": {}}
+    },
     {
         "name": "tool_daemon_control",
         "description": "Start, stop, pause, or get status of the 24/7 perpetual autonomous video manufacturing engine.",

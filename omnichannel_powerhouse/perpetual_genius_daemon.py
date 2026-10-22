@@ -296,8 +296,9 @@ class PerpetualGeniusDaemon:
             )
             return bool(res.get("success"))
         except Exception as e:
-            logger.warning(f"Rumble upload notice for {r_name}: {e}")
-            return True
+            logger.error(f"Rumble sequence failed for {r_name}: {e}")
+            self.log(f"⚠️ Rumble upload failure for {r_name}: {e}")
+            return False
 
     def _prepend_to_queue(self, entry: Dict[str, Any]):
         try:

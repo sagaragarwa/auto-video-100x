@@ -330,6 +330,9 @@ def upload_video_to_studio(
             except Exception:
                 pass
         finally:
-            context.close()
+            try:
+                context.close()
+            except Exception:
+                pass
 
     return result
