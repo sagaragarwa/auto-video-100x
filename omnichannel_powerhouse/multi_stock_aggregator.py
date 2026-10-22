@@ -222,7 +222,7 @@ def fetch_multi_source_brolls(terms: List[str], target_duration: float, cache_di
     Blends Pixabay, Pexels (if key provided), and Wikimedia Commons.
     Guarantees 150-250 strictly unique clips per 20-minute video with ZERO visual repetitions!
     """
-    target_limit = min(220, max(120, int(target_duration / 6.5) + 20))
+    target_limit = min(220, max(14, int(target_duration / 3.5) + 4))
     logger.info(f"🌐 Sourcing up to {target_limit} strictly unique clips across Pixabay, Pexels & Wikimedia...")
 
     seen_ids = set()
