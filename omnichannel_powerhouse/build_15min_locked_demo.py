@@ -272,6 +272,7 @@ def build_15min_hard_locked_master(target_output_mp4: str):
         "[0:a][ducked]amix=inputs=2:duration=first:dropout_transition=2[aout]"
     )
 
+    ducked_inter_video = os.path.join(TEMP_DIR, "inter_ducked_15min.mp4")
     cmd = [
         "ffmpeg", "-y",
         "-i", master_audio,
@@ -281,11 +282,36 @@ def build_15min_hard_locked_master(target_output_mp4: str):
         "-map", "2:v",
         "-map", "[aout]",
         "-c:v", "copy",
-        "-c:a", "aac", "-b:a", "192k",
+        "-c:a", "aac", "-b:a", "192k", "-ar", "48000", "-ac", "2",
         "-shortest",
-        target_output_mp4
+        ducked_inter_video
     ]
     subprocess.run(cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+    # 7. Permanently Append the Hard-Locked Signature Outro (173.25s Vintage Blue-Laser Clip)
+    outro_path = os.path.join(_root, "resource", "assets", "content_id_outro.mp4")
+    if os.path.exists(outro_path):
+        logger.info("🔒 Appending Hard-Locked Signature Outro Clip (173.25s)...")
+        norm_outro = os.path.join(TEMP_DIR, "norm_outro_stereo.mp4")
+        subprocess.run([
+            "ffmpeg", "-y", "-i", outro_path,
+            "-c:v", "copy", "-c:a", "aac", "-b:a", "192k", "-ar", "48000", "-ac", "2",
+            norm_outro
+        ], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+        final_concat_txt = os.path.join(SLICES_DIR, "final_master_with_outro.txt")
+        with open(final_concat_txt, "w", encoding="utf-8") as f:
+            f.write(f"file '{os.path.abspath(ducked_inter_video).replace(chr(92), '/')}'\n")
+            f.write(f"file '{os.path.abspath(norm_outro).replace(chr(92), '/')}'\n")
+
+        subprocess.run([
+            "ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i", final_concat_txt,
+            "-c", "copy", "-movflags", "+faststart",
+            target_output_mp4
+        ], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    else:
+        import shutil
+        shutil.move(ducked_inter_video, target_output_mp4)
 
     final_dur = get_media_duration(target_output_mp4)
     final_size_mb = os.path.getsize(target_output_mp4) / (1024 * 1024)
