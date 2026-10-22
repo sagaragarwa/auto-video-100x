@@ -490,6 +490,7 @@ UNLISTED_QUEUE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "
 
 
 @app.get("/api/unlisted-videos")
+@app.get("/api/unlisted-videos/queue")
 def get_unlisted_videos():
     if os.path.exists(UNLISTED_QUEUE_PATH):
         try:
