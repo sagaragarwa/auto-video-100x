@@ -3,7 +3,7 @@
   "videos": [
     {
       "id": "unlisted_001",
-      "video_id": "dQw4w9WgXcQ",
+      "video_id": "pending_upload",
       "title": "The $500B Monopoly Nobody Is Allowed to Talk About: Inside ASML's 13.5nm Secret",
       "title_alternatives": [
         "Why China Cannot Copy This One 13.5nm Machine (Even With $1 Trillion)",
@@ -19,8 +19,9 @@
       "channel_id": "yt_tech_01",
       "channel_name": "Get Neural Stack Pro",
       "platform": "youtube",
-      "video_url": "https://youtu.be/dQw4w9WgXcQ",
-      "studio_edit_url": "https://studio.youtube.com/video/dQw4w9WgXcQ/edit",
+      "video_url": "https://studio.youtube.com/videos",
+      "studio_edit_url": "https://studio.youtube.com/videos",
+      "studio_upload_url": "https://studio.youtube.com/videos",
       "local_video_path": "/output/demo_ai_15min_hindi_100pct_locked_master.mp4",
       "status": "unlisted_pending_thumbnail",
       "duration_sec": 964.9,
