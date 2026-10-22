@@ -62,6 +62,53 @@ VOICE_PERSONAS = {
 }
 
 
+TECH_TRANSLITERATION_MAP = {
+    r"\bTSMC\b": "टी-एस-एम-सी",
+    r"\bASML\b": "ए-एस-एम-एल",
+    r"\bEUV\b": "ई-यू-वी",
+    r"\bDUV\b": "डी-यू-वी",
+    r"\bSRAM\b": "एस-रैम",
+    r"\bGPU\b": "जी-पी-यू",
+    r"\bGPUs\b": "जी-पी-यूज़",
+    r"\bTPU\b": "टी-पी-यू",
+    r"\bTPUs\b": "टी-पी-यूज़",
+    r"\bAI\b": "ए-आई",
+    r"\bAGI\b": "ए-जी-आई",
+    r"\bASI\b": "ए-एस-आई",
+    r"\bNVIDIA\b": "एनवीडिया",
+    r"\bLLM\b": "एल-एल-एम",
+    r"\bLLMs\b": "एल-एल-एम्स",
+    r"\bHBM\b": "एच-बी-एम",
+    r"\bCUDA\b": "कूडा",
+    r"\bCoWoS\b": "को-वॉस",
+    r"\bCPU\b": "सी-पी-यू",
+    r"\bCPUs\b": "सी-पी-यूज़",
+}
+
+
+def transliterate_tech_terms(text: str) -> str:
+    """Replaces English technical acronyms with phonetically precise Devanagari."""
+    import re
+    res = text
+    for pattern, replacement in TECH_TRANSLITERATION_MAP.items():
+        res = re.sub(pattern, replacement, res, flags=re.IGNORECASE)
+    return res
+
+
+def calculate_script_metrics(text: str, target_wpm: int = 135) -> Dict[str, Any]:
+    """Calculates words, characters, and expected audio duration at documentary pacing."""
+    words = text.split()
+    word_count = len(words)
+    est_duration_sec = (word_count / target_wpm) * 60.0
+    return {
+        "word_count": word_count,
+        "char_count": len(text),
+        "est_duration_sec": est_duration_sec,
+        "est_duration_min": est_duration_sec / 60.0,
+        "recommended_pace": "130-140 WPM (Documentary)"
+    }
+
+
 def chunk_text_for_tts(text: str, max_chars: int = 600) -> List[str]:
     """Splits text cleanly along paragraphs or sentence ends to ensure natural speech flow."""
     paragraphs = [p.strip() for p in text.split("\n") if p.strip()]
@@ -148,9 +195,10 @@ def call_gemini_tts_api(text: str, voice_name: str = "Fenrir", timeout: int = 30
 
 
 async def synthesize_edge_tts_fallback(text: str, voice: str, out_path: str):
-    """Fallback Edge-TTS synthesizer if cloud API is unreachable."""
+    """Fallback Edge-TTS synthesizer with transliteration and documentary pacing."""
     import edge_tts
-    communicate = edge_tts.Communicate(text, voice=voice, rate="+3%")
+    clean_text = transliterate_tech_terms(text)
+    communicate = edge_tts.Communicate(clean_text, voice=voice, rate="-2%", pitch="-1Hz")
     await communicate.save(out_path)
 
 
@@ -163,11 +211,13 @@ def synthesize_ultra_voice(
 ) -> str:
     """
     Main entry point for 1000x voice synthesis:
-    1. Chunks long texts safely.
-    2. Synthesizes via Gemini 2.5 Flash Multimodal Audio (24kHz studio PCM).
-    3. Seamlessly falls back to Edge-TTS if needed.
-    4. Applies broadcast DSP vocal chain mastering.
+    1. Preprocesses script with technical transliterations.
+    2. Chunks long texts safely.
+    3. Synthesizes via Gemini 2.5 Flash Multimodal Audio (24kHz studio PCM).
+    4. Seamlessly falls back to Edge-TTS with documentary modulation.
+    5. Applies broadcast DSP vocal chain mastering.
     """
+    text = transliterate_tech_terms(text)
     os.makedirs(os.path.dirname(os.path.abspath(out_path)), exist_ok=True)
     temp_dir = os.path.join(os.path.dirname(os.path.abspath(out_path)), "temp_voice_chunks")
     os.makedirs(temp_dir, exist_ok=True)
