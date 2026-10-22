@@ -1,0 +1,93 @@
+{
+  "updated_at": "2026-10-22 17:25:00",
+  "videos": [
+    {
+      "id": "unlisted_001",
+      "video_id": "dQw4w9WgXcQ",
+      "title": "The $500B ASML Semiconductor Monopoly: The 13.5nm EUV War",
+      "channel_id": "yt_tech_01",
+      "channel_name": "Get Neural Stack Pro",
+      "platform": "youtube",
+      "video_url": "https://youtu.be/dQw4w9WgXcQ",
+      "studio_edit_url": "https://studio.youtube.com/video/dQw4w9WgXcQ/edit",
+      "local_video_path": "/output/demo_ai_15min_hindi_100pct_locked_master.mp4",
+      "status": "unlisted_pending_thumbnail",
+      "duration_sec": 964.9,
+      "duration_formatted": "16:05",
+      "thumbnail_punchline": "THE 13.5nm SECRET",
+      "thumbnail_concepts": [
+        {
+          "variant": "A",
+          "name": "Monopoly Cyan",
+          "hex": "#00F2FE",
+          "file": "/output/demo_20min_hindi_thumbnail_A_monopoly_cyan.jpg"
+        },
+        {
+          "variant": "B",
+          "name": "Secret Amber",
+          "hex": "#FFB300",
+          "file": "/output/demo_20min_hindi_thumbnail_B_secret_amber.jpg"
+        },
+        {
+          "variant": "C",
+          "name": "Threat Crimson",
+          "hex": "#FF0055",
+          "file": "/output/demo_20min_hindi_thumbnail_C_threat_crimson.jpg"
+        }
+      ],
+      "tags": [
+        "ASML",
+        "Semiconductor",
+        "TSMC",
+        "NVIDIA",
+        "EUV",
+        "Chip War",
+        "Lithography",
+        "Hardware"
+      ],
+      "description": "00:00 - Chapter 1: The Monopolist Nobody Knows\n02:45 - Chapter 2: The 13.5nm Impossible Physics\n06:20 - Chapter 3: High-NA EUV & The $380M Machine\n10:15 - Chapter 4: Geopolitical Chokepoint & TSMC\n13:20 - Chapter 5: The Autonomous Future\n16:08 - Vintage Blue-Laser Outro",
+      "uploaded_at": "2026-10-22 14:52:10",
+      "updated_at": "2026-10-22 17:25:57"
+    },
+    {
+      "id": "unlisted_002",
+      "video_id": "rumble_vid_9941",
+      "title": "Dark Pools & High Frequency Trading: The Secret Microwave Network",
+      "channel_id": "rumble_hub_01",
+      "channel_name": "Silicon Pulse Network",
+      "platform": "rumble",
+      "video_url": "https://rumble.com/v12345-dark-pools.html",
+      "studio_edit_url": "https://rumble.com/user/siliconpulse/videos",
+      "local_video_path": "/output/demo_ai_10min_hindi_master.mp4",
+      "status": "unlisted_pending_thumbnail",
+      "duration_sec": 605.2,
+      "duration_formatted": "10:05",
+      "thumbnail_punchline": "WHALES HID THIS",
+      "thumbnail_concepts": [
+        {
+          "variant": "A",
+          "name": "Monopoly Cyan",
+          "hex": "#00F2FE",
+          "file": "/output/demo_20min_hindi_thumbnail_A_monopoly_cyan.jpg"
+        },
+        {
+          "variant": "B",
+          "name": "Secret Amber",
+          "hex": "#FFB300",
+          "file": "/output/demo_20min_hindi_thumbnail_B_secret_amber.jpg"
+        }
+      ],
+      "tags": [
+        "Dark Pool",
+        "Wall Street",
+        "Hedge Fund",
+        "HFT",
+        "Market Maker",
+        "Citadel",
+        "Trading"
+      ],
+      "description": "00:00 - Chapter 1: The Hidden Orders\n03:15 - Chapter 2: Microwave Towers vs Fiber Optics\n07:00 - Chapter 3: How Whales Front-Run Retail\n09:30 - Conclusion & Outro",
+      "uploaded_at": "2026-10-22 15:10:00"
+    }
+  ]
+}

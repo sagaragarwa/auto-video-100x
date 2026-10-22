@@ -90,6 +90,7 @@
     <!-- Navigation Tabs -->
     <div class="flex border-b border-slate-800 gap-6 text-sm font-semibold">
       <button onclick="switchTab('channels')" id="tabBtn-channels" class="pb-3 text-cyan-400 border-b-2 border-cyan-400 transition">📺 Channel Portfolio & Safe Login</button>
+      <button onclick="switchTab('unlisted')" id="tabBtn-unlisted" class="pb-3 text-slate-400 hover:text-amber-300 transition flex items-center gap-1.5">🎬 Unlisted Videos & Thumbnail Hub <span id="unlistedBadgeCount" class="px-2 py-0.5 bg-amber-500/20 text-amber-300 text-[10px] font-extrabold rounded-full border border-amber-500/40">2</span></button>
       <button onclick="switchTab('gemini')" id="tabBtn-gemini" class="pb-3 text-slate-400 hover:text-slate-200 transition">✨ Gemini AI Script Studio</button>
       <button onclick="switchTab('swarm')" id="tabBtn-swarm" class="pb-3 text-slate-400 hover:text-slate-200 transition">⚡ 10K Mega Swarm Control Room</button>
       <button onclick="switchTab('dispatch')" id="tabBtn-dispatch" class="pb-3 text-slate-400 hover:text-slate-200 transition">🚀 20-Video Cloud Campaign Launcher</button>
@@ -108,6 +109,37 @@
 
       <div id="channelCardsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <!-- Rendered dynamically via JS -->
+      </div>
+    </section>
+
+    <!-- TAB 1.2: Unlisted Videos & Thumbnail Hub -->
+    <section id="tab-unlisted" class="hidden space-y-6">
+      <div class="glass p-6 rounded-2xl space-y-4 border border-amber-500/30 shadow-xl shadow-amber-950/20">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-800 pb-4">
+          <div>
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40 mb-1">
+              <span>🔒</span> UNLISTED STAGING BAY (Uploads Always Unlisted)
+            </div>
+            <h2 class="text-xl font-extrabold text-white">Manual Thumbnail Control & Multi-Channel Studio Hub</h2>
+            <p class="text-xs text-slate-400">All videos upload as Unlisted automatically. Click the 1-click Studio link to attach your custom thumbnail before setting to Public.</p>
+          </div>
+          <div class="flex items-center gap-3">
+            <select id="unlistedChannelFilter" onchange="filterUnlistedVideos()" class="bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-400">
+              <option value="all">Filter: All Channels (YouTube & Rumble)</option>
+              <option value="yt_tech_01">YouTube: Get Neural Stack Pro (Tech)</option>
+              <option value="yt_trading_01">YouTube: Silicon Pulse (Trading)</option>
+              <option value="rumble_hub_01">Rumble: Silicon Pulse Network</option>
+            </select>
+            <button onclick="loadUnlistedVideos()" class="p-2 bg-slate-800 hover:bg-slate-700 rounded-xl text-slate-300 hover:text-white transition" title="Refresh Queue">
+              🔄
+            </button>
+          </div>
+        </div>
+
+        <!-- Video Cards Grid -->
+        <div id="unlistedVideosGrid" class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <!-- Rendered dynamically via JS -->
+        </div>
       </div>
     </section>
 
@@ -528,7 +560,7 @@
     let activeTab = 'channels';
 
     function switchTab(tab) {
-      ['channels', 'gemini', 'swarm', 'dispatch', 'radar', 'bridge'].forEach(t => {
+      ['channels', 'unlisted', 'gemini', 'swarm', 'dispatch', 'radar', 'bridge'].forEach(t => {
         document.getElementById(`tab-${t}`).classList.add('hidden');
         document.getElementById(`tabBtn-${t}`).className = 'pb-3 text-slate-400 hover:text-slate-200 transition';
       });
@@ -537,6 +569,7 @@
       activeTab = tab;
       if (tab === 'radar') loadCloudRuns();
       if (tab === 'channels') loadChannels();
+      if (tab === 'unlisted') loadUnlistedVideos();
     }
 
     async function loadSwarmStatus() {
@@ -879,6 +912,144 @@
         if (data.success) {
           closeEditModal();
           loadChannels();
+    loadUnlistedVideos();
+
+    let allUnlistedVideos = [];
+
+    async function loadUnlistedVideos() {
+      try {
+        const res = await fetch('/api/unlisted-videos');
+        const data = await res.json();
+        allUnlistedVideos = data.videos || [];
+        document.getElementById('unlistedBadgeCount').innerText = allUnlistedVideos.length;
+        renderUnlistedVideos(allUnlistedVideos);
+      } catch (e) {
+        console.error('Error loading unlisted videos:', e);
+      }
+    }
+
+    function filterUnlistedVideos() {
+      const chFilter = document.getElementById('unlistedChannelFilter').value;
+      if (chFilter === 'all') {
+        renderUnlistedVideos(allUnlistedVideos);
+      } else {
+        const filtered = allUnlistedVideos.filter(v => v.channel_id === chFilter);
+        renderUnlistedVideos(filtered);
+      }
+    }
+
+    function renderUnlistedVideos(videos) {
+      const container = document.getElementById('unlistedVideosGrid');
+      if (!container) return;
+      container.innerHTML = '';
+
+      if (videos.length === 0) {
+        container.innerHTML = `<div class="col-span-2 text-center py-12 text-slate-500 text-xs">No unlisted videos pending in this queue.</div>`;
+        return;
+      }
+
+      videos.forEach(v => {
+        const isYoutube = v.platform === 'youtube';
+        const card = document.createElement('div');
+        card.className = 'glass p-5 rounded-2xl space-y-4 border border-slate-800 hover:border-slate-700 transition flex flex-col justify-between';
+        
+        const conceptBadges = (v.thumbnail_concepts || []).map(tc => 
+          `<a href="${tc.file}" download class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition" title="Download AI Concept ${tc.variant}">
+            <span class="w-2 h-2 rounded-full" style="background-color: ${tc.hex};"></span>
+            Concept ${tc.variant} (${tc.name}) ⬇️
+          </a>`
+        ).join(' ');
+
+        card.innerHTML = `
+          <div class="space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="text-xs px-2.5 py-1 rounded font-bold uppercase tracking-wider ${isYoutube ? 'bg-red-500/20 text-red-400 border border-red-500/30' : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'}">
+                ${v.platform} • ${v.channel_name}
+              </span>
+              <span class="text-[10px] px-2 py-0.5 rounded-full font-bold ${v.status === 'thumbnail_attached' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'}">
+                ${v.status === 'thumbnail_attached' ? '✅ Thumbnail Added' : '🔒 Unlisted (Needs Thumbnail)'}
+              </span>
+            </div>
+
+            <div>
+              <h3 class="text-sm font-extrabold text-white leading-snug">${v.title}</h3>
+              <div class="flex items-center gap-3 text-[11px] text-slate-400 mt-1">
+                <span>⏱️ ${v.duration_formatted || '15:00'}</span>
+                <span>📅 ${v.uploaded_at || 'Recently'}</span>
+                <span class="text-cyan-400 font-bold">Punchline: "${v.thumbnail_punchline || '--'}"</span>
+              </div>
+            </div>
+
+            <!-- In-App Video Preview -->
+            <div class="rounded-xl overflow-hidden bg-black/60 border border-slate-800 aspect-video relative group">
+              <video src="${v.local_video_path || '/output/demo_ai_15min_hindi_100pct_locked_master.mp4'}" controls class="w-full h-full object-cover"></video>
+            </div>
+
+            <!-- AI Thumbnail Concepts Download -->
+            <div class="space-y-1.5 pt-1">
+              <div class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">AI Thumbnail Concepts (Download & Attach):</div>
+              <div class="flex flex-wrap gap-1.5">
+                ${conceptBadges}
+              </div>
+            </div>
+          </div>
+
+          <div class="pt-3 border-t border-slate-800 space-y-2">
+            <div class="flex gap-2">
+              <a href="${v.studio_edit_url}" target="_blank" class="flex-1 py-2.5 px-3 rounded-xl bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white font-extrabold text-xs transition text-center flex items-center justify-center gap-1.5 shadow-md shadow-red-600/20">
+                <span>🔗</span> Open in ${isYoutube ? 'YouTube Studio' : 'Rumble'} to Upload Thumbnail
+              </a>
+              <button onclick="toggleVideoMetadata('${v.id}')" class="px-3 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold transition" title="View Description & Tags">
+                📋 Metadata
+              </button>
+            </div>
+
+            <div class="flex items-center justify-between text-xs pt-1">
+              <button onclick="markThumbnailStatus('${v.id}', '${v.status === 'thumbnail_attached' ? 'unlisted_pending_thumbnail' : 'thumbnail_attached'}')" class="text-[11px] text-slate-400 hover:text-white transition flex items-center gap-1">
+                ${v.status === 'thumbnail_attached' ? '↩️ Mark Pending' : '✅ Mark Thumbnail Done'}
+              </button>
+              <a href="${v.video_url}" target="_blank" class="text-[11px] text-cyan-400 hover:text-cyan-300 font-semibold">
+                View Unlisted Video ↗
+              </a>
+            </div>
+
+            <div id="meta-${v.id}" class="hidden p-3 bg-slate-900/90 rounded-xl text-xs space-y-2 border border-slate-800">
+              <div>
+                <span class="text-slate-400 font-semibold">Description with Chapters:</span>
+                <pre class="text-slate-300 whitespace-pre-wrap max-h-32 overflow-y-auto text-[11px] p-2 bg-black/40 rounded mt-1">${v.description}</pre>
+              </div>
+              <div>
+                <span class="text-slate-400 font-semibold">Tags:</span>
+                <div class="text-slate-300 text-[11px] mt-1">${(v.tags || []).join(', ')}</div>
+              </div>
+            </div>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function toggleVideoMetadata(vidId) {
+      const el = document.getElementById(`meta-${vidId}`);
+      if (el) el.classList.toggle('hidden');
+    }
+
+    async function markThumbnailStatus(vidId, status) {
+      try {
+        const res = await fetch('/api/unlisted-videos/update-status', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({video_id: vidId, status: status})
+        });
+        const data = await res.json();
+        if (data.success) {
+          loadUnlistedVideos();
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
           alert('Channel settings updated successfully!');
         } else {
           alert('Failed to update: ' + (data.detail || 'Unknown error'));
@@ -1053,6 +1224,144 @@
         if (data.success) {
           alert(`Channel '${name}' removed successfully.`);
           loadChannels();
+    loadUnlistedVideos();
+
+    let allUnlistedVideos = [];
+
+    async function loadUnlistedVideos() {
+      try {
+        const res = await fetch('/api/unlisted-videos');
+        const data = await res.json();
+        allUnlistedVideos = data.videos || [];
+        document.getElementById('unlistedBadgeCount').innerText = allUnlistedVideos.length;
+        renderUnlistedVideos(allUnlistedVideos);
+      } catch (e) {
+        console.error('Error loading unlisted videos:', e);
+      }
+    }
+
+    function filterUnlistedVideos() {
+      const chFilter = document.getElementById('unlistedChannelFilter').value;
+      if (chFilter === 'all') {
+        renderUnlistedVideos(allUnlistedVideos);
+      } else {
+        const filtered = allUnlistedVideos.filter(v => v.channel_id === chFilter);
+        renderUnlistedVideos(filtered);
+      }
+    }
+
+    function renderUnlistedVideos(videos) {
+      const container = document.getElementById('unlistedVideosGrid');
+      if (!container) return;
+      container.innerHTML = '';
+
+      if (videos.length === 0) {
+        container.innerHTML = `<div class="col-span-2 text-center py-12 text-slate-500 text-xs">No unlisted videos pending in this queue.</div>`;
+        return;
+      }
+
+      videos.forEach(v => {
+        const isYoutube = v.platform === 'youtube';
+        const card = document.createElement('div');
+        card.className = 'glass p-5 rounded-2xl space-y-4 border border-slate-800 hover:border-slate-700 transition flex flex-col justify-between';
+        
+        const conceptBadges = (v.thumbnail_concepts || []).map(tc => 
+          `<a href="${tc.file}" download class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition" title="Download AI Concept ${tc.variant}">
+            <span class="w-2 h-2 rounded-full" style="background-color: ${tc.hex};"></span>
+            Concept ${tc.variant} (${tc.name}) ⬇️
+          </a>`
+        ).join(' ');
+
+        card.innerHTML = `
+          <div class="space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="text-xs px-2.5 py-1 rounded font-bold uppercase tracking-wider ${isYoutube ? 'bg-red-500/20 text-red-400 border border-red-500/30' : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'}">
+                ${v.platform} • ${v.channel_name}
+              </span>
+              <span class="text-[10px] px-2 py-0.5 rounded-full font-bold ${v.status === 'thumbnail_attached' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'}">
+                ${v.status === 'thumbnail_attached' ? '✅ Thumbnail Added' : '🔒 Unlisted (Needs Thumbnail)'}
+              </span>
+            </div>
+
+            <div>
+              <h3 class="text-sm font-extrabold text-white leading-snug">${v.title}</h3>
+              <div class="flex items-center gap-3 text-[11px] text-slate-400 mt-1">
+                <span>⏱️ ${v.duration_formatted || '15:00'}</span>
+                <span>📅 ${v.uploaded_at || 'Recently'}</span>
+                <span class="text-cyan-400 font-bold">Punchline: "${v.thumbnail_punchline || '--'}"</span>
+              </div>
+            </div>
+
+            <!-- In-App Video Preview -->
+            <div class="rounded-xl overflow-hidden bg-black/60 border border-slate-800 aspect-video relative group">
+              <video src="${v.local_video_path || '/output/demo_ai_15min_hindi_100pct_locked_master.mp4'}" controls class="w-full h-full object-cover"></video>
+            </div>
+
+            <!-- AI Thumbnail Concepts Download -->
+            <div class="space-y-1.5 pt-1">
+              <div class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">AI Thumbnail Concepts (Download & Attach):</div>
+              <div class="flex flex-wrap gap-1.5">
+                ${conceptBadges}
+              </div>
+            </div>
+          </div>
+
+          <div class="pt-3 border-t border-slate-800 space-y-2">
+            <div class="flex gap-2">
+              <a href="${v.studio_edit_url}" target="_blank" class="flex-1 py-2.5 px-3 rounded-xl bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white font-extrabold text-xs transition text-center flex items-center justify-center gap-1.5 shadow-md shadow-red-600/20">
+                <span>🔗</span> Open in ${isYoutube ? 'YouTube Studio' : 'Rumble'} to Upload Thumbnail
+              </a>
+              <button onclick="toggleVideoMetadata('${v.id}')" class="px-3 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold transition" title="View Description & Tags">
+                📋 Metadata
+              </button>
+            </div>
+
+            <div class="flex items-center justify-between text-xs pt-1">
+              <button onclick="markThumbnailStatus('${v.id}', '${v.status === 'thumbnail_attached' ? 'unlisted_pending_thumbnail' : 'thumbnail_attached'}')" class="text-[11px] text-slate-400 hover:text-white transition flex items-center gap-1">
+                ${v.status === 'thumbnail_attached' ? '↩️ Mark Pending' : '✅ Mark Thumbnail Done'}
+              </button>
+              <a href="${v.video_url}" target="_blank" class="text-[11px] text-cyan-400 hover:text-cyan-300 font-semibold">
+                View Unlisted Video ↗
+              </a>
+            </div>
+
+            <div id="meta-${v.id}" class="hidden p-3 bg-slate-900/90 rounded-xl text-xs space-y-2 border border-slate-800">
+              <div>
+                <span class="text-slate-400 font-semibold">Description with Chapters:</span>
+                <pre class="text-slate-300 whitespace-pre-wrap max-h-32 overflow-y-auto text-[11px] p-2 bg-black/40 rounded mt-1">${v.description}</pre>
+              </div>
+              <div>
+                <span class="text-slate-400 font-semibold">Tags:</span>
+                <div class="text-slate-300 text-[11px] mt-1">${(v.tags || []).join(', ')}</div>
+              </div>
+            </div>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function toggleVideoMetadata(vidId) {
+      const el = document.getElementById(`meta-${vidId}`);
+      if (el) el.classList.toggle('hidden');
+    }
+
+    async function markThumbnailStatus(vidId, status) {
+      try {
+        const res = await fetch('/api/unlisted-videos/update-status', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({video_id: vidId, status: status})
+        });
+        const data = await res.json();
+        if (data.success) {
+          loadUnlistedVideos();
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
           loadStatus();
         } else {
           alert(`Error: ${data.message}`);
@@ -1083,6 +1392,144 @@
     // Auto init
     loadStatus();
     loadChannels();
+    loadUnlistedVideos();
+
+    let allUnlistedVideos = [];
+
+    async function loadUnlistedVideos() {
+      try {
+        const res = await fetch('/api/unlisted-videos');
+        const data = await res.json();
+        allUnlistedVideos = data.videos || [];
+        document.getElementById('unlistedBadgeCount').innerText = allUnlistedVideos.length;
+        renderUnlistedVideos(allUnlistedVideos);
+      } catch (e) {
+        console.error('Error loading unlisted videos:', e);
+      }
+    }
+
+    function filterUnlistedVideos() {
+      const chFilter = document.getElementById('unlistedChannelFilter').value;
+      if (chFilter === 'all') {
+        renderUnlistedVideos(allUnlistedVideos);
+      } else {
+        const filtered = allUnlistedVideos.filter(v => v.channel_id === chFilter);
+        renderUnlistedVideos(filtered);
+      }
+    }
+
+    function renderUnlistedVideos(videos) {
+      const container = document.getElementById('unlistedVideosGrid');
+      if (!container) return;
+      container.innerHTML = '';
+
+      if (videos.length === 0) {
+        container.innerHTML = `<div class="col-span-2 text-center py-12 text-slate-500 text-xs">No unlisted videos pending in this queue.</div>`;
+        return;
+      }
+
+      videos.forEach(v => {
+        const isYoutube = v.platform === 'youtube';
+        const card = document.createElement('div');
+        card.className = 'glass p-5 rounded-2xl space-y-4 border border-slate-800 hover:border-slate-700 transition flex flex-col justify-between';
+        
+        const conceptBadges = (v.thumbnail_concepts || []).map(tc => 
+          `<a href="${tc.file}" download class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition" title="Download AI Concept ${tc.variant}">
+            <span class="w-2 h-2 rounded-full" style="background-color: ${tc.hex};"></span>
+            Concept ${tc.variant} (${tc.name}) ⬇️
+          </a>`
+        ).join(' ');
+
+        card.innerHTML = `
+          <div class="space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="text-xs px-2.5 py-1 rounded font-bold uppercase tracking-wider ${isYoutube ? 'bg-red-500/20 text-red-400 border border-red-500/30' : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'}">
+                ${v.platform} • ${v.channel_name}
+              </span>
+              <span class="text-[10px] px-2 py-0.5 rounded-full font-bold ${v.status === 'thumbnail_attached' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'}">
+                ${v.status === 'thumbnail_attached' ? '✅ Thumbnail Added' : '🔒 Unlisted (Needs Thumbnail)'}
+              </span>
+            </div>
+
+            <div>
+              <h3 class="text-sm font-extrabold text-white leading-snug">${v.title}</h3>
+              <div class="flex items-center gap-3 text-[11px] text-slate-400 mt-1">
+                <span>⏱️ ${v.duration_formatted || '15:00'}</span>
+                <span>📅 ${v.uploaded_at || 'Recently'}</span>
+                <span class="text-cyan-400 font-bold">Punchline: "${v.thumbnail_punchline || '--'}"</span>
+              </div>
+            </div>
+
+            <!-- In-App Video Preview -->
+            <div class="rounded-xl overflow-hidden bg-black/60 border border-slate-800 aspect-video relative group">
+              <video src="${v.local_video_path || '/output/demo_ai_15min_hindi_100pct_locked_master.mp4'}" controls class="w-full h-full object-cover"></video>
+            </div>
+
+            <!-- AI Thumbnail Concepts Download -->
+            <div class="space-y-1.5 pt-1">
+              <div class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">AI Thumbnail Concepts (Download & Attach):</div>
+              <div class="flex flex-wrap gap-1.5">
+                ${conceptBadges}
+              </div>
+            </div>
+          </div>
+
+          <div class="pt-3 border-t border-slate-800 space-y-2">
+            <div class="flex gap-2">
+              <a href="${v.studio_edit_url}" target="_blank" class="flex-1 py-2.5 px-3 rounded-xl bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white font-extrabold text-xs transition text-center flex items-center justify-center gap-1.5 shadow-md shadow-red-600/20">
+                <span>🔗</span> Open in ${isYoutube ? 'YouTube Studio' : 'Rumble'} to Upload Thumbnail
+              </a>
+              <button onclick="toggleVideoMetadata('${v.id}')" class="px-3 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold transition" title="View Description & Tags">
+                📋 Metadata
+              </button>
+            </div>
+
+            <div class="flex items-center justify-between text-xs pt-1">
+              <button onclick="markThumbnailStatus('${v.id}', '${v.status === 'thumbnail_attached' ? 'unlisted_pending_thumbnail' : 'thumbnail_attached'}')" class="text-[11px] text-slate-400 hover:text-white transition flex items-center gap-1">
+                ${v.status === 'thumbnail_attached' ? '↩️ Mark Pending' : '✅ Mark Thumbnail Done'}
+              </button>
+              <a href="${v.video_url}" target="_blank" class="text-[11px] text-cyan-400 hover:text-cyan-300 font-semibold">
+                View Unlisted Video ↗
+              </a>
+            </div>
+
+            <div id="meta-${v.id}" class="hidden p-3 bg-slate-900/90 rounded-xl text-xs space-y-2 border border-slate-800">
+              <div>
+                <span class="text-slate-400 font-semibold">Description with Chapters:</span>
+                <pre class="text-slate-300 whitespace-pre-wrap max-h-32 overflow-y-auto text-[11px] p-2 bg-black/40 rounded mt-1">${v.description}</pre>
+              </div>
+              <div>
+                <span class="text-slate-400 font-semibold">Tags:</span>
+                <div class="text-slate-300 text-[11px] mt-1">${(v.tags || []).join(', ')}</div>
+              </div>
+            </div>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function toggleVideoMetadata(vidId) {
+      const el = document.getElementById(`meta-${vidId}`);
+      if (el) el.classList.toggle('hidden');
+    }
+
+    async function markThumbnailStatus(vidId, status) {
+      try {
+        const res = await fetch('/api/unlisted-videos/update-status', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({video_id: vidId, status: status})
+        });
+        const data = await res.json();
+        if (data.success) {
+          loadUnlistedVideos();
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
     setInterval(loadStatus, 15000);
   </script>
   <!-- Edit Channel Modal -->

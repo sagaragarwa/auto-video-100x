@@ -140,6 +140,11 @@ class VoicePreviewRequest(BaseModel):
     mix_bg_score: Optional[bool] = False
 
 
+class UnlistedStatusUpdateRequest(BaseModel):
+    video_id: str
+    status: str  # "thumbnail_attached" or "published_public"
+
+
 # --- API Endpoints ---
 @app.get("/", response_class=HTMLResponse)
 def serve_dashboard():
@@ -479,6 +484,44 @@ def voice_synthesize(req: VoicePreviewRequest):
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+UNLISTED_QUEUE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "unlisted_queue.json")
+
+
+@app.get("/api/unlisted-videos")
+def get_unlisted_videos():
+    if os.path.exists(UNLISTED_QUEUE_PATH):
+        try:
+            with open(UNLISTED_QUEUE_PATH, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception as e:
+            return {"videos": [], "error": str(e)}
+    return {"videos": []}
+
+
+@app.post("/api/unlisted-videos/update-status")
+def update_unlisted_video_status(req: UnlistedStatusUpdateRequest):
+    if not os.path.exists(UNLISTED_QUEUE_PATH):
+        raise HTTPException(status_code=404, detail="Queue file not found")
+    try:
+        with open(UNLISTED_QUEUE_PATH, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        found = False
+        for v in data.get("videos", []):
+            if v.get("id") == req.video_id or v.get("video_id") == req.video_id:
+                v["status"] = req.status
+                v["updated_at"] = time.strftime("%Y-%m-%d %H:%M:%S")
+                found = True
+                break
+        if not found:
+            raise HTTPException(status_code=404, detail="Video not found in queue")
+        with open(UNLISTED_QUEUE_PATH, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2)
+        return {"success": True, "video_id": req.video_id, "new_status": req.status}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 
 
