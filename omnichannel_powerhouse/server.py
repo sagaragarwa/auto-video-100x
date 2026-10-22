@@ -639,6 +639,24 @@ def run_code_interpreter(req: Dict[str, Any]):
     return tool_run_python(code)
 
 
+class VisionRequest(BaseModel):
+    image_base64: Optional[str] = None
+    image_path: Optional[str] = None
+    prompt: Optional[str] = None
+    model: Optional[str] = "gemini-3.5-flash"
+
+
+@app.post("/api/chat/vision")
+def run_vision_analysis(req: VisionRequest):
+    from omnichannel_powerhouse.agent_commander.gemini_agent import analyze_visual_media
+    return analyze_visual_media(
+        image_base64=req.image_base64,
+        image_path=req.image_path,
+        prompt=req.prompt,
+        model_name=req.model or "gemini-3.5-flash"
+    )
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("omnichannel_powerhouse.server:app", host="0.0.0.0", port=8899, reload=False)

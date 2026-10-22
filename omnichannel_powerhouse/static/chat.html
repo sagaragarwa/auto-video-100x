@@ -263,17 +263,6 @@
     .msg-content p { margin-bottom: 12px; }
     .msg-content p:last-child { margin-bottom: 0; }
     .msg-content h1, .msg-content h2, .msg-content h3 { margin: 16px 0 8px; color: #fff; font-weight: 700; }
-    .msg-content pre {
-      background: #080C14;
-      border: 1px solid var(--border-subtle);
-      border-radius: var(--radius-sm);
-      padding: 12px;
-      overflow-x: auto;
-      font-family: var(--font-mono);
-      font-size: 13px;
-      margin: 12px 0;
-      position: relative;
-    }
     .msg-content code {
       font-family: var(--font-mono);
       background: rgba(255, 255, 255, 0.08);
@@ -293,6 +282,109 @@
       text-align: left;
     }
     .msg-content th { background: var(--bg-elevated); font-weight: 600; }
+
+    /* OPEN-INTERPRETER CODE BLOCK CONTAINER */
+    .code-block-wrapper {
+      position: relative;
+      margin: 14px 0;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-subtle);
+      background: #080C14;
+      overflow: hidden;
+    }
+    .code-action-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 12px;
+      background: #0d121d;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      font-size: 11.5px;
+    }
+    .code-lang-tag {
+      font-family: var(--font-mono);
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--accent-cyan);
+    }
+    .code-action-btn-group {
+      display: flex;
+      gap: 6px;
+    }
+    .code-btn {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #E2E8F0;
+      border-radius: 4px;
+      padding: 3px 8px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.15s;
+    }
+    .code-btn:hover {
+      background: rgba(0, 242, 254, 0.15);
+      border-color: var(--accent-cyan);
+      color: #fff;
+    }
+    .code-run-btn {
+      background: rgba(16, 185, 129, 0.15);
+      border-color: rgba(16, 185, 129, 0.4);
+      color: #34D399;
+    }
+    .code-run-btn:hover {
+      background: rgba(16, 185, 129, 0.3);
+      border-color: #34D399;
+      color: #fff;
+    }
+    .code-block-wrapper pre {
+      margin: 0;
+      padding: 12px;
+      background: transparent;
+      border: none;
+      overflow-x: auto;
+      font-family: var(--font-mono);
+      font-size: 13px;
+    }
+    .code-output-terminal {
+      background: #04060A;
+      border-top: 1px dashed rgba(255, 255, 255, 0.12);
+      padding: 10px 14px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: #A7F3D0;
+      max-height: 250px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+    }
+    .chart-preview-card {
+      margin-top: 10px;
+      padding: 12px;
+      background: rgba(0, 242, 254, 0.04);
+      border: 1px solid rgba(0, 242, 254, 0.25);
+      border-radius: var(--radius-sm);
+    }
+    .attached-image-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--accent-cyan);
+      padding: 4px 10px;
+      border-radius: 6px;
+      margin-bottom: 6px;
+      font-size: 12px;
+      color: #fff;
+    }
+    .attached-image-chip img {
+      width: 28px;
+      height: 28px;
+      object-fit: cover;
+      border-radius: 4px;
+    }
 
     /* THINKING CARD */
     .thinking-box {
@@ -618,11 +710,13 @@
       </div>
 
       <div class="input-box">
+        <div id="attached-media-preview" style="display:none;"></div>
         <textarea id="chat-input" placeholder="Type your directive (Hindi, Hinglish, or English)..." rows="1" onkeydown="handleKeyDown(event)"></textarea>
         <div class="input-actions">
           <div class="input-left-tools">
             <button class="icon-btn" onclick="toggleVoiceInput()" title="Voice Input" id="mic-btn">🎙️</button>
-            <button class="icon-btn" onclick="alert('Image analysis ready! Paste or drag images into prompt.')" title="Attach Media">📎</button>
+            <input type="file" id="media-file-input" accept="image/*" style="display:none;" onchange="handleFileSelected(event)">
+            <button class="icon-btn" onclick="document.getElementById('media-file-input').click()" title="Attach Thumbnail/Visual Media">📎</button>
           </div>
           <button class="btn-send" id="send-btn" onclick="sendMessage()">Send Directive ➤</button>
         </div>
@@ -750,17 +844,176 @@
       }
     }
 
+    // --- MULTIMODAL MEDIA & VISION ATTACHMENT ---
+    let currentAttachedImageBase64 = null;
+
+    function handleFileSelected(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      attachImageFile(file);
+    }
+
+    function attachImageFile(file) {
+      if (!file.type.startsWith('image/')) {
+        alert('Please select a valid image file (PNG, JPG, WEBP).');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        currentAttachedImageBase64 = evt.target.result;
+        const previewBox = document.getElementById('attached-media-preview');
+        previewBox.style.display = 'block';
+        previewBox.innerHTML = `
+          <div class="attached-image-chip">
+            <img src="${currentAttachedImageBase64}">
+            <span>${file.name || 'Visual Media'} (${Math.round(file.size/1024)} KB)</span>
+            <button style="background:none; border:none; color:var(--accent-red); cursor:pointer; font-weight:700; margin-left:6px;" onclick="removeAttachedImage()">✕</button>
+          </div>
+        `;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function removeAttachedImage() {
+      currentAttachedImageBase64 = null;
+      const previewBox = document.getElementById('attached-media-preview');
+      previewBox.style.display = 'none';
+      previewBox.innerHTML = '';
+      document.getElementById('media-file-input').value = '';
+    }
+
+    // Clipboard Paste Listener (Ctrl+V Screenshots)
+    window.addEventListener('paste', (e) => {
+      const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+      for (let item of items) {
+        if (item.kind === 'file' && item.type.startsWith('image/')) {
+          const file = item.getAsFile();
+          attachImageFile(file);
+          break;
+        }
+      }
+    });
+
+    // Drag-and-drop listener
+    window.addEventListener('dragover', (e) => e.preventDefault());
+    window.addEventListener('drop', (e) => {
+      e.preventDefault();
+      if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+        attachImageFile(e.dataTransfer.files[0]);
+      }
+    });
+
+    // --- CODE BLOCK DECORATOR & EXECUTION (OPEN-INTERPRETER) ---
+    function decorateCodeBlocks(container) {
+      const pres = container.querySelectorAll('pre');
+      pres.forEach((pre) => {
+        if (pre.parentElement.classList.contains('code-block-wrapper')) return;
+        const code = pre.querySelector('code');
+        if (!code) return;
+
+        let lang = 'code';
+        code.classList.forEach(cls => {
+          if (cls.startsWith('language-')) lang = cls.replace('language-', '');
+        });
+
+        const wrapper = document.createElement('div');
+        wrapper.className = 'code-block-wrapper';
+
+        const isExecutable = ['python', 'py', 'bash', 'sh'].includes(lang.toLowerCase());
+
+        const bar = document.createElement('div');
+        bar.className = 'code-action-bar';
+        bar.innerHTML = `
+          <span class="code-lang-tag">${lang}</span>
+          <div class="code-action-btn-group">
+            <button class="code-btn" onclick="copyCode(this)">📋 Copy</button>
+            ${isExecutable ? `<button class="code-btn code-run-btn" onclick="runCodeBlock(this)">▶ Run Locally</button>` : ''}
+          </div>
+        `;
+
+        pre.parentNode.insertBefore(wrapper, pre);
+        wrapper.appendChild(bar);
+        wrapper.appendChild(pre);
+      });
+    }
+
+    function copyCode(btn) {
+      const wrapper = btn.closest('.code-block-wrapper');
+      const code = wrapper.querySelector('pre code').innerText;
+      navigator.clipboard.writeText(code);
+      const orig = btn.innerText;
+      btn.innerText = '✓ Copied!';
+      setTimeout(() => { btn.innerText = orig; }, 1500);
+    }
+
+    async function runCodeBlock(btn) {
+      const wrapper = btn.closest('.code-block-wrapper');
+      const codeText = wrapper.querySelector('pre code').innerText;
+
+      btn.disabled = true;
+      const origText = btn.innerHTML;
+      btn.innerHTML = '⏳ Running...';
+
+      let term = wrapper.querySelector('.code-output-terminal');
+      if (term) term.remove();
+
+      try {
+        const res = await fetch('/api/chat/code-interpreter', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code: codeText })
+        });
+        const data = await res.json();
+
+        term = document.createElement('div');
+        term.className = 'code-output-terminal';
+
+        let headerText = `[Execution ${data.success ? 'Success ✓' : 'Failed ✕'} in ${data.execution_time_s || 0}s]\n`;
+        let outText = headerText;
+        if (data.stdout) outText += data.stdout;
+        if (data.stderr) outText += `\n[STDERR]:\n${data.stderr}`;
+        if (data.error) outText += `\n[ERROR]: ${data.error}`;
+
+        term.innerText = outText;
+
+        if (data.chart_url) {
+          const chartDiv = document.createElement('div');
+          chartDiv.className = 'chart-preview-card';
+          chartDiv.innerHTML = `
+            <div style="font-size:11.5px; font-weight:700; color:var(--accent-cyan); margin-bottom:8px;">📈 Generated Visualization (Open-Interpreter):</div>
+            <img src="${data.chart_url}" style="max-width:100%; border-radius:6px; cursor:pointer;" onclick="window.open('${data.chart_url}', '_blank')">
+          `;
+          term.appendChild(chartDiv);
+        }
+
+        wrapper.appendChild(term);
+      } catch (e) {
+        alert('Code interpreter execution error: ' + e.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = origText;
+      }
+    }
+
+    // --- MAIN SEND DIRECTIVE FUNCTION ---
     async function sendMessage() {
       const input = document.getElementById('chat-input');
       const text = input.value.trim();
-      if (!text || isGenerating) return;
+      const hasImage = !!currentAttachedImageBase64;
+      const attachedImageCache = currentAttachedImageBase64;
+
+      if (!text && !hasImage) return;
+      if (isGenerating) return;
 
       input.value = '';
       isGenerating = true;
       document.getElementById('send-btn').disabled = true;
 
       // 1. Append User Message
-      appendMessage('user', text);
+      appendMessage('user', text, "", [], attachedImageCache);
+
+      // Reset attached image state from input
+      removeAttachedImage();
 
       // 2. Prepare Assistant Bubble
       const stream = document.getElementById('chat-stream');
@@ -791,6 +1044,41 @@
       let fullRawMarkdown = "";
       const model = document.getElementById('model-select').value;
 
+      // --- MULTIMODAL VISION PATH ---
+      if (hasImage) {
+        thinkingBox.style.display = 'block';
+        thinkingText.textContent = 'Executing Multimodal Vision Audit on attached visual media...';
+        try {
+          const vResp = await fetch('/api/chat/vision', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              image_base64: attachedImageCache,
+              prompt: text || "Perform a full Tier-1 YouTube CTR, typography, and visual appeal audit on this visual media.",
+              model: model
+            })
+          });
+          const vData = await vResp.json();
+          thinkingBox.style.display = 'none';
+          if (vData.success) {
+            fullRawMarkdown = vData.analysis;
+            textBody.innerHTML = marked.parse(fullRawMarkdown);
+            decorateCodeBlocks(textBody);
+          } else {
+            textBody.innerHTML = `<span style="color:var(--accent-red)">Vision Error: ${vData.error}</span>`;
+          }
+        } catch (err) {
+          textBody.innerHTML = `<span style="color:var(--accent-red)">Vision Error: ${err.message}</span>`;
+        } finally {
+          isGenerating = false;
+          document.getElementById('send-btn').disabled = false;
+          loadSessions();
+          fetchKeyTelemetry();
+        }
+        return;
+      }
+
+      // --- REGULAR STREAMING AGENT PATH ---
       try {
         const response = await fetch('/api/chat/message', {
           method: 'POST',
@@ -847,10 +1135,20 @@
                     badge.className = 'tool-status-badge status-done';
                     badge.textContent = 'Completed ✓';
                   }
+                  if (evt.result && evt.result.chart_url) {
+                    const chartCard = document.createElement('div');
+                    chartCard.className = 'chart-preview-card';
+                    chartCard.innerHTML = `
+                      <div style="font-size:11.5px; font-weight:700; color:var(--accent-cyan); margin-bottom:8px;">📈 Generated Chart:</div>
+                      <img src="${evt.result.chart_url}" style="max-width:100%; border-radius:6px; cursor:pointer;" onclick="window.open('${evt.result.chart_url}', '_blank')">
+                    `;
+                    tc.appendChild(chartCard);
+                  }
                 }
               } else if (evt.type === 'chunk') {
                 fullRawMarkdown += evt.text;
                 textBody.innerHTML = marked.parse(fullRawMarkdown);
+                decorateCodeBlocks(textBody);
                 stream.scrollTop = stream.scrollHeight;
               }
             } catch (err) {
@@ -868,7 +1166,7 @@
       }
     }
 
-    function appendMessage(role, content, thinking = "", toolCalls = []) {
+    function appendMessage(role, content, thinking = "", toolCalls = [], attachedImage = null) {
       const stream = document.getElementById('chat-stream');
       const row = document.createElement('div');
       row.className = 'msg-row';
@@ -876,6 +1174,11 @@
       row.innerHTML = `
         <div class="msg-avatar ${isUser ? 'user-avatar' : 'bot-avatar'}">${isUser ? '👤' : '👑'}</div>
         <div class="msg-content">
+          ${attachedImage ? `
+            <div style="margin-bottom:8px;">
+              <img src="${attachedImage}" style="max-height:160px; border-radius:6px; border:1px solid var(--border-subtle); box-shadow:0 4px 12px rgba(0,0,0,0.4);">
+            </div>
+          ` : ''}
           ${thinking ? `
             <div class="thinking-box">
               <div class="thinking-header" onclick="toggleThinking(this)">
@@ -902,6 +1205,7 @@
         </div>
       `;
       stream.appendChild(row);
+      decorateCodeBlocks(row.querySelector('.text-body'));
       stream.scrollTop = stream.scrollHeight;
     }
 

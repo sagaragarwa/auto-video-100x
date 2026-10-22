@@ -254,35 +254,13 @@ def tool_dispatch_swarm(batch_size: int = 100) -> Dict[str, Any]:
 # --- 7. PYTHON CODE INTERPRETER TOOL (SANDBOXED) ---
 def tool_run_python(code: str) -> Dict[str, Any]:
     """
-    Sandboxed Python Code Interpreter (ChatGPT Pro-Grade Advanced Analysis):
-    Executes Python script locally, captures stdout/stderr, and returns output.
+    Sandboxed Python Code Interpreter (ChatGPT Pro-Grade Advanced Data Analysis):
+    Executes Python script locally, captures stdout/stderr, intercepts Matplotlib charts,
+    and returns output + chart URLs.
     """
-    scratch_dir = os.path.join(_root, "temp_render", "code_interpreter")
-    os.makedirs(scratch_dir, exist_ok=True)
-    script_file = os.path.join(scratch_dir, f"scratch_{int(time.time()*1000)}.py")
-
-    with open(script_file, "w", encoding="utf-8") as f:
-        f.write(code)
-
     try:
-        env = os.environ.copy()
-        env["PYTHONPATH"] = f"{_root};{os.path.join(_root, '.venv', 'Lib', 'site-packages')}"
-        res = subprocess.run(
-            [PYTHON_EXE, script_file],
-            cwd=_root,
-            env=env,
-            capture_output=True,
-            text=True,
-            timeout=45
-        )
-        return {
-            "success": res.returncode == 0,
-            "stdout": res.stdout,
-            "stderr": res.stderr,
-            "exit_code": res.returncode
-        }
-    except subprocess.TimeoutExpired:
-        return {"success": False, "error": "Execution timed out (45s limit reached)."}
+        from omnichannel_powerhouse.agent_commander.interpreter import execute_python_code
+        return execute_python_code(code)
     except Exception as e:
         return {"success": False, "error": str(e)}
 

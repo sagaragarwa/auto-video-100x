@@ -220,3 +220,81 @@ def stream_chat_response(
     )
 
     yield f"data: {json.dumps({'type': 'done', 'session_id': session_id})}\n\n"
+
+
+def analyze_visual_media(
+    image_base64: Optional[str] = None,
+    image_path: Optional[str] = None,
+    prompt: Optional[str] = None,
+    model_name: str = "gemini-3.5-flash"
+) -> Dict[str, Any]:
+    """
+    Multimodal Vision Engine: Audits thumbnails, charts, or screenshots
+    for CTR, visual contrast, readability, and institutional aesthetics.
+    """
+    import base64
+    import mimetypes
+
+    if not prompt:
+        prompt = (
+            "Analyze this YouTube thumbnail/visual media for high-CTR institutional appeal, "
+            "rule of thirds, text contrast, and Tier-1 audience retention. Provide:\n"
+            "1) Estimated CTR Score (0-100%)\n"
+            "2) Focal Point & Composition Audit\n"
+            "3) Typography & Mobile Readability (at 100px width)\n"
+            "4) 3 Direct Actionable Tweaks to Maximize Organic Clicks"
+        )
+
+    b64_data = ""
+    mime_type = "image/jpeg"
+
+    if image_base64:
+        # Strip data URL prefix if present
+        if "base64," in image_base64:
+            header, b64_data = image_base64.split("base64,", 1)
+            if "image/png" in header:
+                mime_type = "image/png"
+            elif "image/webp" in header:
+                mime_type = "image/webp"
+        else:
+            b64_data = image_base64
+    elif image_path and os.path.exists(image_path):
+        mtype, _ = mimetypes.guess_type(image_path)
+        if mtype:
+            mime_type = mtype
+        with open(image_path, "rb") as f:
+            b64_data = base64.b64encode(f.read()).decode("utf-8")
+    else:
+        return {"success": False, "error": "No valid image data or path provided"}
+
+    payload = {
+        "contents": [
+            {
+                "parts": [
+                    {"text": prompt},
+                    {
+                        "inlineData": {
+                            "mimeType": mime_type,
+                            "data": b64_data
+                        }
+                    }
+                ]
+            }
+        ],
+        "generationConfig": {
+            "temperature": 0.4,
+            "maxOutputTokens": 2048
+        }
+    }
+
+    try:
+        resp = call_gemini_raw(payload, model=model_name)
+        parts = resp.get("candidates", [{}])[0].get("content", {}).get("parts", [])
+        review_text = "".join(p.get("text", "") for p in parts)
+        return {
+            "success": True,
+            "analysis": review_text,
+            "model_used": model_name
+        }
+    except Exception as e:
+        return {"success": False, "error": str(e)}
