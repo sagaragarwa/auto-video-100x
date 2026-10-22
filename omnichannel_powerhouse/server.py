@@ -44,6 +44,16 @@ CONVO_CONFIG_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "co
 DEFAULT_CONVO_ID = "6a60d582-ca94-43f1-bef4-cbc8f38f0265"
 
 
+@app.get("/player", response_class=HTMLResponse)
+def serve_player():
+    convo_id = get_active_convo_id()
+    brain_player = os.path.join(r"C:\Users\janar\.gemini\antigravity\brain", convo_id, "player_demo.html")
+    if os.path.exists(brain_player):
+        with open(brain_player, "r", encoding="utf-8") as f:
+            return f.read()
+    return "<h1>Player not found</h1>"
+
+
 def get_active_convo_id() -> str:
     if os.path.exists(CONVO_CONFIG_PATH):
         try:
