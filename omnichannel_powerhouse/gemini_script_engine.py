@@ -26,6 +26,7 @@ except ImportError:
 
 from omnichannel_powerhouse.smart_niche_router import route_video_to_channels
 from omnichannel_powerhouse.quota_balancer import check_and_allocate_upload_slot
+from omnichannel_powerhouse.gemini_key_rotator import KEY_RING
 
 KEY_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "gemini_api_key.local")
 
@@ -36,14 +37,8 @@ def get_gemini_api_key() -> str:
     return os.environ.get("GEMINI_API_KEY", "")
 
 
-def call_gemini(prompt: str, model: str = "models/gemma-4-26b-a4b-it", max_retries: int = 3) -> str:
-    key = get_gemini_api_key()
-    if not key:
-        raise ValueError("Missing Gemini API key in gemini_api_key.local!")
-
-    # Strip prefix if present
+def call_gemini(prompt: str, model: str = "models/gemma-4-26b-a4b-it", max_retries: int = 5) -> str:
     clean_model = model.replace("models/", "")
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/{clean_model}:generateContent?key={key}"
     payload = {
         "contents": [{"parts": [{"text": prompt}]}],
         "generationConfig": {
@@ -51,9 +46,16 @@ def call_gemini(prompt: str, model: str = "models/gemma-4-26b-a4b-it", max_retri
             "topP": 0.95,
         }
     }
-
     req_data = json.dumps(payload).encode("utf-8")
+
+    last_err = None
     for attempt in range(max_retries):
+        try:
+            key = KEY_RING.get_next_key()
+        except Exception:
+            key = get_gemini_api_key()
+
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{clean_model}:generateContent?key={key}"
         try:
             req = urllib.request.Request(
                 url, data=req_data,
@@ -64,11 +66,15 @@ def call_gemini(prompt: str, model: str = "models/gemma-4-26b-a4b-it", max_retri
                 res = json.loads(response.read().decode("utf-8"))
                 return res["candidates"][0]["content"]["parts"][0]["text"]
         except Exception as e:
-            logger.warning(f"Gemini API attempt {attempt+1} failed: {e}")
-            if attempt < max_retries - 1:
-                time.sleep(3)
-            else:
-                raise RuntimeError(f"Gemini API call failed after {max_retries} attempts: {e}")
+            last_err = e
+            logger.warning(f"Gemini API attempt {attempt+1} on key [{key[:6]}...] failed: {e}")
+            try:
+                KEY_RING.record_error(key)
+            except Exception:
+                pass
+            time.sleep(1.0)
+
+    raise RuntimeError(f"Gemini API call failed after {max_retries} attempts across Key-Ring: {last_err}")
 
 
 def generate_documentary_package(topic: str, niche: str = "tech", target_words: int = 2500) -> Dict[str, Any]:

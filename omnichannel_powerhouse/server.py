@@ -429,16 +429,17 @@ def swarm_partition_fleet(req: FleetPartitionRequest):
 @app.get("/api/voice/info")
 def voice_info():
     return {
-        "engine": "Google AI Studio Gemini Flash TTS (Free Tier)",
-        "model": "gemini-2.5-flash-preview-tts",
-        "sample_rate": "24kHz Linear PCM -> 48kHz Mastered Broadcast MP3",
-        "voices": [
-            {"id": "Fenrir", "label": "Fenrir (Deep Authoritative Documentary Male)", "tone": "Gravitas, Geopolitics & Tech Deep Dives"},
-            {"id": "Puck", "label": "Puck (High-Energy Modern Tech Male)", "tone": "Dynamic, Punchy, Market Briefs & Viral Shorts"},
-            {"id": "Charon", "label": "Charon (Cinematic Deep Bass Male)", "tone": "Trailer, Sci-Fi & Catastrophic Revelations"},
-            {"id": "Aoede", "label": "Aoede (Warm Engaging Explainer Female)", "tone": "Educational, Clear, Science & Documentary"},
-            {"id": "Kore", "label": "Kore (Articulate News Anchor Female)", "tone": "Professional, Institutional, Wall Street & Finance"}
-        ],
+        "status": "HARD_LOCKED",
+        "engine": "Microsoft Edge-TTS 48kHz Broadcast Engine (Zero Gemini Quota)",
+        "models": {
+            "hindi_male": "hi-IN-MadhurNeural (Documentary & Tech Gravitas)",
+            "hindi_female": "hi-IN-SwaraNeural (Explainer & Educational)",
+            "english_male": "en-US-ChristopherNeural (International Deep Dive)",
+            "english_female": "en-US-AriaNeural (Broadcaster)"
+        },
+        "quota_impact": "0% Gemini Quota Consumed (100% of 4,500 daily requests reserved for Gemini Scripts)",
+        "cost": "₹0.00 Lifetime Unlimited (No Cards, No Bills)",
+        "sample_rate": "48kHz Broadcast Mastered MP3",
         "vocal_dsp_chain": [
             "1. 75Hz Highpass Filter (Room Rumble & Mic Boom Attenuation)",
             "2. 250Hz Chest Warmth EQ (+2.0dB Resonance)",
@@ -448,8 +449,7 @@ def voice_info():
             "6. EBU R128 Loudness Normalization (-14 LUFS, -1.5 dBTP, YouTube & Rumble Certified)"
         ],
         "sidechain_ducking": "Dynamic -24dB Music Attenuation with +4dB Micro-Pause Swells",
-        "phonetic_engine": "Devanagari Acronym Transliteration (TSMC, ASML, EUV, Blackwell, etc.)",
-        "fallback": "Resilient 48kHz Microsoft Edge-TTS (hi-IN-MadhurNeural / hi-IN-SwaraNeural)"
+        "phonetic_engine": "Devanagari Acronym Transliteration (TSMC, ASML, EUV, Blackwell, etc.)"
     }
 
 

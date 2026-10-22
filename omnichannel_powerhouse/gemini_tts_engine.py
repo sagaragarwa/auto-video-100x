@@ -50,6 +50,10 @@ except ImportError:
 from omnichannel_powerhouse.gemini_key_rotator import KEY_RING
 
 # Official Google AI Studio endpoint for Flash TTS preview
+# USER DIRECTIVE: Hard-lock voice synthesis to Edge-TTS + Shure SM7B DSP
+# This permanently preserves 100% of the 4,500 daily Gemini API quota exclusively for Deep Research Scripts.
+FORCE_EDGE_TTS_LOCKED = True
+
 PRIMARY_TTS_MODEL = "gemini-2.5-flash-preview-tts"
 
 VOICE_MAP = {
@@ -258,43 +262,52 @@ def synthesize_master_voice(
 
     # 1. Phonetic transliteration
     clean_text = apply_phonetic_transliteration(text)
-    chunks = chunk_script_for_tts(clean_text, max_chars=480)
-    logger.info(f"🎙️ Gemini Flash TTS Voice synthesis: {len(chunks)} chunks, Voice: '{voice_name}'...")
 
     raw_pcm_chunks = []
-    engine_used = "gemini_flash_tts"
+    engine_used = "edge_tts_shure_sm7b_locked"
 
-    try:
-        for idx, chunk in enumerate(chunks):
-            chunk_raw = os.path.join(temp_dir, f"chunk_{idx:03d}.raw")
-            logger.info(f"   [Chunk {idx+1}/{len(chunks)}] Synthesizing via Google AI Studio ({len(chunk)} chars)...")
-            pcm_bytes = _call_gemini_tts_raw_chunk(chunk, voice_name=voice_name)
-            with open(chunk_raw, "wb") as f:
-                f.write(pcm_bytes)
-            raw_pcm_chunks.append(chunk_raw)
-    except Exception as e:
-        logger.warning(f"⚠️ Gemini Flash TTS encountered an issue: {e}. Switching to Resilient Edge-TTS fallback...")
-        engine_used = "edge_tts_fallback"
-        raw_pcm_chunks = []
-
-    # Prepare raw input for mastering
-    if engine_used == "gemini_flash_tts" and raw_pcm_chunks:
-        combined_pcm = os.path.join(temp_dir, "combined_24k.raw")
-        with open(combined_pcm, "wb") as outfile:
-            for pcm_path in raw_pcm_chunks:
-                with open(pcm_path, "rb") as infile:
-                    outfile.write(infile.read())
-                try:
-                    os.remove(pcm_path)
-                except OSError:
-                    pass
-        input_args = ["-f", "s16le", "-ar", "24000", "-ac", "1", "-i", combined_pcm]
-        temp_input_to_clean = combined_pcm
-    else:
+    if FORCE_EDGE_TTS_LOCKED:
+        logger.info(f"🔒 [VOICE HARD-LOCKED] Synthesizing Voice via Edge-TTS 48kHz + Shure SM7B DSP (0% Gemini Quota)...")
         edge_raw = os.path.join(temp_dir, "edge_raw.mp3")
         _fallback_edge_tts_full(clean_text, edge_raw)
         input_args = ["-i", edge_raw]
         temp_input_to_clean = edge_raw
+    else:
+        chunks = chunk_script_for_tts(clean_text, max_chars=480)
+        logger.info(f"🎙️ Gemini Flash TTS Voice synthesis: {len(chunks)} chunks, Voice: '{voice_name}'...")
+        engine_used = "gemini_flash_tts"
+
+        try:
+            for idx, chunk in enumerate(chunks):
+                chunk_raw = os.path.join(temp_dir, f"chunk_{idx:03d}.raw")
+                logger.info(f"   [Chunk {idx+1}/{len(chunks)}] Synthesizing via Google AI Studio ({len(chunk)} chars)...")
+                pcm_bytes = _call_gemini_tts_raw_chunk(chunk, voice_name=voice_name)
+                with open(chunk_raw, "wb") as f:
+                    f.write(pcm_bytes)
+                raw_pcm_chunks.append(chunk_raw)
+        except Exception as e:
+            logger.warning(f"⚠️ Gemini Flash TTS encountered an issue: {e}. Switching to Resilient Edge-TTS fallback...")
+            engine_used = "edge_tts_fallback"
+            raw_pcm_chunks = []
+
+        # Prepare raw input for mastering
+        if engine_used == "gemini_flash_tts" and raw_pcm_chunks:
+            combined_pcm = os.path.join(temp_dir, "combined_24k.raw")
+            with open(combined_pcm, "wb") as outfile:
+                for pcm_path in raw_pcm_chunks:
+                    with open(pcm_path, "rb") as infile:
+                        outfile.write(infile.read())
+                    try:
+                        os.remove(pcm_path)
+                    except OSError:
+                        pass
+            input_args = ["-f", "s16le", "-ar", "24000", "-ac", "1", "-i", combined_pcm]
+            temp_input_to_clean = combined_pcm
+        else:
+            edge_raw = os.path.join(temp_dir, "edge_raw.mp3")
+            _fallback_edge_tts_full(clean_text, edge_raw)
+            input_args = ["-i", edge_raw]
+            temp_input_to_clean = edge_raw
 
     # 5. Broadcast DSP Vocal Mastering Chain
     logger.info("🎛️ Mastering Voice with Shure SM7B Broadcast Vocal Chain & EBU R128 (-14 LUFS)...")

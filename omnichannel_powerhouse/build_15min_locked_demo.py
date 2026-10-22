@@ -165,21 +165,16 @@ def master_scene_vocal(in_raw: str, out_master: str):
     subprocess.run(cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
 
-def synthesize_and_master_scene_voice(scene_text: str, out_master: str, voice_name: str = "Fenrir"):
-    """Synthesizes scene voice via Google AI Studio Gemini Flash TTS with Shure SM7B DSP mastering."""
+def synthesize_and_master_scene_voice(scene_text: str, out_master: str, voice: str = "hi-IN-MadhurNeural"):
+    """Synthesizes scene voice via Hard-Locked 48kHz Edge-TTS with Shure SM7B DSP mastering (0% Gemini Quota)."""
+    raw_v = out_master + ".raw.mp3"
+    asyncio.run(synthesize_scene_voice(scene_text, raw_v, voice=voice))
+    master_scene_vocal(raw_v, out_master)
     try:
-        from omnichannel_powerhouse.gemini_tts_engine import synthesize_master_voice
-        synthesize_master_voice(scene_text, out_master, voice_name=voice_name, apply_dsp=True)
-    except Exception as e:
-        logger.warning(f"Gemini Flash TTS scene exception: {e}, using Edge-TTS fallback...")
-        raw_v = out_master + ".raw.mp3"
-        asyncio.run(synthesize_scene_voice(scene_text, raw_v))
-        master_scene_vocal(raw_v, out_master)
-        try:
-            if os.path.exists(raw_v):
-                os.remove(raw_v)
-        except OSError:
-            pass
+        if os.path.exists(raw_v):
+            os.remove(raw_v)
+    except OSError:
+        pass
 
 
 def build_15min_hard_locked_master(target_output_mp4: str):
