@@ -12,7 +12,7 @@ import threading
 import subprocess
 from typing import Dict, Any, List, Optional
 from fastapi import FastAPI, BackgroundTasks, HTTPException
-from fastapi.responses import HTMLResponse, JSONResponse, FileResponse
+from fastapi.responses import HTMLResponse, JSONResponse, FileResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
@@ -559,6 +559,84 @@ def stop_perpetual_daemon():
     return daemon.stop()
 
 
+# ==============================================================================
+# CHATGPT PRO-GRADE AGENT COMMANDER ENDPOINTS
+# ==============================================================================
+
+class ChatMessageRequest(BaseModel):
+    session_id: Optional[str] = None
+    message: str
+    model: Optional[str] = "gemini-3.5-flash"
+    enable_tools: Optional[bool] = True
+
+
+class ChatAddKeyRequest(BaseModel):
+    api_key: str
+    label: Optional[str] = ""
+
+
+class CreateSessionRequest(BaseModel):
+    title: Optional[str] = "New Conversation"
+
+
+@app.get("/chat", response_class=HTMLResponse)
+def serve_chat_spa():
+    chat_html = os.path.join(STATIC_DIR, "chat.html")
+    if os.path.exists(chat_html):
+        return HTMLResponse(content=open(chat_html, encoding="utf-8").read())
+    return HTMLResponse(content="<h1>Chat SPA loading...</h1>")
+
+
+@app.post("/api/chat/message")
+def chat_stream_endpoint(req: ChatMessageRequest):
+    from omnichannel_powerhouse.agent_commander.gemini_agent import stream_chat_response
+    return StreamingResponse(
+        stream_chat_response(
+            session_id=req.session_id or "",
+            user_prompt=req.message,
+            model_name=req.model or "gemini-3.5-flash",
+            enable_tools=req.enable_tools if req.enable_tools is not None else True
+        ),
+        media_type="text/event-stream"
+    )
+
+
+@app.get("/api/chat/sessions")
+def get_chat_sessions():
+    from omnichannel_powerhouse.agent_commander.memory import list_sessions
+    return {"sessions": list_sessions()}
+
+
+@app.get("/api/chat/sessions/{session_id}")
+def get_chat_history(session_id: str):
+    from omnichannel_powerhouse.agent_commander.memory import get_session_messages
+    return {"session_id": session_id, "messages": get_session_messages(session_id)}
+
+
+@app.post("/api/chat/sessions/new")
+def new_chat_session(req: CreateSessionRequest):
+    from omnichannel_powerhouse.agent_commander.memory import create_session
+    s_id = create_session(title=req.title or "New Conversation")
+    return {"session_id": s_id}
+
+
+@app.get("/api/chat/keys")
+def get_chat_keys_status():
+    from omnichannel_powerhouse.agent_commander.key_pool import KEY_POOL
+    return KEY_POOL.get_telemetry()
+
+
+@app.post("/api/chat/keys/add")
+def add_chat_key(req: ChatAddKeyRequest):
+    from omnichannel_powerhouse.agent_commander.key_pool import KEY_POOL
+    return KEY_POOL.add_key(req.api_key, label=req.label)
+
+
+@app.post("/api/chat/code-interpreter")
+def run_code_interpreter(req: Dict[str, Any]):
+    from omnichannel_powerhouse.agent_commander.tools import tool_run_python
+    code = req.get("code", "")
+    return tool_run_python(code)
 
 
 if __name__ == "__main__":
