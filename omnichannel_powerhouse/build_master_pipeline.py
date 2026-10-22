@@ -73,11 +73,12 @@ def apply_broadcast_dsp_mastering(in_mp3: str, out_mp3: str):
     """Applies Shure SM7B Vocal DSP Mastering Chain."""
     logger.info("🎛️ Applying Shure SM7B Broadcast Vocal Mastering Chain...")
     vocal_chain = (
-        "highpass=f=80,"
-        "equalizer=f=250:t=q:w=1.2:g=2.2,"
-        "equalizer=f=3500:t=q:w=1.2:g=2.5,"
-        "equalizer=f=6800:t=q:w=1.5:g=-2.5,"
-        "dynaudnorm=p=0.95:m=10:s=12"
+        "highpass=f=75,"
+        "equalizer=f=250:t=q:w=1.2:g=2.0,"
+        "equalizer=f=3500:t=q:w=1.5:g=3.5,"
+        "deesser=i=0.5:m=0.5:f=0.5,"
+        "acompressor=threshold=-18dB:ratio=3.5:attack=15:release=120:makeup=3.5dB,"
+        "loudnorm=I=-14:LRA=7:TP=-1.5"
     )
     cmd = [
         "ffmpeg", "-y", "-i", in_mp3,

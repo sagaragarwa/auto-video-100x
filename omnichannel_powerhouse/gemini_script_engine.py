@@ -24,6 +24,9 @@ except ImportError:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
     logger = logging.getLogger("gemini_engine")
 
+from omnichannel_powerhouse.smart_niche_router import route_video_to_channels
+from omnichannel_powerhouse.quota_balancer import check_and_allocate_upload_slot
+
 KEY_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "gemini_api_key.local")
 
 
@@ -33,12 +36,14 @@ def get_gemini_api_key() -> str:
     return os.environ.get("GEMINI_API_KEY", "")
 
 
-def call_gemini(prompt: str, model: str = "gemini-flash-latest", max_retries: int = 3) -> str:
+def call_gemini(prompt: str, model: str = "models/gemma-4-26b-a4b-it", max_retries: int = 3) -> str:
     key = get_gemini_api_key()
     if not key:
         raise ValueError("Missing Gemini API key in gemini_api_key.local!")
 
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={key}"
+    # Strip prefix if present
+    clean_model = model.replace("models/", "")
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/{clean_model}:generateContent?key={key}"
     payload = {
         "contents": [{"parts": [{"text": prompt}]}],
         "generationConfig": {
@@ -142,9 +147,25 @@ Return STRICTLY valid JSON with no markdown backticks, no markdown code block fe
         else:
             raise ValueError(f"Failed to parse Gemini output as JSON: {clean_text[:200]}")
 
+    # Autonomous Channel & Quota Decision Engine
+    title = data.get("title", topic)
+    subject = data.get("video_subject", topic)
+    route = route_video_to_channels(title=title, subject=subject, extra_tags=data.get("tags", []))
+
+    target_yt = route.get("primary_channel", "ai_and_tech")
+    target_rumble = route.get("rumble_channel", "rumble_trading")
+    slot = check_and_allocate_upload_slot(target_yt)
+
+    data["assigned_youtube_channel"] = target_yt
+    data["assigned_rumble_channel"] = target_rumble
+    data["scheduled_slot"] = slot.get("recommended_action", "upload_unlisted")
+    data["scheduled_time"] = slot.get("scheduled_timestamp", "")
+    data["routing_affinity_score"] = route.get("primary_score", 1.0)
+    data["routing_reasoning"] = f"Semantic match to '{target_yt}' (Score: {route.get('primary_score', 1.0):.2f}). Daily upload status: {slot.get('reason')}."
+
     data["niche"] = niche
-    data["language"] = "en"
-    logger.success(f"✅ Generated master documentary: '{data.get('title')}' ({len(data.get('video_script', '').split())} words)")
+    data["language"] = "hi" if ("hindi" in topic.lower() or "hindi" in niche.lower()) else "en"
+    logger.success(f"✅ Generated master documentary: '{data.get('title')}' -> Routed to YT: [{target_yt}] | Rumble: [{target_rumble}]")
     return data
 
 

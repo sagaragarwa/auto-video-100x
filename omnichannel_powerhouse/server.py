@@ -133,6 +133,13 @@ class FleetPartitionRequest(BaseModel):
     total_channels: int = 1000
 
 
+class VoicePreviewRequest(BaseModel):
+    text: str
+    voice_name: Optional[str] = "Fenrir"
+    apply_dsp: Optional[bool] = True
+    mix_bg_score: Optional[bool] = False
+
+
 # --- API Endpoints ---
 @app.get("/", response_class=HTMLResponse)
 def serve_dashboard():
@@ -417,6 +424,62 @@ def swarm_get_keys():
 def swarm_partition_fleet(req: FleetPartitionRequest):
     res = generate_fleet_matrix(total_channels=max(10, min(10000, req.total_channels)))
     return {"success": True, "fleet_size": res["fleet_size"], "clusters": len(res.get("clusters", []))}
+
+
+@app.get("/api/voice/info")
+def voice_info():
+    return {
+        "engine": "Google AI Studio Gemini Flash TTS (Free Tier)",
+        "model": "gemini-2.5-flash-preview-tts",
+        "sample_rate": "24kHz Linear PCM -> 48kHz Mastered Broadcast MP3",
+        "voices": [
+            {"id": "Fenrir", "label": "Fenrir (Deep Authoritative Documentary Male)", "tone": "Gravitas, Geopolitics & Tech Deep Dives"},
+            {"id": "Puck", "label": "Puck (High-Energy Modern Tech Male)", "tone": "Dynamic, Punchy, Market Briefs & Viral Shorts"},
+            {"id": "Charon", "label": "Charon (Cinematic Deep Bass Male)", "tone": "Trailer, Sci-Fi & Catastrophic Revelations"},
+            {"id": "Aoede", "label": "Aoede (Warm Engaging Explainer Female)", "tone": "Educational, Clear, Science & Documentary"},
+            {"id": "Kore", "label": "Kore (Articulate News Anchor Female)", "tone": "Professional, Institutional, Wall Street & Finance"}
+        ],
+        "vocal_dsp_chain": [
+            "1. 75Hz Highpass Filter (Room Rumble & Mic Boom Attenuation)",
+            "2. 250Hz Chest Warmth EQ (+2.0dB Resonance)",
+            "3. 3,500Hz Consonant Presence & Air EQ (+3.5dB Discovery Channel Clarity)",
+            "4. Precision De-Esser (5kHz-6.5kHz Sibilance Suppression)",
+            "5. Multiband Broadcast Compression (-18dB / 3.5:1 Ratio / 15ms Attack / 120ms Release)",
+            "6. EBU R128 Loudness Normalization (-14 LUFS, -1.5 dBTP, YouTube & Rumble Certified)"
+        ],
+        "sidechain_ducking": "Dynamic -24dB Music Attenuation with +4dB Micro-Pause Swells",
+        "phonetic_engine": "Devanagari Acronym Transliteration (TSMC, ASML, EUV, Blackwell, etc.)",
+        "fallback": "Resilient 48kHz Microsoft Edge-TTS (hi-IN-MadhurNeural / hi-IN-SwaraNeural)"
+    }
+
+
+@app.post("/api/voice/synthesize")
+def voice_synthesize(req: VoicePreviewRequest):
+    try:
+        from omnichannel_powerhouse.gemini_tts_engine import synthesize_master_voice, mix_voice_with_dynamic_ducked_score
+        out_name = f"voice_preview_{int(time.time())}.mp3"
+        out_file = os.path.join(OUTPUT_DIR, out_name)
+        synthesize_master_voice(req.text, out_file, voice_name=req.voice_name, apply_dsp=req.apply_dsp)
+
+        ducked_url = None
+        if req.mix_bg_score:
+            bg_music = os.path.join(_root, "temp_demo_hindi", "scoring_15min.mp3")
+            if os.path.exists(bg_music):
+                ducked_name = f"voice_preview_{int(time.time())}_ducked.mp3"
+                ducked_file = os.path.join(OUTPUT_DIR, ducked_name)
+                mix_voice_with_dynamic_ducked_score(out_file, bg_music, ducked_file)
+                ducked_url = f"/output/{ducked_name}"
+
+        return {
+            "success": True,
+            "audio_url": f"/output/{out_name}",
+            "ducked_audio_url": ducked_url,
+            "voice": req.voice_name,
+            "dsp_applied": req.apply_dsp
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 
 if __name__ == "__main__":

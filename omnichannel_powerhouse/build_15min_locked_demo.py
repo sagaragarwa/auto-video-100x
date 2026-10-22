@@ -149,11 +149,12 @@ async def synthesize_scene_voice(scene_text: str, out_raw: str, voice: str = "hi
 def master_scene_vocal(in_raw: str, out_master: str):
     """Applies Shure SM7B Vocal DSP."""
     vocal_chain = (
-        "highpass=f=80,"
-        "equalizer=f=250:t=q:w=1.2:g=2.2,"
-        "equalizer=f=3500:t=q:w=1.2:g=2.5,"
-        "equalizer=f=6800:t=q:w=1.5:g=-2.5,"
-        "dynaudnorm=p=0.95:m=10:s=12"
+        "highpass=f=75,"
+        "equalizer=f=250:t=q:w=1.2:g=2.0,"
+        "equalizer=f=3500:t=q:w=1.5:g=3.5,"
+        "deesser=i=0.5:m=0.5:f=0.5,"
+        "acompressor=threshold=-18dB:ratio=3.5:attack=15:release=120:makeup=3.5dB,"
+        "loudnorm=I=-14:LRA=7:TP=-1.5"
     )
     cmd = [
         "ffmpeg", "-y", "-i", in_raw,
@@ -162,6 +163,23 @@ def master_scene_vocal(in_raw: str, out_master: str):
         out_master
     ]
     subprocess.run(cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+
+def synthesize_and_master_scene_voice(scene_text: str, out_master: str, voice_name: str = "Fenrir"):
+    """Synthesizes scene voice via Google AI Studio Gemini Flash TTS with Shure SM7B DSP mastering."""
+    try:
+        from omnichannel_powerhouse.gemini_tts_engine import synthesize_master_voice
+        synthesize_master_voice(scene_text, out_master, voice_name=voice_name, apply_dsp=True)
+    except Exception as e:
+        logger.warning(f"Gemini Flash TTS scene exception: {e}, using Edge-TTS fallback...")
+        raw_v = out_master + ".raw.mp3"
+        asyncio.run(synthesize_scene_voice(scene_text, raw_v))
+        master_scene_vocal(raw_v, out_master)
+        try:
+            if os.path.exists(raw_v):
+                os.remove(raw_v)
+        except OSError:
+            pass
 
 
 def build_15min_hard_locked_master(target_output_mp4: str):
@@ -197,11 +215,9 @@ def build_15min_hard_locked_master(target_output_mp4: str):
         cat = sc["category"]
         asset_key = sc["asset"]
 
-        # 1. Synthesize and master voice for this exact scene
-        raw_v = os.path.join(SLICES_DIR, f"vox_raw_{s_num:03d}.mp3")
+        # 1. Synthesize and master voice for this exact scene via Gemini Flash TTS & SM7B DSP
         master_v = os.path.join(SLICES_DIR, f"vox_master_{s_num:03d}.mp3")
-        asyncio.run(synthesize_scene_voice(text, raw_v))
-        master_scene_vocal(raw_v, master_v)
+        synthesize_and_master_scene_voice(text, master_v, voice_name="Fenrir")
 
         dur = get_media_duration(master_v)
         total_spoken_time += dur

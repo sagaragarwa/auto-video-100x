@@ -6,6 +6,12 @@
   <title>OmniChannel Supreme Studio | 500x Autonomous Engine</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="manifest" href="/static/manifest.json">
+  <meta name="theme-color" content="#080c14">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="apple-touch-icon" href="/static/icon-192.png">
   <style>
     body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #080c14; }
     .mono { font-family: 'JetBrains Mono', monospace; }
@@ -42,6 +48,9 @@
         <span class="text-xs text-slate-400">Convo ID:</span>
         <span id="headerConvoId" class="text-xs font-semibold text-cyan-300 mono cursor-pointer" title="Click to copy" onclick="copyConvoId()">6a60d582-ca94...</span>
       </div>
+            <button id="installAppBtn" onclick="installAndroidApp()" class="px-3 py-2 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-semibold text-xs transition flex items-center gap-1.5 shadow-lg shadow-cyan-500/20">
+        <span>📲</span> Install Android App
+      </button>
       <button onclick="openManualModal()" class="px-4 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-black font-semibold text-xs transition flex items-center gap-1.5 shadow-lg shadow-emerald-500/20">
         <span>➕</span> Add Channel & Login
       </button>
@@ -172,6 +181,53 @@
               <button onclick="copyGeminiScript()" id="btnCopyScript" class="text-xs text-cyan-400 hover:text-cyan-300 font-semibold">📋 Copy Script</button>
             </div>
             <div id="geminiResultScript" class="p-4 bg-slate-900/90 border border-slate-800 rounded-xl text-xs text-slate-200 font-sans whitespace-pre-wrap max-h-64 overflow-y-auto leading-relaxed"></div>
+          </div>
+
+          <!-- Voice Synthesis & DSP Mastering Card -->
+          <div class="glass p-4 rounded-xl border border-purple-500/30 bg-purple-950/10 space-y-3">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-2">
+              <div class="text-xs font-bold text-purple-300 flex items-center gap-1.5">
+                <span>🎙️</span> Google AI Studio Gemini Flash TTS & Shure SM7B Vocal Studio
+              </div>
+              <span class="text-[10px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20 font-mono">24kHz Studio PCM • Shure SM7B DSP • EBU R128</span>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+              <div>
+                <label class="text-[10px] text-slate-400 font-semibold">Voice Persona:</label>
+                <select id="ttsVoiceSelect" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-purple-400">
+                  <option value="Fenrir">Fenrir (Deep Documentary Male)</option>
+                  <option value="Puck">Puck (Dynamic Tech Male)</option>
+                  <option value="Charon">Charon (Cinematic Deep Male)</option>
+                  <option value="Aoede">Aoede (Warm Explainer Female)</option>
+                  <option value="Kore">Kore (Articulate Broadcaster Female)</option>
+                </select>
+              </div>
+              <div class="flex items-center gap-3 pt-3">
+                <label class="flex items-center gap-1.5 text-xs text-slate-300 cursor-pointer">
+                  <input type="checkbox" id="ttsDspCheckbox" checked class="rounded border-slate-700 text-purple-500">
+                  <span>Shure SM7B DSP (-14 LUFS)</span>
+                </label>
+                <label class="flex items-center gap-1.5 text-xs text-slate-300 cursor-pointer">
+                  <input type="checkbox" id="ttsDuckingCheckbox" checked class="rounded border-slate-700 text-purple-500">
+                  <span>-24dB Score Ducking</span>
+                </label>
+              </div>
+              <div class="pt-2">
+                <button onclick="synthesizeActiveScript()" id="btnSynthesizeVoice" class="w-full py-2 px-3 rounded-lg bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-400 hover:to-indigo-500 text-white font-bold text-xs transition shadow-md shadow-purple-500/20">
+                  ⚡ Synthesize & Master Voice
+                </button>
+              </div>
+            </div>
+            
+            <div id="ttsAudioPlayerContainer" class="hidden pt-2 border-t border-slate-800 space-y-2">
+              <div class="flex items-center justify-between text-xs">
+                <span id="ttsAudioStatus" class="text-emerald-400 font-semibold">✅ Mastered Voice Ready</span>
+                <a id="ttsAudioDownload" href="#" download class="text-purple-400 hover:text-purple-300 font-semibold">⬇️ Download Master MP3</a>
+              </div>
+              <audio id="ttsAudioPlayer" controls class="w-full h-8"></audio>
+            </div>
+          </div>
           </div>
         </div>
 
@@ -618,6 +674,54 @@
       } finally {
         btn.innerText = origText;
         btn.disabled = false;
+      }
+    }
+
+    async function synthesizeActiveScript() {
+      const scriptElem = document.getElementById('geminiResultScript');
+      const text = (currentGeneratedScript && currentGeneratedScript.trim()) || 
+                   (scriptElem && scriptElem.innerText.trim()) || 
+                   'नमस्कार। Google AI Studio का Gemini Flash TTS इंजन अब सक्रिय है। TSMC, ASML और NVIDIA की EUV तकनीक ने दुनिया को बदल दिया है।';
+      const voice = document.getElementById('ttsVoiceSelect').value;
+      const dsp = document.getElementById('ttsDspCheckbox').checked;
+      const ducking = document.getElementById('ttsDuckingCheckbox').checked;
+      const btn = document.getElementById('btnSynthesizeVoice');
+
+      btn.disabled = true;
+      btn.innerHTML = '⏳ Synthesizing Voice...';
+
+      try {
+        const res = await fetch('/api/voice/synthesize', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            text: text,
+            voice_name: voice,
+            apply_dsp: dsp,
+            mix_bg_score: ducking
+          })
+        });
+        const data = await res.json();
+        if (data.success) {
+          const playerCont = document.getElementById('ttsAudioPlayerContainer');
+          const audioUrl = data.ducked_audio_url || data.audio_url;
+          const player = document.getElementById('ttsAudioPlayer');
+          const dlLink = document.getElementById('ttsAudioDownload');
+          const statusText = document.getElementById('ttsAudioStatus');
+
+          player.src = audioUrl;
+          dlLink.href = audioUrl;
+          statusText.innerText = data.ducked_audio_url ? '✅ Mastered Voice with -24dB Ducked Score Ready' : '✅ Shure SM7B Mastered Voice Ready (-14 LUFS)';
+          playerCont.classList.remove('hidden');
+          player.play().catch(() => {});
+        } else {
+          alert('Voice synthesis failed: ' + (data.detail || 'Unknown error'));
+        }
+      } catch (e) {
+        alert('Error: ' + e.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '⚡ Synthesize & Master Voice';
       }
     }
 

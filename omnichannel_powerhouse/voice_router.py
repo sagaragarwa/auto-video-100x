@@ -273,10 +273,12 @@ def synthesize_ultra_voice(
     # Master with Studio DSP Broadcast Vocal Chain
     logger.info("🎛️ Applying Broadcast DSP Mastering Chain (80Hz Highpass + 250Hz Warmth + 3.5kHz Air + DynAudNorm)...")
     vocal_chain = (
-        "highpass=f=80,"
+        "highpass=f=75,"
         "equalizer=f=250:t=q:w=1.2:g=2.0,"
-        "equalizer=f=3500:t=q:w=1.2:g=2.5,"
-        "dynaudnorm=p=0.95:m=10:s=12"
+        "equalizer=f=3500:t=q:w=1.5:g=3.5,"
+        "deesser=i=0.5:m=0.5:f=0.5,"
+        "acompressor=threshold=-18dB:ratio=3.5:attack=15:release=120:makeup=3.5dB,"
+        "loudnorm=I=-14:LRA=7:TP=-1.5"
     )
 
     cmd = [

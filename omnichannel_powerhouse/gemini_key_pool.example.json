@@ -1,0 +1,17 @@
+{
+  "total_keys": 3,
+  "keys": [
+    {
+      "key": "AIzaSyYOUR_GEMINI_KEY_01_HERE",
+      "label": "Primary Free Tier 01"
+    },
+    {
+      "key": "AIzaSyYOUR_GEMINI_KEY_02_HERE",
+      "label": "Secondary Free Tier 02"
+    },
+    {
+      "key": "AIzaSyYOUR_GEMINI_KEY_03_HERE",
+      "label": "Tertiary Free Tier 03"
+    }
+  ]
+}

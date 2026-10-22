@@ -133,6 +133,14 @@ class GeminiKeyRing:
             oldest["last_used"] = time.time()
             return oldest["key"]
 
+    def record_error(self, api_key: str):
+        with self._lock:
+            for k in self.keys:
+                if k["key"] == api_key:
+                    k["rpm_count"] = 15  # throttle temporarily
+                    k["last_used"] = time.time()
+                    logger.warning(f"Throttled key {k['label']} due to error.")
+
     def get_status(self) -> Dict[str, Any]:
         with self._lock:
             return {
