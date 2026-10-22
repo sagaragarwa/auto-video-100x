@@ -273,20 +273,32 @@ def trigger_cloud_dispatch(req: DispatchRequest):
 @app.get("/api/cloud-runs")
 def get_cloud_runs():
     token_path = os.path.join(_root, "yt_uploader", "github_token.local")
-    if not os.path.exists(token_path):
-        return {"runs": [], "error": "No GitHub token found"}
+    tok = open(token_path, "r", encoding="utf-8").read().strip() if os.path.exists(token_path) else ""
+
+    h = {"Accept": "application/vnd.github+json", "User-Agent": "OmniChannel"}
+    if tok:
+        h["Authorization"] = f"Bearer {tok}"
 
     try:
         import requests
-        tok = open(token_path, "r", encoding="utf-8").read().strip()
-        h = {"Authorization": f"Bearer {tok}", "Accept": "application/vnd.github+json"}
         r = requests.get("https://api.github.com/repos/sagaragarwa/auto-video-100x/actions/runs?per_page=5", headers=h, timeout=10)
+        runs = []
+        artifacts = []
         if r.status_code == 200:
-            data = r.json()
-            return {"runs": data.get("workflow_runs", [])}
-        return {"runs": [], "status_code": r.status_code}
+            runs = r.json().get("workflow_runs", [])
+            # Find latest completed 20-matrix run to show downloadable artifacts
+            target_run = next((run for run in runs if "20" in run.get("name", "") and run.get("conclusion") == "success"), None)
+            if not target_run and runs:
+                target_run = runs[0]
+            if target_run:
+                run_id = target_run.get("id")
+                art_r = requests.get(f"https://api.github.com/repos/sagaragarwa/auto-video-100x/actions/runs/{run_id}/artifacts", headers=h, timeout=10)
+                if art_r.status_code == 200:
+                    artifacts = art_r.json().get("artifacts", [])
+            return {"runs": runs, "artifacts": artifacts, "target_run": target_run}
+        return {"runs": [], "artifacts": [], "status_code": r.status_code}
     except Exception as e:
-        return {"runs": [], "error": str(e)}
+        return {"runs": [], "artifacts": [], "error": str(e)}
 
 
 @app.get("/api/conversation")

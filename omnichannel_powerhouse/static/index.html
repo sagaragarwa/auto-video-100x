@@ -815,6 +815,39 @@
           `;
           container.appendChild(item);
         });
+
+        // Render Artifacts Grid if available
+        if (data.artifacts && data.artifacts.length > 0) {
+          const artSection = document.createElement('div');
+          artSection.className = 'pt-4 space-y-3';
+          artSection.innerHTML = `
+            <div class="flex items-center justify-between">
+              <h3 class="text-sm font-bold text-emerald-400 flex items-center gap-2">
+                <span>📦</span> 20 Master Video Artifacts Ready (${data.artifacts.length} Completed Episodes)
+              </h3>
+              <a href="${data.target_run ? data.target_run.html_url : 'https://github.com/sagaragarwa/auto-video-100x/actions'}" target="_blank" class="text-xs text-cyan-400 hover:underline">
+                Download All on GitHub ↗
+              </a>
+            </div>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-2.5" id="artifactGrid"></div>
+          `;
+          container.appendChild(artSection);
+
+          const grid = artSection.querySelector('#artifactGrid');
+          data.artifacts.forEach(art => {
+            const mb = (art.size_in_bytes / (1024 * 1024)).toFixed(1);
+            const card = document.createElement('div');
+            card.className = 'p-3 rounded-xl bg-slate-900 border border-slate-800 hover:border-emerald-500/50 transition flex items-center justify-between';
+            card.innerHTML = `
+              <div class="truncate">
+                <div class="text-xs font-bold text-white truncate">🎬 ${art.name}</div>
+                <div class="text-[11px] text-slate-400">${mb} MB · 1080p Master</div>
+              </div>
+              <span class="text-emerald-400 text-xs font-bold">✓ Ready</span>
+            `;
+            grid.appendChild(card);
+          });
+        }
       } catch (e) {
         console.error(e);
       }
