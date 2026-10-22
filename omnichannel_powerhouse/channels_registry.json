@@ -39,7 +39,7 @@
       "profile_dir": "yt_uploader/profiles/ai_and_tech",
       "auth_status": "authenticated",
       "daily_max_uploads": 3,
-      "uploads_today": 1,
+      "uploads_today": 0,
       "last_upload_timestamp": "2026-10-21 12:45:00",
       "auto_publish_visibility": "unlisted"
     },
@@ -75,7 +75,7 @@
       "profile_dir": "yt_uploader/profiles/channel_trading",
       "auth_status": "authenticated",
       "daily_max_uploads": 3,
-      "uploads_today": 1,
+      "uploads_today": 0,
       "last_upload_timestamp": "2026-10-21 12:48:00",
       "auto_publish_visibility": "unlisted"
     },
@@ -100,7 +100,7 @@
       "uploads_today": 0,
       "last_upload_timestamp": "",
       "license_type": "rumble_only",
-      "last_login_verified": "2026-10-21 20:27:42"
+      "last_login_verified": "2026-10-22 13:17:42"
     }
   }
 }
