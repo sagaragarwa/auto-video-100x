@@ -36,8 +36,9 @@ from omnichannel_powerhouse.cinematic_100x_engine import (
     generate_4act_cinematic_bed,
     generate_procedural_sfx
 )
-from omnichannel_powerhouse.smart_broll_matcher import (
-    build_semantic_visual_timeline
+from omnichannel_powerhouse.semantic_visual_lock import (
+    synthesize_voice_with_exact_boundaries,
+    lock_visual_track_to_voice
 )
 from omnichannel_powerhouse.kinetic_subtitles import (
     generate_kinetic_ass
@@ -102,63 +103,23 @@ def produce_synchronized_master(
     t0 = time.time()
     logger.info("🚀 Launching OmniChannel 100x Master Pipeline...")
 
-    # Step 1: Voice Synthesis
-    raw_voice = os.path.join(TEMP_DIR, "master_raw_voice.mp3")
+    # Step 1: Voice Synthesis with Exact Millisecond Telemetry & Boundaries
     master_voice = os.path.join(TEMP_DIR, "master_dsp_voice.mp3")
-    asyncio.run(synthesize_master_voice(script, raw_voice))
-    apply_broadcast_dsp_mastering(raw_voice, master_voice)
+    sentences = asyncio.run(synthesize_voice_with_exact_boundaries(script, "hi-IN-MadhurNeural", master_voice))
 
     speech_dur = get_media_duration(master_voice)
     logger.info(f"🎙️ Voice Duration: {speech_dur:.2f}s ({speech_dur/60.0:.2f} min)")
-
-    # DURATION GUARD: Video MUST match voice duration precisely
     actual_dur = speech_dur
-    if target_duration and target_duration > speech_dur:
-        logger.warning(
-            f"⚠️ Target duration was {target_duration:.1f}s, but speech is {speech_dur:.1f}s. "
-            f"Locking video to exact speech duration {speech_dur:.1f}s to prevent dead silence!"
-        )
 
-    # Step 2: Semantic Visual Alignment
-    cached_brolls = [
-        os.path.join(TEMP_DIR, f) for f in os.listdir(TEMP_DIR)
-        if f.endswith(".mp4") and f.startswith("kb_norm_")
-    ]
+    # Step 2: 100% Semantic Visual-to-Voice Hard Lock
     custom_assets = {
         "exploded_3d": os.path.join(OUTPUT_DIR, "test_exploded_blackwell_3d.mp4"),
         "flux_asml": os.path.join(OUTPUT_DIR, "test_flux_asml_clip.mp4"),
         "market_chart": os.path.join(OUTPUT_DIR, "test_chart.mp4"),
         "headline_scan": os.path.join(OUTPUT_DIR, "test_headline.mp4")
     }
-
-    # Split script into logical beats
-    sentences = [s.strip() for s in script.split("।") if s.strip()]
-    if not sentences:
-        sentences = [s.strip() for s in script.split(".") if s.strip()]
-
-    beat_dur = actual_dur / max(len(sentences), 1)
-    sentence_timeline = [{"text": s, "duration": beat_dur} for s in sentences]
-
-    visual_timeline = build_semantic_visual_timeline(
-        sentence_timeline, cached_brolls, custom_assets, actual_dur
-    )
-
-    # Concat visuals
-    concat_txt = os.path.join(TEMP_DIR, "master_visual_concat.txt")
-    with open(concat_txt, "w", encoding="utf-8") as f:
-        for item in visual_timeline:
-            clean_p = os.path.abspath(item["clip_path"]).replace("\\", "/")
-            f.write(f"file '{clean_p}'\n")
-
     raw_visual_video = os.path.join(TEMP_DIR, "master_raw_visual.mp4")
-    hw_flags = get_best_hardware_encoder()
-    logger.info(f"🎞️ Concatting Visual Track with Hardware Flags: {' '.join(hw_flags)}...")
-    subprocess.run([
-        "ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i", concat_txt,
-        "-t", f"{actual_dur:.3f}",
-        *hw_flags,
-        raw_visual_video
-    ], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    lock_visual_track_to_voice(sentences, TEMP_DIR, raw_visual_video, custom_assets)
 
     # Step 3: Dynamic 4-Act Harmonic Scoring Bed & Sidechain Ducking
     scoring_bed = os.path.join(TEMP_DIR, "master_4act_scoring.mp3")
