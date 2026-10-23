@@ -175,8 +175,20 @@ class MultiBrainManager:
         except Exception as e:
             return False, str(e)
 
+    def record_groq_error(self, key: str, status_code: int = 429):
+        """Temporarily throttles Groq key on 429/403 so subsequent queries route seamlessly without delay."""
+        now = time.time()
+        for k in self.groq_keys:
+            if k["key"] == key:
+                k["status"] = "throttled"
+                k["throttled_until"] = now + 120  # 2-minute cooloff
+
     def get_groq_key(self) -> Optional[str]:
-        healthy = [k for k in self.groq_keys if k["status"] == "healthy"]
+        now = time.time()
+        for k in self.groq_keys:
+            if k.get("status") == "throttled" and now > k.get("throttled_until", 0):
+                k["status"] = "healthy"
+        healthy = [k for k in self.groq_keys if k.get("status") == "healthy"]
         if healthy:
             return healthy[0]["key"]
         return None

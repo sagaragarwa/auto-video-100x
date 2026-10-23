@@ -180,10 +180,8 @@ def stream_chat_response(
         endpoint = "https://api.groq.com/openai/v1/chat/completions" if target_provider == "groq" else "https://openrouter.ai/api/v1/chat/completions"
 
         if not api_key:
-            notice = f"> ℹ️ *[{target_provider.upper()} API key not configured yet. Auto-routing through Gemini 3.5 Flash Key Pool]*\n\n"
-            yield f"data: {json.dumps({'type': 'chunk', 'text': notice})}\n\n"
             target_provider = "gemini"
-            model_name = "gemini-3.5-flash"
+            model_name = "gemini-3.1-flash-lite"
         else:
             openai_messages = [{"role": "system", "content": DEFAULT_SYSTEM_PROMPT}]
             for msg in past_messages:
@@ -302,11 +300,10 @@ def stream_chat_response(
                 return
 
             except Exception as e:
-                err_str = str(e)[:80]
-                failover_msg = f"> ⚠️ *[{target_provider.upper()} API notice: {err_str}. Seamless failover to Gemini Key Pool...]*\n\n"
-                yield f"data: {json.dumps({'type': 'chunk', 'text': failover_msg})}\n\n"
+                if target_provider == "groq" and api_key:
+                    MULTI_BRAIN.record_groq_error(api_key, status_code=429)
                 target_provider = "gemini"
-                model_name = "gemini-3.5-flash"
+                model_name = "gemini-3.1-flash-lite"
 
     cur_contents = list(contents)
     max_gemini_react_steps = 8
