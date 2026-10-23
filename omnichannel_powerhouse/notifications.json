@@ -1,0 +1,30 @@
+[
+  {
+    "id": "notif_1792772256618",
+    "timestamp": "2026-10-23 21:47:36",
+    "type": "video_uploaded",
+    "title": "Video Ready: How to Start Investing in the Stock Market: A Proven Guide",
+    "message": "Video 'How to Start Investing in the Stock Market: A Proven Guide' on Silicon Pulse (5 min) is ready & staged/uploaded as Unlisted!",
+    "channel_key": "channel_trading",
+    "channel_name": "Silicon Pulse",
+    "video_id": "youtube_1792772124",
+    "video_url": "https://youtu.be/EppU_1fMTCk",
+    "duration_min": 5.0,
+    "thumbnail_url": "/output/tier1_channel_trading_1792771694_master_thumb_A_monopoly_cyan.jpg",
+    "read": false
+  },
+  {
+    "id": "notif_1792767657923",
+    "timestamp": "2026-10-23 20:30:57",
+    "type": "video_uploaded",
+    "title": "Video Ready: Wall Street Ka Asli Khel Jo 99% Retail Traders Ko Barbaad Karta Hai",
+    "message": "Aapki documentary video (10.1 min, 177 strictly unique clips, ZERO repeats) tayyar hokar Silicon Pulse par Unlisted queue me register ho chuki hai!",
+    "channel_key": "channel_trading",
+    "channel_name": "Silicon Pulse",
+    "video_id": "youtube_1792766639",
+    "video_url": "https://studio.youtube.com/videos",
+    "duration_min": 10.1,
+    "thumbnail_url": "/output/tier1_channel_trading_1792765604_master_thumb_A_monopoly_cyan.jpg",
+    "read": false
+  }
+]

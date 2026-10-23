@@ -1,6 +1,156 @@
 {
-  "updated_at": "2026-10-23 15:53:47",
+  "updated_at": "2026-10-23 21:45:24",
   "videos": [
+    {
+      "id": "youtube_1792772124",
+      "video_id": "EppU_1fMTCk",
+      "title": "How to Start Investing in the Stock Market: A Proven Guide",
+      "title_alternatives": [
+        "The Untold Story of \u0936\u0947\u092f\u0930 \u092c\u093e\u091c\u093e\u0930 \u092e\u0947\u0902 \u0928\u093f\u0935\u0947\u0936 \u0915\u0948\u0938\u0947 \u0936\u0941\u0930\u0942 \u0915\u0930\u0947\u0902 (Beg",
+        "Why Silicon Pulse Secretly Dominates This Industry"
+      ],
+      "seo_score": 98,
+      "seo_metrics": {
+        "search_volume": "High (94/100)",
+        "competition": "Low (18/100)",
+        "optimization_level": "Institutional Grade (100% Retained)"
+      },
+      "channel_id": "channel_trading",
+      "channel_name": "Silicon Pulse",
+      "platform": "youtube",
+      "language": "en",
+      "video_url": "https://youtu.be/EppU_1fMTCk",
+      "studio_edit_url": "https://studio.youtube.com/video/EppU_1fMTCk/edit",
+      "local_video_path": "/output/tier1_channel_trading_1792771694_master.mp4",
+      "master_abs_path": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\output\\tier1_channel_trading_1792771694_master.mp4",
+      "status": "uploaded_unlisted",
+      "duration_sec": 300.0,
+      "duration_formatted": "5:00",
+      "thumbnail_punchline": "STOP GUESSING. INVEST.",
+      "thumbnail_concepts": [
+        {
+          "variant": "A",
+          "name": "Monopoly Cyan",
+          "hex": "#00F2FE",
+          "file": "/output/tier1_channel_trading_1792771694_master_thumb_A_monopoly_cyan.jpg"
+        },
+        {
+          "variant": "B",
+          "name": "Secret Amber",
+          "hex": "#FFB300",
+          "file": "/output/tier1_channel_trading_1792771694_master_thumb_B_secret_amber.jpg"
+        },
+        {
+          "variant": "C",
+          "name": "Threat Crimson",
+          "hex": "#FF0055",
+          "file": "/output/tier1_channel_trading_1792771694_master_thumb_C_threat_crimson.jpg"
+        }
+      ],
+      "hashtags": [
+        "#StockMarket",
+        "#InvestingForBeginners",
+        "#PersonalFinance",
+        "#WealthBuilding",
+        "#SiliconPulse"
+      ],
+      "tags": [
+        "stock market for beginners",
+        "how to invest in stocks",
+        "personal finance",
+        "investing 101",
+        "trading guide",
+        "wealth building",
+        "passive income",
+        "stock market explained",
+        "financial literacy",
+        "Silicon Pulse",
+        "investment strategy",
+        "index funds vs stocks",
+        "how to start trading",
+        "market analysis",
+        "compound interest"
+      ],
+      "tags_csv": "how to start investing,stock market for beginners,investing 101,stock market investing,how to buy stocks,beginner investing guide,investing for beginners 2024,silicon pulse investing,personal finance,stock market crash,passive income,index funds for beginners,how to grow wealth,best stocks to buy now,trading for beginners,wall street documentary,financial freedom,investing mistakes,how to read stocks,compound interest",
+      "description": "The stock market isn't a casino\u2014it's a wealth-building machine that has rewarded the patient for over a century. In this guide, we break down the mechanics of the market and show you how to start building your portfolio today.\n\n00:00 The Illusion of the Market\n01:30 The Mechanics of Ownership\n03:15 The Power of Compounding\n04:15 Your Strategic Path Forward\n\nLearn the foundational principles of investing and stop leaving money on the table. Subscribe to Silicon Pulse for deep dives into the mechanics of global finance.",
+      "pinned_comment": "If you could go back to the day you started investing, what is the ONE piece of advice you would give your younger self? Let's talk strategy in the comments.",
+      "uploaded_at": "2026-10-23 21:45:24"
+    },
+    {
+      "id": "youtube_1792766639",
+      "video_id": "tL2RnTiNvC8",
+      "title": "Hindi Trading Titans Outsmart Wall Street \u2013 Untold Truth",
+      "title_alternatives": [
+        "The Untold Story of Best to Best: Hindi Documentary Showcase",
+        "Why Silicon Pulse Secretly Dominates This Industry"
+      ],
+      "seo_score": 98,
+      "seo_metrics": {
+        "search_volume": "High (94/100)",
+        "competition": "Low (18/100)",
+        "optimization_level": "Institutional Grade (100% Retained)"
+      },
+      "channel_id": "channel_trading",
+      "channel_name": "Silicon Pulse",
+      "platform": "youtube",
+      "language": "en",
+      "video_url": "https://youtu.be/tL2RnTiNvC8",
+      "studio_edit_url": "https://studio.youtube.com/video/tL2RnTiNvC8/edit",
+      "local_video_path": "/output/tier1_channel_trading_1792765604_master.mp4",
+      "master_abs_path": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\output\\tier1_channel_trading_1792765604_master.mp4",
+      "status": "uploaded_unlisted",
+      "duration_sec": 1200.0,
+      "duration_formatted": "20:00",
+      "thumbnail_punchline": "POWER PLAY",
+      "thumbnail_concepts": [
+        {
+          "variant": "A",
+          "name": "Monopoly Cyan",
+          "hex": "#00F2FE",
+          "file": "/output/tier1_channel_trading_1792765604_master_thumb_A_monopoly_cyan.jpg"
+        },
+        {
+          "variant": "B",
+          "name": "Secret Amber",
+          "hex": "#FFB300",
+          "file": "/output/tier1_channel_trading_1792765604_master_thumb_B_secret_amber.jpg"
+        },
+        {
+          "variant": "C",
+          "name": "Threat Crimson",
+          "hex": "#FF0055",
+          "file": "/output/tier1_channel_trading_1792765604_master_thumb_C_threat_crimson.jpg"
+        }
+      ],
+      "hashtags": [
+        "#TradingTitans",
+        "#WallStreet",
+        "#StockMarket",
+        "#SiliconPulse",
+        "#Investing"
+      ],
+      "tags": [
+        "Hindi trading documentary",
+        "Indian stock market secrets",
+        "Wall Street vs India",
+        "high frequency trading India",
+        "institutional investors explained",
+        "trading algorithms documentary",
+        "global finance hidden players",
+        "financial market stress tests",
+        "geopolitics of trading",
+        "silicon pulse trading series",
+        "trillion dollar incentives",
+        "market manipulation case study",
+        "future of global finance",
+        "trading infrastructure deep dive",
+        "financial engineering documentary"
+      ],
+      "tags_csv": "Hindi Trading Titans,Wall Street,Stock Market documentary,Indian traders,trading secrets,day trading,algorithmic trading,financial markets,investing documentary,Wall Street vs Retail,Silicon Pulse,option trading,wealth creation,stock market crash,billionaire traders,market manipulation,global finance,economic shift,smart money,trading psychology",
+      "description": "In this 20\u2011minute deep dive, Silicon Pulse pulls back the curtain on the hidden world of Hindi\u2011driven trading powerhouses that are reshaping global finance. From the invisible math that drives every tick to the trillion\u2011dollar incentives that fuel covert players, we trace the anatomy of a market revolution and ask: what does the future hold when geopolitics and technology collide?\n\n\u23f1\ufe0f Chapter Markers\n00:00 \u2013 Opening: The Anomaly Unveiled\n02:30 \u2013 Act I: The Illusion on the Surface\n06:00 \u2013 Act II: The Mechanical Architecture\n10:00 \u2013 Act III: Covert Players & Trillion\u2011Dollar Incentives\n14:30 \u2013 Act IV: Real\u2011World Stress Tests & Case Studies\n18:00 \u2013 Act V: The Geopolitical Horizon\n20:00 \u2013 Closing Thoughts\n\n\ud83d\udd14 Subscribe for more investigative finance documentaries: https://www.youtube.com/c/SiliconPulse\n\ud83d\udc4d Like, share, and comment below \u2013 your insights drive the next episode!\n\n#Trading #Finance #Documentary #India #WallStreet #SiliconPulse",
+      "pinned_comment": "What single factor do you think will tip the balance between emerging market traders and traditional Wall Street powerhouses in the next five years? Share your thoughts and let\u2019s debate!",
+      "uploaded_at": "2026-10-23 20:13:59"
+    },
     {
       "id": "youtube_1792751027",
       "video_id": "pending_upload",
