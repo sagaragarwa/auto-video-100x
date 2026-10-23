@@ -256,9 +256,25 @@ Return STRICTLY valid JSON:
 
 def synthesize_tier1_voiceover(text: str, voice: str, output_path: str, language: str = "en"):
     """
-    Synthesizes speech prioritizing Kokoro-82M (World-class open-source 82M model: af_heart, am_adam, hm_omega)
-    and applies 6-Stage Shure SM7B Broadcast DSP vocal chain (-14 LUFS).
+    Synthesizes speech:
+    - Hindi: Google Gemini 2.5 Flash Native Studio Speech (100% Human, Zero Robotic Artifacts)
+    - English: Kokoro-82M (af_heart, am_adam) + Shure SM7B Broadcast DSP vocal chain (-14 LUFS)
     """
+    is_hindi = language in ("hi", "hindi") or any('\u0900' <= char <= '\u097f' for char in text)
+
+    # 1. Hindi: Ultra-Realistic Gemini 2.5 Flash Native Studio Voice
+    if is_hindi:
+        logger.info(f"🎙️ Synthesizing 100% Human Studio Hindi Voice with Gemini 2.5 Flash Native Speech...")
+        try:
+            from omnichannel_powerhouse.gemini_tts_engine import synthesize_master_voice
+            synthesize_master_voice(text, output_path, voice_name="Puck", apply_dsp=True)
+            if os.path.exists(output_path) and os.path.getsize(output_path) > 10000:
+                logger.success(f"🏆 Gemini 2.5 Flash Human Studio Voiceover Mastered: {output_path}")
+                return output_path
+        except Exception as ge:
+            logger.warning(f"Gemini Flash TTS primary notice: {ge}")
+
+    # 2. English: Kokoro-82M Studio Model
     logger.info(f"🎙️ Synthesizing voiceover with Kokoro-82M Engine [Target Voice: {voice}] (Word count: {len(text.split())})...")
     try:
         from omnichannel_powerhouse.kokoro_engine import synthesize_kokoro_voice
@@ -486,6 +502,26 @@ def produce_and_queue_tier1_video(
         except Exception as ue:
             logger.error(f"Auto-upload failed: {ue}")
             upload_res = {"success": False, "error": str(ue)}
+
+    # 8. Real-Time Notification Storage & WhatsApp-Style Chat Dispatch
+    try:
+        from omnichannel_powerhouse.notification_manager import NOTIFICATION_MANAGER, post_video_ready_notification_to_chat
+        video_title = script_data.get("title", chosen_topic)
+        v_url = upload_res.get("video_url", "") if upload_res else ""
+        notif = NOTIFICATION_MANAGER.add_notification(
+            title=f"Video Ready: {video_title}",
+            message=f"Video '{video_title}' on {ch_name} ({chosen_duration} min) is ready & staged/uploaded as Unlisted!",
+            channel_key=channel_key,
+            channel_name=ch_name,
+            video_id=vid_id,
+            video_url=v_url,
+            duration_min=float(chosen_duration),
+            thumbnail_url=f"/output/{os.path.basename(thumb_a)}",
+            notif_type="video_uploaded" if (upload_res and upload_res.get("success")) else "video_ready_unlisted"
+        )
+        logger.success(f"🔔 Notification generated & stored: {notif['id']}")
+    except Exception as ne:
+        logger.warning(f"Notification dispatch notice: {ne}")
 
     return {
         "success": True,

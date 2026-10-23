@@ -659,6 +659,54 @@ def run_vision_analysis(req: VisionRequest):
     )
 
 
+# ==============================================================================
+# NOTIFICATION SYSTEM ENDPOINTS (WHATSAPP-GRADE PERSISTENCE)
+# ==============================================================================
+
+class MarkReadRequest(BaseModel):
+    notification_id: str
+
+
+@app.get("/api/notifications")
+def get_notifications():
+    from omnichannel_powerhouse.notification_manager import NOTIFICATION_MANAGER
+    return {
+        "notifications": NOTIFICATION_MANAGER.get_all(),
+        "unread_count": len(NOTIFICATION_MANAGER.get_unread())
+    }
+
+
+@app.get("/api/notifications/unread")
+def get_unread_notifications():
+    from omnichannel_powerhouse.notification_manager import NOTIFICATION_MANAGER
+    unread = NOTIFICATION_MANAGER.get_unread()
+    return {
+        "unread": unread,
+        "unread_count": len(unread)
+    }
+
+
+@app.post("/api/notifications/mark-read")
+def mark_notification_read(req: MarkReadRequest):
+    from omnichannel_powerhouse.notification_manager import NOTIFICATION_MANAGER
+    success = NOTIFICATION_MANAGER.mark_read(req.notification_id)
+    return {"success": success, "unread_count": len(NOTIFICATION_MANAGER.get_unread())}
+
+
+@app.post("/api/notifications/mark-all-read")
+def mark_all_notifications_read():
+    from omnichannel_powerhouse.notification_manager import NOTIFICATION_MANAGER
+    count = NOTIFICATION_MANAGER.mark_all_read()
+    return {"success": True, "marked_count": count, "unread_count": 0}
+
+
+@app.post("/api/notifications/clear")
+def clear_notifications():
+    from omnichannel_powerhouse.notification_manager import NOTIFICATION_MANAGER
+    NOTIFICATION_MANAGER.clear_all()
+    return {"success": True}
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("omnichannel_powerhouse.server:app", host="0.0.0.0", port=8899, reload=False)

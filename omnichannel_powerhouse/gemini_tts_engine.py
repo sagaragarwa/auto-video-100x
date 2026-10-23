@@ -50,9 +50,8 @@ except ImportError:
 from omnichannel_powerhouse.gemini_key_rotator import KEY_RING
 
 # Official Google AI Studio endpoint for Flash TTS preview
-# USER DIRECTIVE: Hard-lock voice synthesis to Edge-TTS + Shure SM7B DSP
-# This permanently preserves 100% of the 4,500 daily Gemini API quota exclusively for Deep Research Scripts.
-FORCE_EDGE_TTS_LOCKED = True
+# High-Fidelity 100% Human Studio Voice enabled
+FORCE_EDGE_TTS_LOCKED = False
 
 PRIMARY_TTS_MODEL = "gemini-2.5-flash-preview-tts"
 

@@ -683,7 +683,11 @@
         </span>
       </div>
 
-      <div class="topbar-right">
+      <div class="topbar-right" style="display:flex; align-items:center; gap:8px;">
+        <button class="btn-nav-link" id="notif-bell-btn" onclick="toggleNotifDrawer()" style="position:relative; display:flex; align-items:center; gap:5px; background:rgba(255,255,255,0.04);" title="Notification Center">
+          🔔 <span style="font-size:12px; font-weight:600;">Alerts</span>
+          <span id="notif-badge" style="display:none; background:#ff0055; color:#fff; font-size:10px; font-weight:700; padding:1px 6px; border-radius:10px; min-width:16px; text-align:center;">0</span>
+        </button>
         <button class="btn-nav-link" onclick="toggleCanvasDrawer()">📂 Split Canvas</button>
         <a href="/" class="btn-nav-link">← Studio Dashboard</a>
       </div>
@@ -1291,6 +1295,191 @@
       recognition.onend = () => { micBtn.style.color = 'var(--text-subtle)'; };
       recognition.start();
     }
+
+    // =========================================================================
+    // WHATSAPP-GRADE NOTIFICATION CENTER & LIVE EVENT BUS
+    // =========================================================================
+    let seenNotifIds = new Set();
+    let notifDrawerOpen = false;
+
+    function toggleNotifDrawer() {
+      const drawer = document.getElementById('notif-drawer');
+      notifDrawerOpen = !notifDrawerOpen;
+      drawer.style.right = notifDrawerOpen ? '0' : '-440px';
+      if (notifDrawerOpen) {
+        loadNotificationsList();
+      }
+    }
+
+    function playNotificationChime() {
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        const ctx = new AudioCtx();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(587.33, ctx.currentTime); // D5
+        osc.frequency.setValueAtTime(880, ctx.currentTime + 0.1); // A5
+        gain.gain.setValueAtTime(0.2, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.6);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.6);
+      } catch(e) {}
+    }
+
+    function speakVoiceAlert(text) {
+      if ('speechSynthesis' in window) {
+        try {
+          const u = new SpeechSynthesisUtterance(text);
+          u.rate = 1.05;
+          u.pitch = 1.0;
+          u.lang = 'hi-IN';
+          window.speechSynthesis.speak(u);
+        } catch(e) {}
+      }
+    }
+
+    async function pollNotifications() {
+      try {
+        const res = await fetch('/api/notifications');
+        const data = await res.json();
+        const notifs = data.notifications || [];
+        const unreadCount = data.unread_count || 0;
+
+        const badge = document.getElementById('notif-badge');
+        if (unreadCount > 0) {
+          badge.textContent = unreadCount;
+          badge.style.display = 'inline-block';
+        } else {
+          badge.style.display = 'none';
+        }
+
+        // Check for brand new notifications to alert like WhatsApp
+        notifs.forEach(n => {
+          if (!seenNotifIds.has(n.id)) {
+            seenNotifIds.add(n.id);
+            if (!n.read) {
+              // Trigger Chime & Voice Alert!
+              playNotificationChime();
+              speakVoiceAlert("Aapki video ready ho gayi hai aur upload ho chuki hai!");
+
+              // WhatsApp-style instant chat bubble injection into current active stream!
+              appendLiveNotificationToChat(n);
+            }
+          }
+        });
+
+        if (notifDrawerOpen) {
+          renderNotifsHTML(notifs);
+        }
+      } catch(e) {
+        // Silently fail network glitch
+      }
+    }
+
+    function appendLiveNotificationToChat(n) {
+      const stream = document.getElementById('chat-stream');
+      const row = document.createElement('div');
+      row.className = 'msg-row';
+      row.style.background = 'linear-gradient(135deg, rgba(0, 242, 254, 0.08), rgba(139, 92, 246, 0.08))';
+      row.style.border = '1px solid rgba(0, 242, 254, 0.3)';
+      row.style.borderRadius = '12px';
+      row.style.padding = '14px 18px';
+      row.style.marginBottom = '20px';
+
+      row.innerHTML = `
+        <div class="msg-avatar" style="background:#00F2FE; color:#000;">🔔</div>
+        <div class="msg-content">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+            <strong style="color:#00F2FE; font-size:14px;">WhatsApp-Style Live Update</strong>
+            <span style="font-size:11px; color:var(--text-subtle);">${n.timestamp}</span>
+          </div>
+          <div style="font-size:14px; font-weight:600; color:#fff; margin-bottom:4px;">${n.title}</div>
+          <div style="font-size:13px; color:var(--text-muted); margin-bottom:8px;">${n.message}</div>
+          <div style="display:flex; gap:10px; align-items:center;">
+            <span style="font-size:11px; background:rgba(255,255,255,0.1); padding:2px 8px; border-radius:4px; color:#fff;">Channel: ${n.channel_name}</span>
+            <span style="font-size:11px; background:rgba(0,255,136,0.15); color:#00FF88; padding:2px 8px; border-radius:4px; font-weight:600;">Status: Unlisted Uploaded</span>
+            ${n.video_url ? `<a href="${n.video_url}" target="_blank" style="font-size:12px; color:#00F2FE; text-decoration:underline;">Watch on Studio ↗</a>` : ''}
+          </div>
+        </div>
+      `;
+      stream.appendChild(row);
+      stream.scrollTop = stream.scrollHeight;
+    }
+
+    async function loadNotificationsList() {
+      try {
+        const res = await fetch('/api/notifications');
+        const data = await res.json();
+        renderNotifsHTML(data.notifications || []);
+      } catch(e) {}
+    }
+
+    function renderNotifsHTML(notifs) {
+      const container = document.getElementById('notif-list');
+      if (!notifs || notifs.length === 0) {
+        container.innerHTML = '<div style="color:var(--text-muted); font-size:13px; text-align:center; padding:30px 10px;">No notifications yet. Videos will alert here upon completion.</div>';
+        return;
+      }
+      container.innerHTML = notifs.map(n => `
+        <div style="background:#131B2E; border:1px solid ${n.read ? 'rgba(255,255,255,0.06)' : 'rgba(0,242,254,0.3)'}; border-radius:8px; padding:12px; font-size:12px;">
+          <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+            <span style="font-weight:700; color:${n.read ? '#fff' : '#00F2FE'}; font-size:13px;">${n.title}</span>
+            <span style="font-size:10px; color:#888;">${n.timestamp}</span>
+          </div>
+          <p style="color:#aaa; margin:0 0 8px 0; font-size:12px; line-height:1.4;">${n.message}</p>
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="background:rgba(255,255,255,0.08); padding:2px 6px; border-radius:4px; color:#ddd; font-size:10px;">${n.channel_name} (${n.duration_min}m)</span>
+            <div style="display:flex; gap:8px;">
+              ${!n.read ? `<button onclick="markNotifRead('${n.id}')" style="background:none; border:none; color:#00F2FE; font-size:11px; cursor:pointer;">Mark Read</button>` : ''}
+              ${n.video_url ? `<a href="${n.video_url}" target="_blank" style="color:#00FF88; font-size:11px; text-decoration:none; font-weight:600;">Watch ↗</a>` : ''}
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    async function markNotifRead(id) {
+      await fetch('/api/notifications/mark-read', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ notification_id: id })
+      });
+      loadNotificationsList();
+      pollNotifications();
+    }
+
+    async function markAllNotificationsRead() {
+      await fetch('/api/notifications/mark-all-read', { method: 'POST' });
+      loadNotificationsList();
+      pollNotifications();
+    }
+
+    // Start Real-Time Notification Polling loop (every 3 seconds)
+    window.addEventListener('DOMContentLoaded', () => {
+      pollNotifications();
+      setInterval(pollNotifications, 3000);
+    });
   </script>
+
+  <!-- NOTIFICATIONS SLIDE-OVER DRAWER -->
+  <aside id="notif-drawer" style="position:fixed; top:0; right:-440px; width:420px; height:100vh; background:#0B0F19; border-left:1px solid rgba(255,255,255,0.1); z-index:9999; display:flex; flex-direction:column; transition:right 0.3s cubic-bezier(0.16, 1, 0.3, 1); box-shadow:-8px 0 32px rgba(0,0,0,0.6);">
+    <div style="padding:16px 20px; border-bottom:1px solid rgba(255,255,255,0.1); display:flex; justify-content:space-between; align-items:center; background:#0e1320;">
+      <div style="display:flex; align-items:center; gap:8px;">
+        <span style="font-size:18px;">🔔</span>
+        <h3 style="font-size:15px; font-weight:700; margin:0; color:#fff;">Notification Center</h3>
+      </div>
+      <div style="display:flex; gap:10px; align-items:center;">
+        <button onclick="markAllNotificationsRead()" style="background:none; border:none; color:#00F2FE; font-size:12px; cursor:pointer; font-weight:600;">Mark All Read</button>
+        <button onclick="toggleNotifDrawer()" style="background:none; border:none; color:#888; font-size:18px; cursor:pointer;">✕</button>
+      </div>
+    </div>
+    <div id="notif-list" style="flex:1; overflow-y:auto; padding:12px 16px; display:flex; flex-direction:column; gap:10px;">
+      <!-- Populated dynamically -->
+    </div>
+  </aside>
 </body>
 </html>
