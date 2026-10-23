@@ -130,12 +130,28 @@ def stream_chat_response(
     target_provider = "gemini"
     target_model_id = model_name
 
+    # Model Aliases for decommissioned or renamed third-party endpoints
+    GROQ_MODEL_ALIASES = {
+        "llama-3.3-70b-versatile": "openai/gpt-oss-120b",
+        "llama-3.1-70b-versatile": "openai/gpt-oss-120b",
+        "llama3-70b-8192": "openai/gpt-oss-120b",
+        "deepseek-r1-distill-llama-70b": "openai/gpt-oss-120b",
+        "llama-3.1-8b-instant": "openai/gpt-oss-20b",
+        "mixtral-8x7b-32768": "openai/gpt-oss-120b"
+    }
+    OPENROUTER_MODEL_ALIASES = {
+        "deepseek/deepseek-r1:free": "nvidia/nemotron-3.5-lightning:free",
+        "meta-llama/llama-3.3-70b-instruct:free": "nvidia/nemotron-3.5-lightning:free"
+    }
+
     if model_name.startswith("groq:"):
         target_provider = "groq"
-        target_model_id = model_name.split("groq:", 1)[1]
+        raw_id = model_name.split("groq:", 1)[1]
+        target_model_id = GROQ_MODEL_ALIASES.get(raw_id, raw_id)
     elif model_name.startswith("openrouter:"):
         target_provider = "openrouter"
-        target_model_id = model_name.split("openrouter:", 1)[1]
+        raw_id = model_name.split("openrouter:", 1)[1]
+        target_model_id = OPENROUTER_MODEL_ALIASES.get(raw_id, raw_id)
     elif model_name in ("hybrid:auto", "auto"):
         if MULTI_BRAIN.get_groq_key():
             target_provider = "groq"

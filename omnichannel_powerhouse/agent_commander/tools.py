@@ -49,14 +49,15 @@ def tool_manufacture_video(
     channel_key: str,
     topic: Optional[str] = None,
     duration_min: int = 30,
+    language: str = "en",
     auto_upload_unlisted: bool = True
 ) -> Dict[str, Any]:
     """
-    Manufactures an institutional documentary of ANY requested duration (5 to 60+ min):
+    Manufactures an institutional documentary of ANY requested duration (5 to 60+ min, English or Hindi):
     - Multi-Brain Script Synthesis (Groq 120B / OpenRouter / Gemini Pool)
-    - Edge-TTS Tier-1 Voice + 6-Stage Shure SM7B DSP (-14 LUFS)
-    - Zero-Repeat 1080p B-roll Stream + 173.25s Vintage Blue Laser Content ID Outro Lock
-    - 98/100 God-Tier SEO + Pinned Comment
+    - Edge-TTS Voice (ChristopherNeural / MadhurNeural Hindi) + 6-Stage Shure SM7B DSP (-14 LUFS)
+    - Zero-Repeat 1080p B-roll Stream + 173.25s Vintage Blue Laser Content ID Outro Lock (STRICT ZERO AI IMAGES)
+    - 98/100 God-Tier SEO + Pinned Comment + Real-Frame 3D Thumbnails
     - Registers in Unlisted Queue and auto-uploads as Unlisted if auto_upload_unlisted=True
     """
     from omnichannel_powerhouse.tier1_producer import produce_and_queue_tier1_video
@@ -71,7 +72,7 @@ def tool_manufacture_video(
     ch_data = yt_channels.get(channel_key, {
         "name": channel_key,
         "niche": "technology",
-        "voice_preferred": "en-US-ChristopherNeural"
+        "voice_preferred": "hi-IN-MadhurNeural" if language in ("hi", "hindi") else "en-US-ChristopherNeural"
     })
 
     res = produce_and_queue_tier1_video(
@@ -80,6 +81,7 @@ def tool_manufacture_video(
         platform="youtube",
         duration_min=duration_min,
         custom_topic=topic,
+        language=language,
         auto_upload_unlisted=auto_upload_unlisted
     )
 
