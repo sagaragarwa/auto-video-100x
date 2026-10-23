@@ -1,4 +1,1914 @@
 {
+  "yt_ch_001": {
+    "channel_id": "yt_ch_001",
+    "name": "NeuralStack 01",
+    "platform": "youtube",
+    "niche": "tech",
+    "cluster_id": "c01_ai",
+    "language": "en",
+    "voice_preferred": "en-US-ChristopherNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_001",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "transformer",
+      "llm",
+      "neural network",
+      "compute war",
+      "gpu"
+    ]
+  },
+  "yt_ch_002": {
+    "channel_id": "yt_ch_002",
+    "name": "NeuralStack 02",
+    "platform": "youtube",
+    "niche": "tech",
+    "cluster_id": "c01_ai",
+    "language": "en",
+    "voice_preferred": "en-US-ChristopherNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_002",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "transformer",
+      "llm",
+      "neural network",
+      "compute war",
+      "gpu"
+    ]
+  },
+  "yt_ch_003": {
+    "channel_id": "yt_ch_003",
+    "name": "NeuralStack 03",
+    "platform": "youtube",
+    "niche": "tech",
+    "cluster_id": "c01_ai",
+    "language": "en",
+    "voice_preferred": "en-US-ChristopherNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_003",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "transformer",
+      "llm",
+      "neural network",
+      "compute war",
+      "gpu"
+    ]
+  },
+  "yt_ch_004": {
+    "channel_id": "yt_ch_004",
+    "name": "NeuralStack 04",
+    "platform": "youtube",
+    "niche": "tech",
+    "cluster_id": "c01_ai",
+    "language": "en",
+    "voice_preferred": "en-US-ChristopherNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_004",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "transformer",
+      "llm",
+      "neural network",
+      "compute war",
+      "gpu"
+    ]
+  },
+  "yt_ch_005": {
+    "channel_id": "yt_ch_005",
+    "name": "NeuralStack 05",
+    "platform": "youtube",
+    "niche": "tech",
+    "cluster_id": "c01_ai",
+    "language": "en",
+    "voice_preferred": "en-US-ChristopherNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_005",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "transformer",
+      "llm",
+      "neural network",
+      "compute war",
+      "gpu"
+    ]
+  },
+  "yt_ch_006": {
+    "channel_id": "yt_ch_006",
+    "name": "NeuralStack 06",
+    "platform": "youtube",
+    "niche": "tech",
+    "cluster_id": "c01_ai",
+    "language": "en",
+    "voice_preferred": "en-US-ChristopherNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_006",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "transformer",
+      "llm",
+      "neural network",
+      "compute war",
+      "gpu"
+    ]
+  },
+  "yt_ch_007": {
+    "channel_id": "yt_ch_007",
+    "name": "NeuralStack 07",
+    "platform": "youtube",
+    "niche": "tech",
+    "cluster_id": "c01_ai",
+    "language": "en",
+    "voice_preferred": "en-US-ChristopherNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_007",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "transformer",
+      "llm",
+      "neural network",
+      "compute war",
+      "gpu"
+    ]
+  },
+  "yt_ch_008": {
+    "channel_id": "yt_ch_008",
+    "name": "NeuralStack 08",
+    "platform": "youtube",
+    "niche": "tech",
+    "cluster_id": "c01_ai",
+    "language": "en",
+    "voice_preferred": "en-US-ChristopherNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_008",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "transformer",
+      "llm",
+      "neural network",
+      "compute war",
+      "gpu"
+    ]
+  },
+  "yt_ch_009": {
+    "channel_id": "yt_ch_009",
+    "name": "NeuralStack 09",
+    "platform": "youtube",
+    "niche": "tech",
+    "cluster_id": "c01_ai",
+    "language": "en",
+    "voice_preferred": "en-US-ChristopherNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_009",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "transformer",
+      "llm",
+      "neural network",
+      "compute war",
+      "gpu"
+    ]
+  },
+  "yt_ch_010": {
+    "channel_id": "yt_ch_010",
+    "name": "NeuralStack 10",
+    "platform": "youtube",
+    "niche": "tech",
+    "cluster_id": "c01_ai",
+    "language": "en",
+    "voice_preferred": "en-US-ChristopherNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_010",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "transformer",
+      "llm",
+      "neural network",
+      "compute war",
+      "gpu"
+    ]
+  },
+  "yt_ch_011": {
+    "channel_id": "yt_ch_011",
+    "name": "SiliconFoundry 01",
+    "platform": "youtube",
+    "niche": "tech",
+    "cluster_id": "c02_semis",
+    "language": "en",
+    "voice_preferred": "en-US-ChristopherNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_011",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "asml",
+      "tsmc",
+      "lithography",
+      "euv",
+      "semiconductor",
+      "cleanroom"
+    ]
+  },
+  "yt_ch_012": {
+    "channel_id": "yt_ch_012",
+    "name": "SiliconFoundry 02",
+    "platform": "youtube",
+    "niche": "tech",
+    "cluster_id": "c02_semis",
+    "language": "en",
+    "voice_preferred": "en-US-ChristopherNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_012",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "asml",
+      "tsmc",
+      "lithography",
+      "euv",
+      "semiconductor",
+      "cleanroom"
+    ]
+  },
+  "yt_ch_013": {
+    "channel_id": "yt_ch_013",
+    "name": "SiliconFoundry 03",
+    "platform": "youtube",
+    "niche": "tech",
+    "cluster_id": "c02_semis",
+    "language": "en",
+    "voice_preferred": "en-US-ChristopherNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_013",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "asml",
+      "tsmc",
+      "lithography",
+      "euv",
+      "semiconductor",
+      "cleanroom"
+    ]
+  },
+  "yt_ch_014": {
+    "channel_id": "yt_ch_014",
+    "name": "SiliconFoundry 04",
+    "platform": "youtube",
+    "niche": "tech",
+    "cluster_id": "c02_semis",
+    "language": "en",
+    "voice_preferred": "en-US-ChristopherNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_014",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "asml",
+      "tsmc",
+      "lithography",
+      "euv",
+      "semiconductor",
+      "cleanroom"
+    ]
+  },
+  "yt_ch_015": {
+    "channel_id": "yt_ch_015",
+    "name": "SiliconFoundry 05",
+    "platform": "youtube",
+    "niche": "tech",
+    "cluster_id": "c02_semis",
+    "language": "en",
+    "voice_preferred": "en-US-ChristopherNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_015",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "asml",
+      "tsmc",
+      "lithography",
+      "euv",
+      "semiconductor",
+      "cleanroom"
+    ]
+  },
+  "yt_ch_016": {
+    "channel_id": "yt_ch_016",
+    "name": "SiliconFoundry 06",
+    "platform": "youtube",
+    "niche": "tech",
+    "cluster_id": "c02_semis",
+    "language": "en",
+    "voice_preferred": "en-US-ChristopherNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_016",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "asml",
+      "tsmc",
+      "lithography",
+      "euv",
+      "semiconductor",
+      "cleanroom"
+    ]
+  },
+  "yt_ch_017": {
+    "channel_id": "yt_ch_017",
+    "name": "SiliconFoundry 07",
+    "platform": "youtube",
+    "niche": "tech",
+    "cluster_id": "c02_semis",
+    "language": "en",
+    "voice_preferred": "en-US-ChristopherNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_017",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "asml",
+      "tsmc",
+      "lithography",
+      "euv",
+      "semiconductor",
+      "cleanroom"
+    ]
+  },
+  "yt_ch_018": {
+    "channel_id": "yt_ch_018",
+    "name": "SiliconFoundry 08",
+    "platform": "youtube",
+    "niche": "tech",
+    "cluster_id": "c02_semis",
+    "language": "en",
+    "voice_preferred": "en-US-ChristopherNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_018",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "asml",
+      "tsmc",
+      "lithography",
+      "euv",
+      "semiconductor",
+      "cleanroom"
+    ]
+  },
+  "yt_ch_019": {
+    "channel_id": "yt_ch_019",
+    "name": "SiliconFoundry 09",
+    "platform": "youtube",
+    "niche": "tech",
+    "cluster_id": "c02_semis",
+    "language": "en",
+    "voice_preferred": "en-US-ChristopherNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_019",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "asml",
+      "tsmc",
+      "lithography",
+      "euv",
+      "semiconductor",
+      "cleanroom"
+    ]
+  },
+  "yt_ch_020": {
+    "channel_id": "yt_ch_020",
+    "name": "SiliconFoundry 10",
+    "platform": "youtube",
+    "niche": "tech",
+    "cluster_id": "c02_semis",
+    "language": "en",
+    "voice_preferred": "en-US-ChristopherNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_020",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "asml",
+      "tsmc",
+      "lithography",
+      "euv",
+      "semiconductor",
+      "cleanroom"
+    ]
+  },
+  "yt_ch_021": {
+    "channel_id": "yt_ch_021",
+    "name": "SiliconPulse 01",
+    "platform": "youtube",
+    "niche": "finance",
+    "cluster_id": "c03_quant",
+    "language": "en",
+    "voice_preferred": "en-US-ChristopherNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_021",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "dark pool",
+      "high frequency trading",
+      "order flow",
+      "hedge fund",
+      "liquidity"
+    ]
+  },
+  "yt_ch_022": {
+    "channel_id": "yt_ch_022",
+    "name": "SiliconPulse 02",
+    "platform": "youtube",
+    "niche": "finance",
+    "cluster_id": "c03_quant",
+    "language": "en",
+    "voice_preferred": "en-US-ChristopherNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_022",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "dark pool",
+      "high frequency trading",
+      "order flow",
+      "hedge fund",
+      "liquidity"
+    ]
+  },
+  "yt_ch_023": {
+    "channel_id": "yt_ch_023",
+    "name": "SiliconPulse 03",
+    "platform": "youtube",
+    "niche": "finance",
+    "cluster_id": "c03_quant",
+    "language": "en",
+    "voice_preferred": "en-US-ChristopherNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_023",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "dark pool",
+      "high frequency trading",
+      "order flow",
+      "hedge fund",
+      "liquidity"
+    ]
+  },
+  "yt_ch_024": {
+    "channel_id": "yt_ch_024",
+    "name": "SiliconPulse 04",
+    "platform": "youtube",
+    "niche": "finance",
+    "cluster_id": "c03_quant",
+    "language": "en",
+    "voice_preferred": "en-US-ChristopherNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_024",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "dark pool",
+      "high frequency trading",
+      "order flow",
+      "hedge fund",
+      "liquidity"
+    ]
+  },
+  "yt_ch_025": {
+    "channel_id": "yt_ch_025",
+    "name": "SiliconPulse 05",
+    "platform": "youtube",
+    "niche": "finance",
+    "cluster_id": "c03_quant",
+    "language": "en",
+    "voice_preferred": "en-US-ChristopherNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_025",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "dark pool",
+      "high frequency trading",
+      "order flow",
+      "hedge fund",
+      "liquidity"
+    ]
+  },
+  "yt_ch_026": {
+    "channel_id": "yt_ch_026",
+    "name": "SiliconPulse 06",
+    "platform": "youtube",
+    "niche": "finance",
+    "cluster_id": "c03_quant",
+    "language": "en",
+    "voice_preferred": "en-US-ChristopherNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_026",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "dark pool",
+      "high frequency trading",
+      "order flow",
+      "hedge fund",
+      "liquidity"
+    ]
+  },
+  "yt_ch_027": {
+    "channel_id": "yt_ch_027",
+    "name": "SiliconPulse 07",
+    "platform": "youtube",
+    "niche": "finance",
+    "cluster_id": "c03_quant",
+    "language": "en",
+    "voice_preferred": "en-US-ChristopherNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_027",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "dark pool",
+      "high frequency trading",
+      "order flow",
+      "hedge fund",
+      "liquidity"
+    ]
+  },
+  "yt_ch_028": {
+    "channel_id": "yt_ch_028",
+    "name": "SiliconPulse 08",
+    "platform": "youtube",
+    "niche": "finance",
+    "cluster_id": "c03_quant",
+    "language": "en",
+    "voice_preferred": "en-US-ChristopherNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_028",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "dark pool",
+      "high frequency trading",
+      "order flow",
+      "hedge fund",
+      "liquidity"
+    ]
+  },
+  "yt_ch_029": {
+    "channel_id": "yt_ch_029",
+    "name": "SiliconPulse 09",
+    "platform": "youtube",
+    "niche": "finance",
+    "cluster_id": "c03_quant",
+    "language": "en",
+    "voice_preferred": "en-US-ChristopherNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_029",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "dark pool",
+      "high frequency trading",
+      "order flow",
+      "hedge fund",
+      "liquidity"
+    ]
+  },
+  "yt_ch_030": {
+    "channel_id": "yt_ch_030",
+    "name": "SiliconPulse 10",
+    "platform": "youtube",
+    "niche": "finance",
+    "cluster_id": "c03_quant",
+    "language": "en",
+    "voice_preferred": "en-US-ChristopherNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_030",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "dark pool",
+      "high frequency trading",
+      "order flow",
+      "hedge fund",
+      "liquidity"
+    ]
+  },
+  "yt_ch_031": {
+    "channel_id": "yt_ch_031",
+    "name": "SovereignMacro 01",
+    "platform": "youtube",
+    "niche": "finance",
+    "cluster_id": "c04_macro",
+    "language": "en",
+    "voice_preferred": "en-US-BrianNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_031",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "federal reserve",
+      "treasury auctions",
+      "repo market",
+      "petrodollar",
+      "debt"
+    ]
+  },
+  "yt_ch_032": {
+    "channel_id": "yt_ch_032",
+    "name": "SovereignMacro 02",
+    "platform": "youtube",
+    "niche": "finance",
+    "cluster_id": "c04_macro",
+    "language": "en",
+    "voice_preferred": "en-US-BrianNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_032",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "federal reserve",
+      "treasury auctions",
+      "repo market",
+      "petrodollar",
+      "debt"
+    ]
+  },
+  "yt_ch_033": {
+    "channel_id": "yt_ch_033",
+    "name": "SovereignMacro 03",
+    "platform": "youtube",
+    "niche": "finance",
+    "cluster_id": "c04_macro",
+    "language": "en",
+    "voice_preferred": "en-US-BrianNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_033",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "federal reserve",
+      "treasury auctions",
+      "repo market",
+      "petrodollar",
+      "debt"
+    ]
+  },
+  "yt_ch_034": {
+    "channel_id": "yt_ch_034",
+    "name": "SovereignMacro 04",
+    "platform": "youtube",
+    "niche": "finance",
+    "cluster_id": "c04_macro",
+    "language": "en",
+    "voice_preferred": "en-US-BrianNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_034",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "federal reserve",
+      "treasury auctions",
+      "repo market",
+      "petrodollar",
+      "debt"
+    ]
+  },
+  "yt_ch_035": {
+    "channel_id": "yt_ch_035",
+    "name": "SovereignMacro 05",
+    "platform": "youtube",
+    "niche": "finance",
+    "cluster_id": "c04_macro",
+    "language": "en",
+    "voice_preferred": "en-US-BrianNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_035",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "federal reserve",
+      "treasury auctions",
+      "repo market",
+      "petrodollar",
+      "debt"
+    ]
+  },
+  "yt_ch_036": {
+    "channel_id": "yt_ch_036",
+    "name": "SovereignMacro 06",
+    "platform": "youtube",
+    "niche": "finance",
+    "cluster_id": "c04_macro",
+    "language": "en",
+    "voice_preferred": "en-US-BrianNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_036",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "federal reserve",
+      "treasury auctions",
+      "repo market",
+      "petrodollar",
+      "debt"
+    ]
+  },
+  "yt_ch_037": {
+    "channel_id": "yt_ch_037",
+    "name": "SovereignMacro 07",
+    "platform": "youtube",
+    "niche": "finance",
+    "cluster_id": "c04_macro",
+    "language": "en",
+    "voice_preferred": "en-US-BrianNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_037",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "federal reserve",
+      "treasury auctions",
+      "repo market",
+      "petrodollar",
+      "debt"
+    ]
+  },
+  "yt_ch_038": {
+    "channel_id": "yt_ch_038",
+    "name": "SovereignMacro 08",
+    "platform": "youtube",
+    "niche": "finance",
+    "cluster_id": "c04_macro",
+    "language": "en",
+    "voice_preferred": "en-US-BrianNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_038",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "federal reserve",
+      "treasury auctions",
+      "repo market",
+      "petrodollar",
+      "debt"
+    ]
+  },
+  "yt_ch_039": {
+    "channel_id": "yt_ch_039",
+    "name": "SovereignMacro 09",
+    "platform": "youtube",
+    "niche": "finance",
+    "cluster_id": "c04_macro",
+    "language": "en",
+    "voice_preferred": "en-US-BrianNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_039",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "federal reserve",
+      "treasury auctions",
+      "repo market",
+      "petrodollar",
+      "debt"
+    ]
+  },
+  "yt_ch_040": {
+    "channel_id": "yt_ch_040",
+    "name": "SovereignMacro 10",
+    "platform": "youtube",
+    "niche": "finance",
+    "cluster_id": "c04_macro",
+    "language": "en",
+    "voice_preferred": "en-US-BrianNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_040",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "federal reserve",
+      "treasury auctions",
+      "repo market",
+      "petrodollar",
+      "debt"
+    ]
+  },
+  "yt_ch_041": {
+    "channel_id": "yt_ch_041",
+    "name": "OrbitalDeep 01",
+    "platform": "youtube",
+    "niche": "science",
+    "cluster_id": "c05_space",
+    "language": "en",
+    "voice_preferred": "en-US-EricNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_041",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "starship",
+      "ion propulsion",
+      "deep space",
+      "astronomy",
+      "three body"
+    ]
+  },
+  "yt_ch_042": {
+    "channel_id": "yt_ch_042",
+    "name": "OrbitalDeep 02",
+    "platform": "youtube",
+    "niche": "science",
+    "cluster_id": "c05_space",
+    "language": "en",
+    "voice_preferred": "en-US-EricNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_042",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "starship",
+      "ion propulsion",
+      "deep space",
+      "astronomy",
+      "three body"
+    ]
+  },
+  "yt_ch_043": {
+    "channel_id": "yt_ch_043",
+    "name": "OrbitalDeep 03",
+    "platform": "youtube",
+    "niche": "science",
+    "cluster_id": "c05_space",
+    "language": "en",
+    "voice_preferred": "en-US-EricNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_043",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "starship",
+      "ion propulsion",
+      "deep space",
+      "astronomy",
+      "three body"
+    ]
+  },
+  "yt_ch_044": {
+    "channel_id": "yt_ch_044",
+    "name": "OrbitalDeep 04",
+    "platform": "youtube",
+    "niche": "science",
+    "cluster_id": "c05_space",
+    "language": "en",
+    "voice_preferred": "en-US-EricNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_044",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "starship",
+      "ion propulsion",
+      "deep space",
+      "astronomy",
+      "three body"
+    ]
+  },
+  "yt_ch_045": {
+    "channel_id": "yt_ch_045",
+    "name": "OrbitalDeep 05",
+    "platform": "youtube",
+    "niche": "science",
+    "cluster_id": "c05_space",
+    "language": "en",
+    "voice_preferred": "en-US-EricNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_045",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "starship",
+      "ion propulsion",
+      "deep space",
+      "astronomy",
+      "three body"
+    ]
+  },
+  "yt_ch_046": {
+    "channel_id": "yt_ch_046",
+    "name": "OrbitalDeep 06",
+    "platform": "youtube",
+    "niche": "science",
+    "cluster_id": "c05_space",
+    "language": "en",
+    "voice_preferred": "en-US-EricNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_046",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "starship",
+      "ion propulsion",
+      "deep space",
+      "astronomy",
+      "three body"
+    ]
+  },
+  "yt_ch_047": {
+    "channel_id": "yt_ch_047",
+    "name": "OrbitalDeep 07",
+    "platform": "youtube",
+    "niche": "science",
+    "cluster_id": "c05_space",
+    "language": "en",
+    "voice_preferred": "en-US-EricNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_047",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "starship",
+      "ion propulsion",
+      "deep space",
+      "astronomy",
+      "three body"
+    ]
+  },
+  "yt_ch_048": {
+    "channel_id": "yt_ch_048",
+    "name": "OrbitalDeep 08",
+    "platform": "youtube",
+    "niche": "science",
+    "cluster_id": "c05_space",
+    "language": "en",
+    "voice_preferred": "en-US-EricNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_048",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "starship",
+      "ion propulsion",
+      "deep space",
+      "astronomy",
+      "three body"
+    ]
+  },
+  "yt_ch_049": {
+    "channel_id": "yt_ch_049",
+    "name": "OrbitalDeep 09",
+    "platform": "youtube",
+    "niche": "science",
+    "cluster_id": "c05_space",
+    "language": "en",
+    "voice_preferred": "en-US-EricNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_049",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "starship",
+      "ion propulsion",
+      "deep space",
+      "astronomy",
+      "three body"
+    ]
+  },
+  "yt_ch_050": {
+    "channel_id": "yt_ch_050",
+    "name": "OrbitalDeep 10",
+    "platform": "youtube",
+    "niche": "science",
+    "cluster_id": "c05_space",
+    "language": "en",
+    "voice_preferred": "en-US-EricNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_050",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "starship",
+      "ion propulsion",
+      "deep space",
+      "astronomy",
+      "three body"
+    ]
+  },
+  "yt_ch_051": {
+    "channel_id": "yt_ch_051",
+    "name": "ZeroDayFiles 01",
+    "platform": "youtube",
+    "niche": "cybersecurity",
+    "cluster_id": "c06_cyber",
+    "language": "en",
+    "voice_preferred": "en-US-GuyNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_051",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "zero day",
+      "stuxnet",
+      "scada",
+      "cryptography",
+      "exploit"
+    ]
+  },
+  "yt_ch_052": {
+    "channel_id": "yt_ch_052",
+    "name": "ZeroDayFiles 02",
+    "platform": "youtube",
+    "niche": "cybersecurity",
+    "cluster_id": "c06_cyber",
+    "language": "en",
+    "voice_preferred": "en-US-GuyNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_052",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "zero day",
+      "stuxnet",
+      "scada",
+      "cryptography",
+      "exploit"
+    ]
+  },
+  "yt_ch_053": {
+    "channel_id": "yt_ch_053",
+    "name": "ZeroDayFiles 03",
+    "platform": "youtube",
+    "niche": "cybersecurity",
+    "cluster_id": "c06_cyber",
+    "language": "en",
+    "voice_preferred": "en-US-GuyNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_053",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "zero day",
+      "stuxnet",
+      "scada",
+      "cryptography",
+      "exploit"
+    ]
+  },
+  "yt_ch_054": {
+    "channel_id": "yt_ch_054",
+    "name": "ZeroDayFiles 04",
+    "platform": "youtube",
+    "niche": "cybersecurity",
+    "cluster_id": "c06_cyber",
+    "language": "en",
+    "voice_preferred": "en-US-GuyNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_054",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "zero day",
+      "stuxnet",
+      "scada",
+      "cryptography",
+      "exploit"
+    ]
+  },
+  "yt_ch_055": {
+    "channel_id": "yt_ch_055",
+    "name": "ZeroDayFiles 05",
+    "platform": "youtube",
+    "niche": "cybersecurity",
+    "cluster_id": "c06_cyber",
+    "language": "en",
+    "voice_preferred": "en-US-GuyNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_055",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "zero day",
+      "stuxnet",
+      "scada",
+      "cryptography",
+      "exploit"
+    ]
+  },
+  "yt_ch_056": {
+    "channel_id": "yt_ch_056",
+    "name": "ZeroDayFiles 06",
+    "platform": "youtube",
+    "niche": "cybersecurity",
+    "cluster_id": "c06_cyber",
+    "language": "en",
+    "voice_preferred": "en-US-GuyNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_056",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "zero day",
+      "stuxnet",
+      "scada",
+      "cryptography",
+      "exploit"
+    ]
+  },
+  "yt_ch_057": {
+    "channel_id": "yt_ch_057",
+    "name": "ZeroDayFiles 07",
+    "platform": "youtube",
+    "niche": "cybersecurity",
+    "cluster_id": "c06_cyber",
+    "language": "en",
+    "voice_preferred": "en-US-GuyNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_057",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "zero day",
+      "stuxnet",
+      "scada",
+      "cryptography",
+      "exploit"
+    ]
+  },
+  "yt_ch_058": {
+    "channel_id": "yt_ch_058",
+    "name": "ZeroDayFiles 08",
+    "platform": "youtube",
+    "niche": "cybersecurity",
+    "cluster_id": "c06_cyber",
+    "language": "en",
+    "voice_preferred": "en-US-GuyNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_058",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "zero day",
+      "stuxnet",
+      "scada",
+      "cryptography",
+      "exploit"
+    ]
+  },
+  "yt_ch_059": {
+    "channel_id": "yt_ch_059",
+    "name": "ZeroDayFiles 09",
+    "platform": "youtube",
+    "niche": "cybersecurity",
+    "cluster_id": "c06_cyber",
+    "language": "en",
+    "voice_preferred": "en-US-GuyNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_059",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "zero day",
+      "stuxnet",
+      "scada",
+      "cryptography",
+      "exploit"
+    ]
+  },
+  "yt_ch_060": {
+    "channel_id": "yt_ch_060",
+    "name": "ZeroDayFiles 10",
+    "platform": "youtube",
+    "niche": "cybersecurity",
+    "cluster_id": "c06_cyber",
+    "language": "en",
+    "voice_preferred": "en-US-GuyNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_060",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "zero day",
+      "stuxnet",
+      "scada",
+      "cryptography",
+      "exploit"
+    ]
+  },
+  "yt_ch_061": {
+    "channel_id": "yt_ch_061",
+    "name": "AtomicHorizon 01",
+    "platform": "youtube",
+    "niche": "energy",
+    "cluster_id": "c07_energy",
+    "language": "en",
+    "voice_preferred": "en-US-ChristopherNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_061",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "nuclear fusion",
+      "smr",
+      "geothermal",
+      "grid inertia",
+      "tokamak"
+    ]
+  },
+  "yt_ch_062": {
+    "channel_id": "yt_ch_062",
+    "name": "AtomicHorizon 02",
+    "platform": "youtube",
+    "niche": "energy",
+    "cluster_id": "c07_energy",
+    "language": "en",
+    "voice_preferred": "en-US-ChristopherNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_062",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "nuclear fusion",
+      "smr",
+      "geothermal",
+      "grid inertia",
+      "tokamak"
+    ]
+  },
+  "yt_ch_063": {
+    "channel_id": "yt_ch_063",
+    "name": "AtomicHorizon 03",
+    "platform": "youtube",
+    "niche": "energy",
+    "cluster_id": "c07_energy",
+    "language": "en",
+    "voice_preferred": "en-US-ChristopherNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_063",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "nuclear fusion",
+      "smr",
+      "geothermal",
+      "grid inertia",
+      "tokamak"
+    ]
+  },
+  "yt_ch_064": {
+    "channel_id": "yt_ch_064",
+    "name": "AtomicHorizon 04",
+    "platform": "youtube",
+    "niche": "energy",
+    "cluster_id": "c07_energy",
+    "language": "en",
+    "voice_preferred": "en-US-ChristopherNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_064",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "nuclear fusion",
+      "smr",
+      "geothermal",
+      "grid inertia",
+      "tokamak"
+    ]
+  },
+  "yt_ch_065": {
+    "channel_id": "yt_ch_065",
+    "name": "AtomicHorizon 05",
+    "platform": "youtube",
+    "niche": "energy",
+    "cluster_id": "c07_energy",
+    "language": "en",
+    "voice_preferred": "en-US-ChristopherNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_065",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "nuclear fusion",
+      "smr",
+      "geothermal",
+      "grid inertia",
+      "tokamak"
+    ]
+  },
+  "yt_ch_066": {
+    "channel_id": "yt_ch_066",
+    "name": "AtomicHorizon 06",
+    "platform": "youtube",
+    "niche": "energy",
+    "cluster_id": "c07_energy",
+    "language": "en",
+    "voice_preferred": "en-US-ChristopherNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_066",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "nuclear fusion",
+      "smr",
+      "geothermal",
+      "grid inertia",
+      "tokamak"
+    ]
+  },
+  "yt_ch_067": {
+    "channel_id": "yt_ch_067",
+    "name": "AtomicHorizon 07",
+    "platform": "youtube",
+    "niche": "energy",
+    "cluster_id": "c07_energy",
+    "language": "en",
+    "voice_preferred": "en-US-ChristopherNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_067",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "nuclear fusion",
+      "smr",
+      "geothermal",
+      "grid inertia",
+      "tokamak"
+    ]
+  },
+  "yt_ch_068": {
+    "channel_id": "yt_ch_068",
+    "name": "AtomicHorizon 08",
+    "platform": "youtube",
+    "niche": "energy",
+    "cluster_id": "c07_energy",
+    "language": "en",
+    "voice_preferred": "en-US-ChristopherNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_068",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "nuclear fusion",
+      "smr",
+      "geothermal",
+      "grid inertia",
+      "tokamak"
+    ]
+  },
+  "yt_ch_069": {
+    "channel_id": "yt_ch_069",
+    "name": "AtomicHorizon 09",
+    "platform": "youtube",
+    "niche": "energy",
+    "cluster_id": "c07_energy",
+    "language": "en",
+    "voice_preferred": "en-US-ChristopherNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_069",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "nuclear fusion",
+      "smr",
+      "geothermal",
+      "grid inertia",
+      "tokamak"
+    ]
+  },
+  "yt_ch_070": {
+    "channel_id": "yt_ch_070",
+    "name": "AtomicHorizon 10",
+    "platform": "youtube",
+    "niche": "energy",
+    "cluster_id": "c07_energy",
+    "language": "en",
+    "voice_preferred": "en-US-ChristopherNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_070",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "nuclear fusion",
+      "smr",
+      "geothermal",
+      "grid inertia",
+      "tokamak"
+    ]
+  },
+  "yt_ch_071": {
+    "channel_id": "yt_ch_071",
+    "name": "BioSynthetic 01",
+    "platform": "youtube",
+    "niche": "biotech",
+    "cluster_id": "c08_biotech",
+    "language": "en",
+    "voice_preferred": "en-US-JennyNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_071",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "crispr",
+      "mrna",
+      "neuralink",
+      "aging",
+      "synthetic chromosome"
+    ]
+  },
+  "yt_ch_072": {
+    "channel_id": "yt_ch_072",
+    "name": "BioSynthetic 02",
+    "platform": "youtube",
+    "niche": "biotech",
+    "cluster_id": "c08_biotech",
+    "language": "en",
+    "voice_preferred": "en-US-JennyNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_072",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "crispr",
+      "mrna",
+      "neuralink",
+      "aging",
+      "synthetic chromosome"
+    ]
+  },
+  "yt_ch_073": {
+    "channel_id": "yt_ch_073",
+    "name": "BioSynthetic 03",
+    "platform": "youtube",
+    "niche": "biotech",
+    "cluster_id": "c08_biotech",
+    "language": "en",
+    "voice_preferred": "en-US-JennyNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_073",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "crispr",
+      "mrna",
+      "neuralink",
+      "aging",
+      "synthetic chromosome"
+    ]
+  },
+  "yt_ch_074": {
+    "channel_id": "yt_ch_074",
+    "name": "BioSynthetic 04",
+    "platform": "youtube",
+    "niche": "biotech",
+    "cluster_id": "c08_biotech",
+    "language": "en",
+    "voice_preferred": "en-US-JennyNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_074",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "crispr",
+      "mrna",
+      "neuralink",
+      "aging",
+      "synthetic chromosome"
+    ]
+  },
+  "yt_ch_075": {
+    "channel_id": "yt_ch_075",
+    "name": "BioSynthetic 05",
+    "platform": "youtube",
+    "niche": "biotech",
+    "cluster_id": "c08_biotech",
+    "language": "en",
+    "voice_preferred": "en-US-JennyNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_075",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "crispr",
+      "mrna",
+      "neuralink",
+      "aging",
+      "synthetic chromosome"
+    ]
+  },
+  "yt_ch_076": {
+    "channel_id": "yt_ch_076",
+    "name": "BioSynthetic 06",
+    "platform": "youtube",
+    "niche": "biotech",
+    "cluster_id": "c08_biotech",
+    "language": "en",
+    "voice_preferred": "en-US-JennyNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_076",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "crispr",
+      "mrna",
+      "neuralink",
+      "aging",
+      "synthetic chromosome"
+    ]
+  },
+  "yt_ch_077": {
+    "channel_id": "yt_ch_077",
+    "name": "BioSynthetic 07",
+    "platform": "youtube",
+    "niche": "biotech",
+    "cluster_id": "c08_biotech",
+    "language": "en",
+    "voice_preferred": "en-US-JennyNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_077",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "crispr",
+      "mrna",
+      "neuralink",
+      "aging",
+      "synthetic chromosome"
+    ]
+  },
+  "yt_ch_078": {
+    "channel_id": "yt_ch_078",
+    "name": "BioSynthetic 08",
+    "platform": "youtube",
+    "niche": "biotech",
+    "cluster_id": "c08_biotech",
+    "language": "en",
+    "voice_preferred": "en-US-JennyNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_078",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "crispr",
+      "mrna",
+      "neuralink",
+      "aging",
+      "synthetic chromosome"
+    ]
+  },
+  "yt_ch_079": {
+    "channel_id": "yt_ch_079",
+    "name": "BioSynthetic 09",
+    "platform": "youtube",
+    "niche": "biotech",
+    "cluster_id": "c08_biotech",
+    "language": "en",
+    "voice_preferred": "en-US-JennyNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_079",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "crispr",
+      "mrna",
+      "neuralink",
+      "aging",
+      "synthetic chromosome"
+    ]
+  },
+  "yt_ch_080": {
+    "channel_id": "yt_ch_080",
+    "name": "BioSynthetic 10",
+    "platform": "youtube",
+    "niche": "biotech",
+    "cluster_id": "c08_biotech",
+    "language": "en",
+    "voice_preferred": "en-US-JennyNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_080",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "crispr",
+      "mrna",
+      "neuralink",
+      "aging",
+      "synthetic chromosome"
+    ]
+  },
+  "yt_ch_081": {
+    "channel_id": "yt_ch_081",
+    "name": "KineticSwarm 01",
+    "platform": "youtube",
+    "niche": "robotics",
+    "cluster_id": "c09_robotics",
+    "language": "en",
+    "voice_preferred": "en-US-ChristopherNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_081",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "humanoid",
+      "actuator",
+      "drone swarm",
+      "slam",
+      "bipedal"
+    ]
+  },
+  "yt_ch_082": {
+    "channel_id": "yt_ch_082",
+    "name": "KineticSwarm 02",
+    "platform": "youtube",
+    "niche": "robotics",
+    "cluster_id": "c09_robotics",
+    "language": "en",
+    "voice_preferred": "en-US-ChristopherNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_082",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "humanoid",
+      "actuator",
+      "drone swarm",
+      "slam",
+      "bipedal"
+    ]
+  },
+  "yt_ch_083": {
+    "channel_id": "yt_ch_083",
+    "name": "KineticSwarm 03",
+    "platform": "youtube",
+    "niche": "robotics",
+    "cluster_id": "c09_robotics",
+    "language": "en",
+    "voice_preferred": "en-US-ChristopherNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_083",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "humanoid",
+      "actuator",
+      "drone swarm",
+      "slam",
+      "bipedal"
+    ]
+  },
+  "yt_ch_084": {
+    "channel_id": "yt_ch_084",
+    "name": "KineticSwarm 04",
+    "platform": "youtube",
+    "niche": "robotics",
+    "cluster_id": "c09_robotics",
+    "language": "en",
+    "voice_preferred": "en-US-ChristopherNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_084",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "humanoid",
+      "actuator",
+      "drone swarm",
+      "slam",
+      "bipedal"
+    ]
+  },
+  "yt_ch_085": {
+    "channel_id": "yt_ch_085",
+    "name": "KineticSwarm 05",
+    "platform": "youtube",
+    "niche": "robotics",
+    "cluster_id": "c09_robotics",
+    "language": "en",
+    "voice_preferred": "en-US-ChristopherNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_085",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "humanoid",
+      "actuator",
+      "drone swarm",
+      "slam",
+      "bipedal"
+    ]
+  },
+  "yt_ch_086": {
+    "channel_id": "yt_ch_086",
+    "name": "KineticSwarm 06",
+    "platform": "youtube",
+    "niche": "robotics",
+    "cluster_id": "c09_robotics",
+    "language": "en",
+    "voice_preferred": "en-US-ChristopherNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_086",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "humanoid",
+      "actuator",
+      "drone swarm",
+      "slam",
+      "bipedal"
+    ]
+  },
+  "yt_ch_087": {
+    "channel_id": "yt_ch_087",
+    "name": "KineticSwarm 07",
+    "platform": "youtube",
+    "niche": "robotics",
+    "cluster_id": "c09_robotics",
+    "language": "en",
+    "voice_preferred": "en-US-ChristopherNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_087",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "humanoid",
+      "actuator",
+      "drone swarm",
+      "slam",
+      "bipedal"
+    ]
+  },
+  "yt_ch_088": {
+    "channel_id": "yt_ch_088",
+    "name": "KineticSwarm 08",
+    "platform": "youtube",
+    "niche": "robotics",
+    "cluster_id": "c09_robotics",
+    "language": "en",
+    "voice_preferred": "en-US-ChristopherNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_088",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "humanoid",
+      "actuator",
+      "drone swarm",
+      "slam",
+      "bipedal"
+    ]
+  },
+  "yt_ch_089": {
+    "channel_id": "yt_ch_089",
+    "name": "KineticSwarm 09",
+    "platform": "youtube",
+    "niche": "robotics",
+    "cluster_id": "c09_robotics",
+    "language": "en",
+    "voice_preferred": "en-US-ChristopherNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_089",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "humanoid",
+      "actuator",
+      "drone swarm",
+      "slam",
+      "bipedal"
+    ]
+  },
+  "yt_ch_090": {
+    "channel_id": "yt_ch_090",
+    "name": "KineticSwarm 10",
+    "platform": "youtube",
+    "niche": "robotics",
+    "cluster_id": "c09_robotics",
+    "language": "en",
+    "voice_preferred": "en-US-ChristopherNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_090",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "humanoid",
+      "actuator",
+      "drone swarm",
+      "slam",
+      "bipedal"
+    ]
+  },
+  "yt_ch_091": {
+    "channel_id": "yt_ch_091",
+    "name": "BharatTechVault 01",
+    "platform": "youtube",
+    "niche": "hindi_documentary",
+    "cluster_id": "c10_hindi",
+    "language": "hi",
+    "voice_preferred": "hi-IN-MadhurNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_091",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "monopoly hindi",
+      "asml hindi",
+      "tech war india",
+      "case study",
+      "dark pools"
+    ]
+  },
+  "yt_ch_092": {
+    "channel_id": "yt_ch_092",
+    "name": "BharatTechVault 02",
+    "platform": "youtube",
+    "niche": "hindi_documentary",
+    "cluster_id": "c10_hindi",
+    "language": "hi",
+    "voice_preferred": "hi-IN-MadhurNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_092",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "monopoly hindi",
+      "asml hindi",
+      "tech war india",
+      "case study",
+      "dark pools"
+    ]
+  },
+  "yt_ch_093": {
+    "channel_id": "yt_ch_093",
+    "name": "BharatTechVault 03",
+    "platform": "youtube",
+    "niche": "hindi_documentary",
+    "cluster_id": "c10_hindi",
+    "language": "hi",
+    "voice_preferred": "hi-IN-MadhurNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_093",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "monopoly hindi",
+      "asml hindi",
+      "tech war india",
+      "case study",
+      "dark pools"
+    ]
+  },
+  "yt_ch_094": {
+    "channel_id": "yt_ch_094",
+    "name": "BharatTechVault 04",
+    "platform": "youtube",
+    "niche": "hindi_documentary",
+    "cluster_id": "c10_hindi",
+    "language": "hi",
+    "voice_preferred": "hi-IN-MadhurNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_094",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "monopoly hindi",
+      "asml hindi",
+      "tech war india",
+      "case study",
+      "dark pools"
+    ]
+  },
+  "yt_ch_095": {
+    "channel_id": "yt_ch_095",
+    "name": "BharatTechVault 05",
+    "platform": "youtube",
+    "niche": "hindi_documentary",
+    "cluster_id": "c10_hindi",
+    "language": "hi",
+    "voice_preferred": "hi-IN-MadhurNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_095",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "monopoly hindi",
+      "asml hindi",
+      "tech war india",
+      "case study",
+      "dark pools"
+    ]
+  },
+  "yt_ch_096": {
+    "channel_id": "yt_ch_096",
+    "name": "BharatTechVault 06",
+    "platform": "youtube",
+    "niche": "hindi_documentary",
+    "cluster_id": "c10_hindi",
+    "language": "hi",
+    "voice_preferred": "hi-IN-MadhurNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_096",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "monopoly hindi",
+      "asml hindi",
+      "tech war india",
+      "case study",
+      "dark pools"
+    ]
+  },
+  "yt_ch_097": {
+    "channel_id": "yt_ch_097",
+    "name": "BharatTechVault 07",
+    "platform": "youtube",
+    "niche": "hindi_documentary",
+    "cluster_id": "c10_hindi",
+    "language": "hi",
+    "voice_preferred": "hi-IN-MadhurNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_097",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "monopoly hindi",
+      "asml hindi",
+      "tech war india",
+      "case study",
+      "dark pools"
+    ]
+  },
+  "yt_ch_098": {
+    "channel_id": "yt_ch_098",
+    "name": "BharatTechVault 08",
+    "platform": "youtube",
+    "niche": "hindi_documentary",
+    "cluster_id": "c10_hindi",
+    "language": "hi",
+    "voice_preferred": "hi-IN-MadhurNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_098",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "monopoly hindi",
+      "asml hindi",
+      "tech war india",
+      "case study",
+      "dark pools"
+    ]
+  },
+  "yt_ch_099": {
+    "channel_id": "yt_ch_099",
+    "name": "BharatTechVault 09",
+    "platform": "youtube",
+    "niche": "hindi_documentary",
+    "cluster_id": "c10_hindi",
+    "language": "hi",
+    "voice_preferred": "hi-IN-MadhurNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_099",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "monopoly hindi",
+      "asml hindi",
+      "tech war india",
+      "case study",
+      "dark pools"
+    ]
+  },
+  "yt_ch_100": {
+    "channel_id": "yt_ch_100",
+    "name": "BharatTechVault 10",
+    "platform": "youtube",
+    "niche": "hindi_documentary",
+    "cluster_id": "c10_hindi",
+    "language": "hi",
+    "voice_preferred": "hi-IN-MadhurNeural",
+    "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_100",
+    "daily_max_uploads": 3,
+    "visibility": "unlisted",
+    "keywords": [
+      "monopoly hindi",
+      "asml hindi",
+      "tech war india",
+      "case study",
+      "dark pools"
+    ]
+  },
   "channel_trading": {
     "name": "Silicon Pulse",
     "profile_dir": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\yt_uploader\\profiles\\channel_trading",

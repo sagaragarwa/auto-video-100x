@@ -141,33 +141,56 @@ Return STRICTLY valid JSON with no markdown formatting:
     ]
 
 
-def synthesize_tier1_script_and_seo(topic: str, niche: str, channel_name: str, duration_min: int = 30) -> Dict[str, Any]:
+def synthesize_tier1_script_and_seo(topic: str, niche: str, channel_name: str, duration_min: int = 30, language: str = "en") -> Dict[str, Any]:
     """
     Generates a full institutional spoken script and God-Tier SEO package via Multi-Brain (Groq / OpenRouter / Gemini).
+    Supports English ('en') and Hindi ('hi').
     """
-    logger.info(f"✍️ Synthesizing Tier-1 English Documentary Script ({duration_min} min) for '{topic}'...")
+    lang_name = "Hindi" if language in ("hi", "hindi") else "English"
+    logger.info(f"✍️ Synthesizing Tier-1 {lang_name} Documentary Script ({duration_min} min) for '{topic}'...")
     target_words = max(600, min(10000, int(duration_min * 140)))
 
-    narrative_structure = (
-        f"1. Write an authoritative, gripping, 3-Act spoken documentary voiceover script (~{target_words} words).\n"
-        f"   - Act I: The Anomaly & The Hook (Deconstruct the surface illusion)\n"
-        f"   - Act II: The Mechanical Breakdown & Empirical Case Study\n"
-        f"   - Act III: The Strategic Verdict & The Irreversible Future\n"
-        f"   - NO scene directions, NO bracketed markers like [Music swells]. ONLY spoken narrator speech."
-    ) if duration_min <= 10 else (
-        f"1. Write an authoritative, gripping, 5-Act spoken documentary voiceover script (~{target_words} words).\n"
-        f"   - Act I: The Anomaly & The Hook (Deconstruct the surface illusion)\n"
-        f"   - Act II: The Mathematical & Physical Architecture (Granular mechanical breakdown)\n"
-        f"   - Act III: Covert Players & Trillion-Dollar Incentives (The hidden institutional players)\n"
-        f"   - Act IV: Real-World Stress Tests & Case Studies (Empirical failures & turning points)\n"
-        f"   - Act V: The Geopolitical Horizon & Strategic Framework (The irreversible future)\n"
-        f"   - NO scene directions, NO bracketed markers like [Music swells]. ONLY spoken narrator speech."
-    )
+    if language in ("hi", "hindi"):
+        narrative_structure = (
+            f"1. Write an authoritative, gripping, dramatic spoken documentary voiceover in clear, professional HINDI (~{target_words} words).\n"
+            f"   - Tone: Intellectual, gripping, high-production documentary (style of Dhruv Rathee / Nitish Rajput / BBC Hindi).\n"
+            f"   - Script language: Pure fluent HINDI (Devanagari script or clean natural Hindi).\n"
+            f"   - Act I: The Anomaly & Shocking Hook (Deconstruct the surface illusion)\n"
+            f"   - Act II: The Granular Mechanism & Architecture (Deep mechanical explanation)\n"
+            f"   - Act III: Covert Players & Trillion-Dollar Incentives\n"
+            f"   - Act IV: Real-World Case Studies & Empirical Failures\n"
+            f"   - Act V: The Strategic Verdict & The Future Horizon\n"
+            f"   - NO scene directions, NO bracketed markers like [Music swells]. ONLY spoken narrator speech."
+        )
+        audience_desc = "Hindi documentary viewers (India, Global Hindi audience)"
+        terms_desc = '15 visual search keywords in ENGLISH (e.g. "supercomputer servers", "semiconductor wafer", "stock market floor") so stock footage APIs can find real 1080p clips.'
+        title_desc = "60-character CTR-optimized viral Hindi title."
+        punchline_desc = "2-3 words capitalized punchline in Hindi/English."
+    else:
+        narrative_structure = (
+            f"1. Write an authoritative, gripping, 3-Act spoken documentary voiceover script (~{target_words} words).\n"
+            f"   - Act I: The Anomaly & The Hook (Deconstruct the surface illusion)\n"
+            f"   - Act II: The Mechanical Breakdown & Empirical Case Study\n"
+            f"   - Act III: The Strategic Verdict & The Irreversible Future\n"
+            f"   - NO scene directions, NO bracketed markers like [Music swells]. ONLY spoken narrator speech."
+        ) if duration_min <= 10 else (
+            f"1. Write an authoritative, gripping, 5-Act spoken documentary voiceover script (~{target_words} words).\n"
+            f"   - Act I: The Anomaly & The Hook (Deconstruct the surface illusion)\n"
+            f"   - Act II: The Mathematical & Physical Architecture (Granular mechanical breakdown)\n"
+            f"   - Act III: Covert Players & Trillion-Dollar Incentives (The hidden institutional players)\n"
+            f"   - Act IV: Real-World Stress Tests & Case Studies (Empirical failures & turning points)\n"
+            f"   - Act V: The Geopolitical Horizon & Strategic Framework (The irreversible future)\n"
+            f"   - NO scene directions, NO bracketed markers like [Music swells]. ONLY spoken narrator speech."
+        )
+        audience_desc = "Tier-1 English (USA, UK, Canada, Australia)"
+        terms_desc = "15 visual search keywords for 4K stock footage."
+        title_desc = "60-character CTR-optimized viral title."
+        punchline_desc = "2-3 words capitalized."
 
     chapters_count = "3-4" if duration_min <= 10 else "6-10"
 
     prompt = f"""You are a master institutional documentary writer (in the style of Bloomberg Originals, Veritasium, and Frontline) and YouTube/Rumble algorithmic SEO engineer.
-Target Audience: Tier-1 English (USA, UK, Canada, Australia)
+Target Audience: {audience_desc}
 Topic: "{topic}"
 Channel Name: "{channel_name}"
 Niche: "{niche}"
@@ -175,13 +198,11 @@ Target Duration: {duration_min} minutes (~{target_words} words)
 
 Requirements:
 {narrative_structure}
-2. "title": 60-character CTR-optimized viral title.
-3. "thumbnail_punchline": 2-3 words capitalized.
-4. "video_terms": 15 visual search keywords for 4K stock footage.
+2. "title": {title_desc}
+3. "thumbnail_punchline": {punchline_desc}
+4. "video_terms": {terms_desc}
 5. "tags": 15 high-volume algorithmic SEO tags.
-6. "description": Engaging description including {chapters_count} chapter timestamps spread across 00:00 to {duration_min:02d}:00:
-   00:00 - Chapter 1: The Broken Illusion
-   ...
+6. "description": Engaging description including {chapters_count} chapter timestamps spread across 00:00 to {duration_min:02d}:00.
 7. "pinned_comment": Engaging question with high-conversion discussion prompt.
 
 Return STRICTLY valid JSON:
@@ -219,7 +240,7 @@ Return STRICTLY valid JSON:
         duration_s=duration_s,
         channel_name=channel_name,
         niche=niche,
-        language="en"
+        language="hi" if language in ("hi", "hindi") else "en"
     )
 
     data["seo_score"] = seo.get("seo_score", 98)
@@ -314,20 +335,21 @@ def produce_and_queue_tier1_video(
     platform: str = "youtube",
     duration_min: Optional[int] = None,
     custom_topic: Optional[str] = None,
+    language: str = "en",
     auto_upload_unlisted: bool = False
 ) -> Dict[str, Any]:
     """
     End-to-End Orchestrator:
     1. Researches Topic (or uses custom topic)
-    2. Writes Tier-1 Script & SEO for target duration (5 to 60+ min)
-    3. Synthesizes Audio with Shure SM7B DSP
-    4. Renders 1080p Master Video with Outro Lock
+    2. Writes Tier-1 Script & SEO for target duration (5 to 60+ min, English or Hindi)
+    3. Synthesizes Audio with Shure SM7B DSP (Edge-TTS English or Hindi)
+    4. Renders 1080p Master Video with Outro Lock (100% Real Stock, ZERO AI IMAGES)
     5. Prepends to Unlisted Queue
     6. Automatically triggers Playwright upload if auto_upload_unlisted=True
     """
     niche = channel_data.get("niche", "technology")
     ch_name = channel_data.get("name", channel_key)
-    voice = channel_data.get("voice_preferred", "en-US-ChristopherNeural")
+    voice = "hi-IN-MadhurNeural" if language in ("hi", "hindi") else channel_data.get("voice_preferred", "en-US-ChristopherNeural")
 
     # 1. Resolve Topic & Duration
     chosen_topic = custom_topic
@@ -340,7 +362,7 @@ def produce_and_queue_tier1_video(
             chosen_duration = topics[0].get("duration_min", 30)
 
     # 2. Generate Script & SEO
-    script_data = synthesize_tier1_script_and_seo(chosen_topic, niche, ch_name, duration_min=chosen_duration)
+    script_data = synthesize_tier1_script_and_seo(chosen_topic, niche, ch_name, duration_min=chosen_duration, language=language)
 
     # 3. Render Master Video (100% Real Authentic Stock Footage from Pexels/Pixabay/Wikimedia)
     master_video_path = render_tier1_master_video(script_data, channel_key, voice=voice)
@@ -380,7 +402,7 @@ def produce_and_queue_tier1_video(
         "channel_id": channel_key,
         "channel_name": ch_name,
         "platform": platform,
-        "language": "en",
+        "language": language,
         "video_url": "https://studio.youtube.com/videos",
         "studio_edit_url": "https://studio.youtube.com/videos",
         "local_video_path": clean_rel_path,
@@ -417,7 +439,21 @@ def produce_and_queue_tier1_video(
     except Exception as e:
         logger.error(f"Error registering in queue: {e}")
 
-    # 5. Immediate Auto-Upload if requested
+    # 6. Store in Persistent ChromaDB Vector Memory (0% Duplicate Topic Enforcer)
+    try:
+        from omnichannel_powerhouse.vector_memory import VECTOR_MEMORY
+        VECTOR_MEMORY.store_video_memory(
+            video_id=vid_id,
+            title=script_data.get("title", chosen_topic),
+            script_excerpt=script_data.get("video_script", "")[:1200],
+            niche=niche,
+            channel_id=channel_key,
+            language=language
+        )
+    except Exception as me:
+        logger.warning(f"Vector memory store notice: {me}")
+
+    # 7. Immediate Auto-Upload if requested
     upload_res = None
     if auto_upload_unlisted and platform == "youtube":
         try:
