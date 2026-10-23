@@ -31,18 +31,28 @@ from omnichannel_powerhouse.agent_commander.memory import (
 )
 
 DEFAULT_SYSTEM_PROMPT = """You are the Supreme AI Commander of the OmniChannel Autonomous Empire, engineered to match Antigravity in agentic capability, technical depth, and sovereign execution power.
-You possess complete real-time authority and agentic tools over:
-1. System Shell & OS Control: Running PowerShell commands, checking CPU/RAM/GPU, testing FFmpeg, inspecting disk, verifying processes, and managing git (tool_run_command).
+
+CRITICAL PHYSICAL REALITY & MACHINE GROUNDING (ZERO HALLUCINATION MANDATE):
+1. Execution Environment: You are running DIRECTLY on the user's physical Windows PC / Laptop (Host: localhost:8899).
+2. Workspace Root: C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main.
+3. Operating System: Windows 11 / Windows 10 (C: drive). You execute actual PowerShell and CMD commands on this physical drive.
+4. ABSOLUTE TRUTH: You are NOT running in a remote cloud container, NOT inside Docker, NOT on GitHub servers, and NOT in a virtual sandbox.
+5. If the user asks whether files, disk space, or processes belong to GitHub or their PC ("ye github ka bola ya mere PC ka"), you MUST state with 100% honesty: "यह आपके अपने असली फिजिकल कंप्यूटर (लोकल Windows PC - Drive C:) का डेटा है, किसी क्लाउड या GitHub का नहीं।"
+6. Safety Protocol: Because you have real, physical access to their machine, NEVER delete user files without explicit confirmation, and always clearly identify which files are safe temporary caches (e.g. temp_render) versus master videos or critical project code.
+
+CORE POWERS & TOOLS:
+1. System Shell & OS Control: Running PowerShell commands, checking CPU/RAM/GPU, testing FFmpeg, inspecting disk, verifying processes, and managing git (tool_run_command, tool_list_directory).
 2. Codebase & File Surgery: Reading repository files (tool_read_file), creating new files (tool_write_file), and surgical drop-in string replacements (tool_edit_file).
-3. Dynamic Non-Blocking Video Production: Synthesizing institutional documentaries (5, 10, 15, 20, 30, 45, 60+ min) with 100% human studio voice (Google Gemini 2.5 Flash Native Speech for Hindi / Kokoro-82M for English) and Shure SM7B DSP mastering (-14 LUFS).
+3. Dynamic Non-Blocking Video Production: Synthesizing institutional documentaries (5 to 60+ min) with 100% human studio voice (Google Gemini 2.5 Flash Native Speech for both Hindi and English) and Shure SM7B DSP mastering (-14 LUFS).
 4. Zero-Repeat 1080p B-roll Stream: STRICT ZERO AI IMAGES. Sourcing 100+ strictly unique clips across Pixabay & Pexels without visual repeats.
 5. WhatsApp-Style Real-Time Notifications: Asynchronous background production (tool_manage_task) triggering live chimes, voice speech alerts, and in-chat incoming updates upon completion.
 6. 24/7 Standing Orders & Swarm: Scheduling recurring autonomous production and uploads every N hours (tool_schedule_standing_order).
-7. Zero-Token Shield: Routing queries through Groq (120B @ 800 t/s) and OpenRouter with Gemini Key Pool failover.
+7. Single Master Repo: All operations belong to GitHub repo https://github.com/sagaragarwa/auto-video-100x.git.
 
-You speak authoritatively, smartly, and concisely in English, Hindi, or Hinglish depending on what the user speaks.
-When diagnosing an issue, testing an API, checking disk, or manufacturing a video, ALWAYS call the appropriate tools iteratively (Thought -> Tool Call -> Tool Result Observation -> Thought -> Next Step) to verify telemetry with real evidence.
-Always format output in rich GitHub-style Markdown with tables, bullet points, and execution telemetry.
+EXECUTION & SYNTHESIS RULES:
+- ReAct Loop: When diagnosing an issue, testing an API, checking disk, or manufacturing a video, ALWAYS call the appropriate tools iteratively (Thought -> Tool Call -> Tool Result Observation -> Thought -> Next Step) to verify telemetry with real evidence.
+- Full Telemetry Reporting: After executing any tool, NEVER return a generic or empty message. You MUST ALWAYS present the real output, formatted in clean GitHub-style Markdown with tables, bullet points, and actionable conclusions.
+- Language: Speak naturally and fluently in Hindi, Hinglish, or English to match the user's language.
 """
 
 
@@ -50,7 +60,7 @@ def call_gemini_raw(payload: Dict[str, Any], model: str = "gemini-3.1-flash-lite
     """Calls Gemini REST API with automatic multi-key rotation, 429/503 failover, and model failover."""
     req_data = json.dumps(payload).encode("utf-8")
     candidate_models = [model]
-    for alt in ["gemini-3.1-flash-lite", "gemini-3.5-flash-lite", "gemini-flash-latest"]:
+    for alt in ["gemini-3.1-flash-lite", "gemini-3.5-flash", "gemini-3.8-flash"]:
         if alt not in candidate_models:
             candidate_models.append(alt)
 
@@ -246,7 +256,23 @@ def stream_chat_response(
                         })
 
                 if not assistant_final_text:
-                    assistant_final_text = "All autonomous directives and diagnostic verifications completed successfully."
+                    if executed_tools:
+                        blocks = []
+                        for et in executed_tools:
+                            t_name = et.get("tool", "Action")
+                            t_res = et.get("result", {})
+                            if "output" in t_res:
+                                blocks.append(f"### ⚙️ Command Output (`{t_name}`):\n```powershell\n{t_res['output'][:3500]}\n```")
+                            elif "entries" in t_res:
+                                items_str = "\n".join([f"- **{e['name']}** ({e['type']})" for e in t_res.get("entries", [])[:30]])
+                                blocks.append(f"### 📁 Directory Listing ({t_res.get('total_items', len(t_res.get('entries', [])))} items):\n{items_str}")
+                            elif "content" in t_res:
+                                blocks.append(f"### 📄 File Contents ({t_res.get('path', '')}):\n```\n{t_res['content'][:2500]}\n```")
+                            else:
+                                blocks.append(f"### 🔧 Result of `{t_name}`:\n```json\n{json.dumps(t_res, indent=2, ensure_ascii=False)[:2000]}\n```")
+                        assistant_final_text = "\n\n".join(blocks)
+                    else:
+                        assistant_final_text = "I have processed your request. Please let me know what specific action or check you would like to run next."
 
                 if "<think>" in assistant_final_text and "</think>" in assistant_final_text:
                     s_idx = assistant_final_text.find("<think>") + len("<think>")
@@ -365,7 +391,23 @@ def stream_chat_response(
         cur_contents.append({"role": "function", "parts": fn_resp_parts})
 
     if not assistant_final_text:
-        assistant_final_text = "All requested operations and checks executed successfully."
+        if executed_tools:
+            blocks = []
+            for et in executed_tools:
+                t_name = et.get("tool", "Action")
+                t_res = et.get("result", {})
+                if "output" in t_res:
+                    blocks.append(f"### ⚙️ Command Output (`{t_name}`):\n```powershell\n{t_res['output'][:3500]}\n```")
+                elif "entries" in t_res:
+                    items_str = "\n".join([f"- **{e['name']}** ({e['type']})" for e in t_res.get("entries", [])[:30]])
+                    blocks.append(f"### 📁 Directory Listing ({t_res.get('total_items', len(t_res.get('entries', [])))} items):\n{items_str}")
+                elif "content" in t_res:
+                    blocks.append(f"### 📄 File Contents ({t_res.get('path', '')}):\n```\n{t_res['content'][:2500]}\n```")
+                else:
+                    blocks.append(f"### 🔧 Result of `{t_name}`:\n```json\n{json.dumps(t_res, indent=2, ensure_ascii=False)[:2000]}\n```")
+            assistant_final_text = "\n\n".join(blocks)
+        else:
+            assistant_final_text = "All requested operations and checks executed successfully."
 
     # Filter out leaked internal thoughts (e.g. "The user wants to... Plan: ...")
     if "The user wants to" in assistant_final_text:
