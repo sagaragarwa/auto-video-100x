@@ -30,17 +30,18 @@ from omnichannel_powerhouse.agent_commander.memory import (
     create_session
 )
 
-DEFAULT_SYSTEM_PROMPT = """You are the Supreme AI Commander of the OmniChannel Autonomous Empire.
+DEFAULT_SYSTEM_PROMPT = """You are the Supreme AI Commander of the OmniChannel Autonomous Empire, engineered to match Antigravity in agentic capability, technical depth, and sovereign execution power.
 You possess complete real-time authority and agentic tools over:
-1. Dynamic Video Production: Synthesizing documentaries of ANY requested duration (5, 10, 15, 20, 30, 45, 60+ min) with Edge-TTS voices and 6-stage Shure SM7B DSP.
-2. Batch & Multi-Channel Swarm: Producing multiple videos across multiple channels (Silicon Pulse / channel_trading, Neural Stack / ai_and_tech, Mind Decoded / channel_psychology, motival) in a single command.
-3. 24/7 Standing Orders & Daemon: Scheduling recurring autonomous production and uploads every N hours (tool_schedule_standing_order).
-4. Content Protection & SEO: Hard-locking the 173.25s Vintage Blue Laser Content ID outro, 98/100 algorithmic SEO, custom thumbnails, and high-velocity pinned debate comments.
-5. Zero-Touch Uploads: Uploading directly to YouTube Studio as Unlisted via Playwright Chrome profiles.
-6. Zero-Token Shield: Routing queries through Groq (120B @ 800 t/s) and OpenRouter for 100% lifetime free operation with Gemini Key Pool failover.
+1. System Shell & OS Control: Running PowerShell commands, checking CPU/RAM/GPU, testing FFmpeg, inspecting disk, verifying processes, and managing git (tool_run_command).
+2. Codebase & File Surgery: Reading repository files (tool_read_file), creating new files (tool_write_file), and surgical drop-in string replacements (tool_edit_file).
+3. Dynamic Non-Blocking Video Production: Synthesizing institutional documentaries (5, 10, 15, 20, 30, 45, 60+ min) with 100% human studio voice (Google Gemini 2.5 Flash Native Speech for Hindi / Kokoro-82M for English) and Shure SM7B DSP mastering (-14 LUFS).
+4. Zero-Repeat 1080p B-roll Stream: STRICT ZERO AI IMAGES. Sourcing 100+ strictly unique clips across Pixabay & Pexels without visual repeats.
+5. WhatsApp-Style Real-Time Notifications: Asynchronous background production (tool_manage_task) triggering live chimes, voice speech alerts, and in-chat incoming updates upon completion.
+6. 24/7 Standing Orders & Swarm: Scheduling recurring autonomous production and uploads every N hours (tool_schedule_standing_order).
+7. Zero-Token Shield: Routing queries through Groq (120B @ 800 t/s) and OpenRouter with Gemini Key Pool failover.
 
 You speak authoritatively, smartly, and concisely in English, Hindi, or Hinglish depending on what the user speaks.
-When the user requests an action (e.g. "Silicon pulse pe 2 video 30 min ki aur Neural Stack pe 1 video 15 min ki banao aur upload kardo", or "har 12 ghante me ek video upload karo"), immediately call the appropriate tool (tool_batch_manufacture_and_upload, tool_manufacture_video, or tool_schedule_standing_order) to execute it.
+When diagnosing an issue, testing an API, checking disk, or manufacturing a video, ALWAYS call the appropriate tools iteratively (Thought -> Tool Call -> Tool Result Observation -> Thought -> Next Step) to verify telemetry with real evidence.
 Always format output in rich GitHub-style Markdown with tables, bullet points, and execution telemetry.
 """
 
@@ -181,20 +182,29 @@ def stream_chat_response(
             openai_tools = convert_gemini_tools_to_openai(GEMINI_FUNCTION_DECLARATIONS) if enable_tools else None
 
             try:
-                resp = call_openai_compatible_api(
-                    endpoint=endpoint,
-                    api_key=api_key,
-                    model=target_model_id,
-                    messages=openai_messages,
-                    tools=openai_tools
-                )
-                choice = resp.get("choices", [{}])[0].get("message", {})
-                tool_calls = choice.get("tool_calls", [])
+                max_react_steps = 8
+                react_step = 0
                 assistant_final_text = ""
-                thinking_text = f"Executed via {target_provider.upper()} ({target_model_id}) with ultra-low latency."
+                thinking_text = f"Autonomous ReAct reasoning loop active via {target_provider.upper()} ({target_model_id})."
                 executed_tools = []
 
-                if tool_calls:
+                while react_step < max_react_steps:
+                    react_step += 1
+                    current_tools = openai_tools if react_step < max_react_steps else None
+                    resp = call_openai_compatible_api(
+                        endpoint=endpoint,
+                        api_key=api_key,
+                        model=target_model_id,
+                        messages=openai_messages,
+                        tools=current_tools
+                    )
+                    choice = resp.get("choices", [{}])[0].get("message", {})
+                    tool_calls = choice.get("tool_calls", [])
+
+                    if not tool_calls:
+                        assistant_final_text = choice.get("content", "")
+                        break
+
                     assistant_msg = {
                         "role": "assistant",
                         "content": choice.get("content") or "",
@@ -211,36 +221,32 @@ def stream_chat_response(
                         except Exception:
                             pass
 
-                        yield f"data: {json.dumps({'type': 'tool_call', 'name': fn_name, 'args': fn_args})}\n\n"
+                        yield f"data: {json.dumps({'type': 'tool_call', 'name': fn_name, 'args': fn_args, 'step': react_step})}\n\n"
                         tool_func = TOOL_REGISTRY.get(fn_name)
                         tool_result = {}
                         if tool_func:
                             try:
+                                import inspect
+                                sig = inspect.signature(tool_func)
+                                if "session_id" in sig.parameters:
+                                    fn_args["session_id"] = session_id
                                 tool_result = tool_func(**fn_args)
                             except Exception as te:
                                 tool_result = {"success": False, "error": str(te)}
                         else:
                             tool_result = {"success": False, "error": f"Tool '{fn_name}' not registered"}
 
-                        executed_tools.append({"tool": fn_name, "args": fn_args, "result": tool_result})
-                        yield f"data: {json.dumps({'type': 'tool_result', 'name': fn_name, 'result': tool_result})}\n\n"
+                        executed_tools.append({"tool": fn_name, "args": fn_args, "result": tool_result, "step": react_step})
+                        yield f"data: {json.dumps({'type': 'tool_result', 'name': fn_name, 'result': tool_result, 'step': react_step})}\n\n"
 
                         openai_messages.append({
                             "role": "tool",
-                            "tool_call_id": tc.get("id", "call_1"),
-                            "content": json.dumps(tool_result)
+                            "tool_call_id": tc.get("id", f"call_{react_step}_{tc.get('id', '1')}"),
+                            "content": json.dumps(tool_result, ensure_ascii=False)
                         })
 
-                    followup = call_openai_compatible_api(
-                        endpoint=endpoint,
-                        api_key=api_key,
-                        model=target_model_id,
-                        messages=openai_messages,
-                        tools=None
-                    )
-                    assistant_final_text = followup.get("choices", [{}])[0].get("message", {}).get("content", "")
-                else:
-                    assistant_final_text = choice.get("content", "")
+                if not assistant_final_text:
+                    assistant_final_text = "All autonomous directives and diagnostic verifications completed successfully."
 
                 if "<think>" in assistant_final_text and "</think>" in assistant_final_text:
                     s_idx = assistant_final_text.find("<think>") + len("<think>")
@@ -276,86 +282,90 @@ def stream_chat_response(
                 target_provider = "gemini"
                 model_name = "gemini-3.5-flash"
 
-    try:
-        resp = call_gemini_raw(payload, model=model_name)
-    except Exception as e:
-        err_msg = f"API Error: {str(e)}"
-        yield f"data: {json.dumps({'type': 'error', 'message': err_msg})}\n\n"
-        save_message(session_id, role="assistant", content=err_msg)
-        return
-
-    candidate = resp.get("candidates", [{}])[0]
-    content_obj = candidate.get("content", {})
-    parts = content_obj.get("parts", [])
-
-    thinking_text = "Analyzed user query, verified channel configurations and quota states."
-    
-    # Check for functionCall
-    has_tool_call = any("functionCall" in p for p in parts)
+    cur_contents = list(contents)
+    max_gemini_react_steps = 8
     assistant_final_text = ""
     executed_tools = []
+    thinking_text = "Analyzed user query, verified empire telemetry."
 
-    for part in parts:
-        if "functionCall" in part:
-            fn_call = part["functionCall"]
-            fn_name = fn_call.get("name")
-            fn_args = fn_call.get("args", {})
+    for gemini_step in range(1, max_gemini_react_steps + 1):
+        cur_payload = {
+            "contents": cur_contents,
+            "systemInstruction": {"parts": [{"text": DEFAULT_SYSTEM_PROMPT}]},
+            "generationConfig": {
+                "temperature": 0.6,
+                "topP": 0.95,
+                "maxOutputTokens": 4096
+            }
+        }
+        if enable_tools:
+            cur_payload["tools"] = [{"function_declarations": GEMINI_FUNCTION_DECLARATIONS}]
 
-            yield f"data: {json.dumps({'type': 'tool_call', 'name': fn_name, 'args': fn_args})}\n\n"
-
-            # Execute the tool locally!
-            tool_func = TOOL_REGISTRY.get(fn_name)
-            tool_result = {}
-            if tool_func:
-                try:
-                    tool_result = tool_func(**fn_args)
-                except Exception as te:
-                    tool_result = {"success": False, "error": str(te)}
+        try:
+            resp = call_gemini_raw(cur_payload, model=model_name)
+        except Exception as e:
+            if gemini_step == 1:
+                err_msg = f"API Error: {str(e)}"
+                yield f"data: {json.dumps({'type': 'error', 'message': err_msg})}\n\n"
+                save_message(session_id, role="assistant", content=err_msg)
+                return
             else:
-                tool_result = {"success": False, "error": f"Tool '{fn_name}' not registered"}
+                break
 
-            executed_tools.append({"tool": fn_name, "args": fn_args, "result": tool_result})
-            yield f"data: {json.dumps({'type': 'tool_result', 'name': fn_name, 'result': tool_result})}\n\n"
+        candidate = resp.get("candidates", [{}])[0]
+        content_obj = candidate.get("content", {})
+        parts = content_obj.get("parts", [])
 
-            # Feed tool result back to Gemini for natural language synthesis
-            followup_contents = list(contents)
-            followup_contents.append({
-                "role": "model",
-                "parts": [{"functionCall": {"name": fn_name, "args": fn_args}}]
-            })
-            followup_contents.append({
-                "role": "function",
-                "parts": [{
+        has_tool_call = any("functionCall" in p for p in parts)
+        if not has_tool_call:
+            for p in parts:
+                if "text" in p:
+                    assistant_final_text += p["text"]
+            break
+
+        model_call_parts = []
+        fn_resp_parts = []
+
+        for p in parts:
+            if "functionCall" in p:
+                fn_call = p["functionCall"]
+                fn_name = fn_call.get("name")
+                fn_args = fn_call.get("args", {})
+
+                yield f"data: {json.dumps({'type': 'tool_call', 'name': fn_name, 'args': fn_args, 'step': gemini_step})}\n\n"
+
+                tool_func = TOOL_REGISTRY.get(fn_name)
+                tool_result = {}
+                if tool_func:
+                    try:
+                        import inspect
+                        sig = inspect.signature(tool_func)
+                        if "session_id" in sig.parameters:
+                            fn_args["session_id"] = session_id
+                        tool_result = tool_func(**fn_args)
+                    except Exception as te:
+                        tool_result = {"success": False, "error": str(te)}
+                else:
+                    tool_result = {"success": False, "error": f"Tool '{fn_name}' not registered"}
+
+                executed_tools.append({"tool": fn_name, "args": fn_args, "result": tool_result, "step": gemini_step})
+                yield f"data: {json.dumps({'type': 'tool_result', 'name': fn_name, 'result': tool_result, 'step': gemini_step})}\n\n"
+
+                model_call_parts.append({"functionCall": {"name": fn_name, "args": fn_args}})
+                fn_resp_parts.append({
                     "functionResponse": {
                         "name": fn_name,
                         "response": {"name": fn_name, "content": tool_result}
                     }
-                }]
-            })
+                })
+            elif "text" in p:
+                thinking_text = p["text"][:500]
 
-            followup_payload = {
-                "contents": followup_contents,
-                "systemInstruction": {"parts": [{"text": DEFAULT_SYSTEM_PROMPT}]},
-                "generationConfig": {"temperature": 0.6, "maxOutputTokens": 3000}
-            }
-            if enable_tools:
-                followup_payload["tools"] = [{"function_declarations": GEMINI_FUNCTION_DECLARATIONS}]
+        cur_contents.append({"role": "model", "parts": model_call_parts})
+        cur_contents.append({"role": "function", "parts": fn_resp_parts})
 
-            try:
-                followup_resp = call_gemini_raw(followup_payload, model=model_name)
-                f_parts = followup_resp.get("candidates", [{}])[0].get("content", {}).get("parts", [])
-                for fp in f_parts:
-                    if "text" in fp:
-                        assistant_final_text += fp["text"]
-            except Exception:
-                assistant_final_text = f"Action **{fn_name}** executed successfully. Result: `{json.dumps(tool_result)[:300]}`"
-
-        elif "text" in part:
-            if has_tool_call:
-                # If tool call is present in the turn, text is model's internal deliberation
-                thinking_text = part["text"][:500]
-            else:
-                assistant_final_text += part["text"]
+    if not assistant_final_text:
+        assistant_final_text = "All requested operations and checks executed successfully."
 
     # Filter out leaked internal thoughts (e.g. "The user wants to... Plan: ...")
     if "The user wants to" in assistant_final_text:

@@ -19,6 +19,7 @@ import json
 import time
 import shutil
 import subprocess
+import threading
 from typing import Dict, Any, List, Optional
 
 _root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -28,6 +29,70 @@ QUEUE_FILE = os.path.join(_root, "omnichannel_powerhouse", "unlisted_queue.json"
 PYTHON_EXE = os.path.expanduser(r"~\AppData\Roaming\uv\python\cpython-3.11.17-windows-x86_64-none\python.exe")
 if not os.path.exists(PYTHON_EXE):
     PYTHON_EXE = sys.executable
+
+# Background Task Registry for Non-Blocking Async Production
+BACKGROUND_TASKS: Dict[str, Dict[str, Any]] = {}
+_tasks_lock = threading.RLock()
+
+
+def _async_manufacture_thread(
+    task_id: str,
+    channel_key: str,
+    ch_data: Dict[str, Any],
+    duration_min: int,
+    topic: Optional[str],
+    language: str,
+    auto_upload_unlisted: bool,
+    session_id: Optional[str]
+):
+    from omnichannel_powerhouse.tier1_producer import produce_and_queue_tier1_video
+    with _tasks_lock:
+        if task_id in BACKGROUND_TASKS:
+            BACKGROUND_TASKS[task_id]["status"] = "rendering"
+            BACKGROUND_TASKS[task_id]["started_at"] = time.strftime("%Y-%m-%d %H:%M:%S")
+
+    try:
+        res = produce_and_queue_tier1_video(
+            channel_key=channel_key,
+            channel_data=ch_data,
+            platform="youtube",
+            duration_min=duration_min,
+            custom_topic=topic,
+            language=language,
+            auto_upload_unlisted=auto_upload_unlisted
+        )
+        upload_info = res.get("upload_result") or {}
+        video_title = res.get("script_data", {}).get("title", topic or channel_key)
+        v_url = upload_info.get("video_url", "https://studio.youtube.com/videos")
+        
+        with _tasks_lock:
+            if task_id in BACKGROUND_TASKS:
+                BACKGROUND_TASKS[task_id]["status"] = "completed"
+                BACKGROUND_TASKS[task_id]["completed_at"] = time.strftime("%Y-%m-%d %H:%M:%S")
+                BACKGROUND_TASKS[task_id]["video_id"] = res.get("video_id")
+                BACKGROUND_TASKS[task_id]["video_url"] = v_url
+                BACKGROUND_TASKS[task_id]["master_video_path"] = res.get("master_video_path")
+
+        # Post WhatsApp-style notification to live chat session!
+        if session_id:
+            try:
+                from omnichannel_powerhouse.notification_manager import post_video_ready_notification_to_chat
+                post_video_ready_notification_to_chat(
+                    session_id=session_id,
+                    channel_name=ch_data.get("name", channel_key),
+                    title=video_title,
+                    duration_min=float(duration_min),
+                    video_url=v_url,
+                    video_path=res.get("master_video_path", "")
+                )
+            except Exception as pe:
+                print(f"[WARN] Error posting to chat session: {pe}")
+
+    except Exception as e:
+        with _tasks_lock:
+            if task_id in BACKGROUND_TASKS:
+                BACKGROUND_TASKS[task_id]["status"] = "failed"
+                BACKGROUND_TASKS[task_id]["error"] = str(e)
 
 
 # --- 1. DAEMON CONTROL TOOL ---
@@ -50,15 +115,19 @@ def tool_manufacture_video(
     topic: Optional[str] = None,
     duration_min: int = 30,
     language: str = "en",
-    auto_upload_unlisted: bool = True
+    auto_upload_unlisted: bool = True,
+    run_in_background: bool = True,
+    session_id: Optional[str] = None
 ) -> Dict[str, Any]:
     """
     Manufactures an institutional documentary of ANY requested duration (5 to 60+ min, English or Hindi):
+    - Non-blocking async execution (chat never freezes)
     - Multi-Brain Script Synthesis (Groq 120B / OpenRouter / Gemini Pool)
-    - Edge-TTS Voice (ChristopherNeural / MadhurNeural Hindi) + 6-Stage Shure SM7B DSP (-14 LUFS)
+    - Gemini 2.5 Flash Native Human Speech (Hindi) / Kokoro-82M (English) + Shure SM7B DSP (-14 LUFS)
     - Zero-Repeat 1080p B-roll Stream + 173.25s Vintage Blue Laser Content ID Outro Lock (STRICT ZERO AI IMAGES)
     - 98/100 God-Tier SEO + Pinned Comment + Real-Frame 3D Thumbnails
-    - Registers in Unlisted Queue and auto-uploads as Unlisted if auto_upload_unlisted=True
+    - Registers in Unlisted Queue and auto-uploads as Unlisted
+    - WhatsApp-style notification and voice alert on completion
     """
     from omnichannel_powerhouse.tier1_producer import produce_and_queue_tier1_video
 
@@ -75,6 +144,39 @@ def tool_manufacture_video(
         "voice_preferred": "hi-IN-MadhurNeural" if language in ("hi", "hindi") else "en-US-ChristopherNeural"
     })
 
+    if run_in_background:
+        task_id = f"task_{int(time.time()*1000)}"
+        with _tasks_lock:
+            BACKGROUND_TASKS[task_id] = {
+                "task_id": task_id,
+                "type": "video_manufacturing",
+                "channel_key": channel_key,
+                "channel_name": ch_data.get("name", channel_key),
+                "topic": topic or "Autonomous viral topic",
+                "duration_min": duration_min,
+                "language": language,
+                "status": "queued",
+                "queued_at": time.strftime("%Y-%m-%d %H:%M:%S")
+            }
+
+        t = threading.Thread(
+            target=_async_manufacture_thread,
+            args=(task_id, channel_key, ch_data, duration_min, topic, language, auto_upload_unlisted, session_id),
+            daemon=True
+        )
+        t.start()
+
+        return {
+            "success": True,
+            "task_id": task_id,
+            "status": "manufacturing_launched_in_background",
+            "channel_name": ch_data.get("name", channel_key),
+            "duration_min": duration_min,
+            "topic": topic or "Autonomous deep viral research topic",
+            "message": f"🚀 Video production for {ch_data.get('name', channel_key)} ({duration_min} min) has been launched in the background! Sourcing 100% unique 1080p clips and synthesizing human voice... Chat will not freeze. Once completed and uploaded, a WhatsApp-style notification and voice alert will trigger automatically."
+        }
+
+    # Synchronous fallback if explicitly requested
     res = produce_and_queue_tier1_video(
         channel_key=channel_key,
         channel_data=ch_data,
@@ -232,15 +334,39 @@ def tool_upload_rumble(channel_key: str, video_path: Optional[str] = None) -> Di
 
 
 # --- 5. CHANNEL FLEET MANAGEMENT TOOLS ---
-def tool_list_channels() -> Dict[str, Any]:
-    """Lists all configured YouTube and Rumble channels, their daily quotas, and uploads today."""
+def tool_list_channels(channel_key: Optional[str] = None) -> Dict[str, Any]:
+    """Lists configured YouTube and Rumble channels summary, counts by niche, or details for a specific channel."""
     yt = json.load(open(YT_CHANNELS_FILE, encoding="utf-8")) if os.path.exists(YT_CHANNELS_FILE) else {}
     rumble = json.load(open(RUMBLE_CHANNELS_FILE, encoding="utf-8")) if os.path.exists(RUMBLE_CHANNELS_FILE) else {}
+
+    if channel_key:
+        ch = yt.get(channel_key) or rumble.get(channel_key)
+        if ch:
+            return {"found": True, "channel": ch}
+        return {"found": False, "error": f"Channel '{channel_key}' not found"}
+
+    yt_niches = {}
+    for k, v in yt.items():
+        n = v.get("niche", "general")
+        yt_niches[n] = yt_niches.get(n, 0) + 1
+
+    rumble_niches = {}
+    for k, v in rumble.items():
+        n = v.get("niche", "general")
+        rumble_niches[n] = rumble_niches.get(n, 0) + 1
+
+    sample_yt = [{"key": k, "name": v.get("name"), "niche": v.get("niche")} for k, v in list(yt.items())[:6]]
+    sample_rumble = [{"key": k, "name": v.get("name"), "niche": v.get("niche")} for k, v in list(rumble.items())[:6]]
+
     return {
-        "youtube_fleet": yt,
-        "rumble_fleet": rumble,
+        "total_channels": len(yt) + len(rumble),
         "total_yt_channels": len(yt),
-        "total_rumble_channels": len(rumble)
+        "total_rumble_channels": len(rumble),
+        "youtube_niches": yt_niches,
+        "rumble_niches": rumble_niches,
+        "sample_youtube_channels": sample_yt,
+        "sample_rumble_channels": sample_rumble,
+        "note": "Use tool_list_channels with specific channel_key to get complete settings for any individual channel."
     }
 
 
@@ -328,17 +454,147 @@ def tool_run_python(code: str) -> Dict[str, Any]:
         return {"success": False, "error": str(e)}
 
 
-# --- 8. WORKSPACE FILE & GIT TOOLS ---
-def tool_read_file(relative_path: str) -> Dict[str, Any]:
-    """Reads content of any file inside repository."""
+# --- 8. SYSTEM SHELL & WORKSPACE CODEBASE TOOLS (ANTIGRAVITY PARITY) ---
+def tool_run_command(command: str, timeout: int = 60) -> Dict[str, Any]:
+    """
+    Executes a shell command (PowerShell / Windows CMD) inside the repository workspace.
+    Permits the AI Commander to check processes, run tests, verify FFmpeg, inspect disk, and manage OS tasks.
+    Captures stdout, stderr, exit code, and execution latency.
+    """
+    t0 = time.time()
+    try:
+        proc = subprocess.run(
+            ["powershell", "-NoProfile", "-NonInteractive", "-Command", command],
+            cwd=_root,
+            capture_output=True,
+            text=True,
+            timeout=timeout
+        )
+        elapsed = round(time.time() - t0, 3)
+        return {
+            "success": proc.returncode == 0,
+            "returncode": proc.returncode,
+            "stdout": proc.stdout[:8000] if proc.stdout else "",
+            "stderr": proc.stderr[:4000] if proc.stderr else "",
+            "elapsed_sec": elapsed
+        }
+    except subprocess.TimeoutExpired:
+        return {"success": False, "error": f"Command timed out after {timeout} seconds"}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
+def tool_read_file(relative_path: str, start_line: Optional[int] = 1, end_line: Optional[int] = 300) -> Dict[str, Any]:
+    """Reads content of any file inside the repository with line range control."""
     full_path = os.path.join(_root, relative_path)
     if not os.path.exists(full_path):
         return {"success": False, "error": f"File '{relative_path}' does not exist"}
     try:
-        content = open(full_path, "r", encoding="utf-8", errors="replace").read()
-        return {"success": True, "path": relative_path, "content": content[:8000], "total_chars": len(content)}
+        with open(full_path, "r", encoding="utf-8", errors="replace") as f:
+            lines = f.readlines()
+        
+        s_idx = max(0, (start_line or 1) - 1)
+        e_idx = min(len(lines), end_line or 300)
+        selected_lines = lines[s_idx:e_idx]
+        formatted = "".join([f"{idx+1+s_idx}: {line}" for idx, line in enumerate(selected_lines)])
+        
+        return {
+            "success": True,
+            "path": relative_path,
+            "total_lines": len(lines),
+            "start_line": s_idx + 1,
+            "end_line": e_idx,
+            "content": formatted[:10000]
+        }
     except Exception as e:
         return {"success": False, "error": str(e)}
+
+
+def tool_write_file(relative_path: str, content: str, overwrite: bool = True) -> Dict[str, Any]:
+    """Creates a new file or overwrites an existing file with given contents."""
+    full_path = os.path.join(_root, relative_path)
+    if os.path.exists(full_path) and not overwrite:
+        return {"success": False, "error": f"File '{relative_path}' already exists and overwrite=False"}
+    try:
+        os.makedirs(os.path.dirname(os.path.abspath(full_path)), exist_ok=True)
+        with open(full_path, "w", encoding="utf-8") as f:
+            f.write(content)
+        return {"success": True, "path": relative_path, "bytes_written": len(content)}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
+def tool_edit_file(relative_path: str, target: str, replacement: str) -> Dict[str, Any]:
+    """Surgically edits a file by replacing an exact character-sequence drop-in replacement (Antigravity standard)."""
+    full_path = os.path.join(_root, relative_path)
+    if not os.path.exists(full_path):
+        return {"success": False, "error": f"File '{relative_path}' not found"}
+    try:
+        with open(full_path, "r", encoding="utf-8") as f:
+            src = f.read()
+        if target not in src:
+            return {"success": False, "error": "Target string not found in file. Make sure whitespace and characters match exactly."}
+        new_src = src.replace(target, replacement, 1)
+        with open(full_path, "w", encoding="utf-8") as f:
+            f.write(new_src)
+        return {"success": True, "path": relative_path, "message": "Successfully replaced target text."}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
+def tool_list_directory(relative_path: str = ".", max_entries: int = 100) -> Dict[str, Any]:
+    """Lists files and directories inside a repository directory."""
+    full_path = os.path.join(_root, relative_path)
+    if not os.path.exists(full_path):
+        return {"success": False, "error": f"Directory '{relative_path}' does not exist"}
+    if not os.path.isdir(full_path):
+        return {"success": False, "error": f"'{relative_path}' is a file, not a directory. Use tool_read_file instead."}
+    try:
+        items = sorted(os.listdir(full_path))
+        entries = []
+        for item in items:
+            item_path = os.path.join(full_path, item)
+            is_dir = os.path.isdir(item_path)
+            size = os.path.getsize(item_path) if not is_dir else 0
+            entries.append({
+                "name": item,
+                "type": "directory" if is_dir else "file",
+                "size_bytes": size
+            })
+            if len(entries) >= max_entries:
+                break
+        return {
+            "success": True,
+            "path": relative_path,
+            "total_items": len(items),
+            "returned_items": len(entries),
+            "entries": entries
+        }
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
+def tool_get_notifications(unread_only: bool = False, limit: int = 15) -> Dict[str, Any]:
+    """Retrieves notifications from the persistent notification center."""
+    try:
+        from omnichannel_powerhouse.notification_manager import list_notifications, get_unread_count
+        notifs = list_notifications(limit=limit, unread_only=unread_only)
+        count = get_unread_count()
+        return {"success": True, "unread_count": count, "notifications": notifs}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
+def tool_manage_task(action: str = "list", task_id: Optional[str] = None) -> Dict[str, Any]:
+    """Manages active background video production and rendering tasks ('list', 'status', 'cancel')."""
+    with _tasks_lock:
+        if action == "list":
+            return {"active_tasks_count": len(BACKGROUND_TASKS), "tasks": list(BACKGROUND_TASKS.values())}
+        elif action == "status" and task_id:
+            if task_id in BACKGROUND_TASKS:
+                return {"task": BACKGROUND_TASKS[task_id]}
+            return {"success": False, "error": f"Task '{task_id}' not found"}
+        return {"tasks": list(BACKGROUND_TASKS.values())}
 
 
 def tool_git_ops(action: str = "status", message: str = "", commit_message: str = "") -> Dict[str, Any]:
@@ -454,8 +710,14 @@ TOOL_REGISTRY = {
     "tool_add_channel": tool_add_channel,
     "tool_dispatch_swarm": tool_dispatch_swarm,
     "tool_run_python": tool_run_python,
+    "tool_run_command": tool_run_command,
     "tool_read_file": tool_read_file,
+    "tool_write_file": tool_write_file,
+    "tool_edit_file": tool_edit_file,
+    "tool_manage_task": tool_manage_task,
     "tool_git_ops": tool_git_ops,
+    "tool_list_directory": tool_list_directory,
+    "tool_get_notifications": tool_get_notifications,
     "tool_add_gemini_key": tool_add_gemini_key,
     "tool_add_multi_brain_key": tool_add_multi_brain_key,
     "tool_get_system_health": tool_get_system_health
@@ -664,5 +926,77 @@ GEMINI_FUNCTION_DECLARATIONS = [
         "name": "tool_get_system_health",
         "description": "Get real-time telemetry: disk space, key pool status, queue count, and daemon status.",
         "parameters": {"type": "OBJECT", "properties": {}}
+    },
+    {
+        "name": "tool_run_command",
+        "description": "Execute a shell command (PowerShell / Windows CMD) inside the repository workspace (e.g. check system processes, run tests, check ffmpeg, inspect disk, manage git).",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "command": {"type": "STRING", "description": "PowerShell command string to execute"},
+                "timeout": {"type": "INTEGER", "description": "Max timeout in seconds (default 60)"}
+            },
+            "required": ["command"]
+        }
+    },
+    {
+        "name": "tool_write_file",
+        "description": "Create a new file or overwrite an existing file with given contents inside the workspace.",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "relative_path": {"type": "STRING", "description": "Relative path to the file to create or write"},
+                "content": {"type": "STRING", "description": "The full text content to write into the file"},
+                "overwrite": {"type": "BOOLEAN", "description": "Whether to overwrite if file already exists (default true)"}
+            },
+            "required": ["relative_path", "content"]
+        }
+    },
+    {
+        "name": "tool_edit_file",
+        "description": "Surgically edit an existing file by replacing exact target text with replacement text (Antigravity standard).",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "relative_path": {"type": "STRING", "description": "Relative path to the file to edit"},
+                "target": {"type": "STRING", "description": "The exact character-sequence to replace"},
+                "replacement": {"type": "STRING", "description": "The drop-in replacement text"}
+            },
+            "required": ["relative_path", "target", "replacement"]
+        }
+    },
+    {
+        "name": "tool_manage_task",
+        "description": "List running background video production tasks, inspect live status, or monitor progress.",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "action": {"type": "STRING", "description": "'list', 'status', or 'cancel'"},
+                "task_id": {"type": "STRING", "description": "Specific background task ID (e.g. 'task_1792767000')"}
+            },
+            "required": ["action"]
+        }
+    },
+    {
+        "name": "tool_list_directory",
+        "description": "List files and subdirectories within a repository folder.",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "relative_path": {"type": "STRING", "description": "Relative path to directory (default '.')"},
+                "max_entries": {"type": "INTEGER", "description": "Maximum number of entries to return (default 100)"}
+            }
+        }
+    },
+    {
+        "name": "tool_get_notifications",
+        "description": "Retrieve notifications and unread alert count from the notification center.",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "unread_only": {"type": "BOOLEAN", "description": "Filter by unread alerts only (default false)"},
+                "limit": {"type": "INTEGER", "description": "Max notifications to return (default 15)"}
+            }
+        }
     }
 ]

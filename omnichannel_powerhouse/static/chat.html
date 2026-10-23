@@ -1130,27 +1130,45 @@
               } else if (evt.type === 'thinking_done') {
                 thinkingText.textContent = evt.thought;
               } else if (evt.type === 'tool_call') {
-                const tc = document.createElement('div');
-                tc.className = 'tool-card';
-                tc.id = `tool-${evt.name}`;
-                tc.innerHTML = `
-                  <div class="tool-header">
-                    <span>🔧 Tool Call:</span>
-                    <span>${evt.name}</span>
-                    <span class="tool-status-badge status-running">Running...</span>
-                  </div>
-                  <div class="tool-args">${JSON.stringify(evt.args, null, 2)}</div>
-                `;
-                toolsContainer.appendChild(tc);
-                stream.scrollTop = stream.scrollHeight;
+                const cardId = `tool-${evt.name}-${evt.step || 1}`;
+                let tc = document.getElementById(cardId);
+                if (!tc) {
+                  tc = document.createElement('div');
+                  tc.className = 'tool-card';
+                  tc.id = cardId;
+                  tc.innerHTML = `
+                    <div class="tool-header">
+                      <span>🔧 Action:</span>
+                      <span style="font-weight:700; color:var(--accent-cyan); font-family:monospace;">${evt.name}</span>
+                      <span class="tool-status-badge status-running">Running...</span>
+                    </div>
+                    <div class="tool-args">${JSON.stringify(evt.args, null, 2)}</div>
+                  `;
+                  toolsContainer.appendChild(tc);
+                  stream.scrollTop = stream.scrollHeight;
+                }
               } else if (evt.type === 'tool_result') {
-                const tc = document.getElementById(`tool-${evt.name}`);
+                const cardId = `tool-${evt.name}-${evt.step || 1}`;
+                const tc = document.getElementById(cardId) || document.getElementById(`tool-${evt.name}`);
                 if (tc) {
                   const badge = tc.querySelector('.tool-status-badge');
                   if (badge) {
                     badge.className = 'tool-status-badge status-done';
                     badge.textContent = 'Completed ✓';
                   }
+                  // Collapsible tool execution output for full Antigravity parity
+                  const resDetails = document.createElement('details');
+                  resDetails.style = 'margin-top:6px; font-size:11px;';
+                  const resSummary = document.createElement('summary');
+                  resSummary.style = 'cursor:pointer; color:var(--text-muted); font-weight:600; padding:2px 0; outline:none;';
+                  resSummary.textContent = '▶ View Output / Response';
+                  const resPre = document.createElement('pre');
+                  resPre.style = 'max-height:180px; overflow-y:auto; padding:8px; margin-top:4px; background:rgba(0,0,0,0.5); border:1px solid var(--border-color); border-radius:4px; font-family:monospace; white-space:pre-wrap; color:var(--text-main); font-size:11px;';
+                  resPre.textContent = typeof evt.result === 'string' ? evt.result : JSON.stringify(evt.result, null, 2);
+                  resDetails.appendChild(resSummary);
+                  resDetails.appendChild(resPre);
+                  tc.appendChild(resDetails);
+
                   if (evt.result && evt.result.chart_url) {
                     const chartCard = document.createElement('div');
                     chartCard.className = 'chart-preview-card';
