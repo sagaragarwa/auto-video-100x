@@ -257,44 +257,50 @@ Return STRICTLY valid JSON:
 def synthesize_tier1_voiceover(text: str, voice: str, output_path: str, language: str = "en"):
     """
     Synthesizes speech:
-    - Hindi: Google Gemini 2.5 Flash Native Studio Speech (100% Human, Zero Robotic Artifacts)
-    - English: Kokoro-82M (af_heart, am_adam) + Shure SM7B Broadcast DSP vocal chain (-14 LUFS)
+    - Primary #1 Engine: Google Gemini 2.5 Flash Native Studio Speech (100% Free Tier, Zero Robotic Cadence)
+      * English: Voice 'Fenrir' (Deep Documentary / Attenborough / Wall Street) or 'Puck' (Dynamic Tech / Crypto)
+      * Hindi: Voice 'Puck' / 'Fenrir' with Devanagari Phonetic Transliteration
+      * Both mastered with 6-stage Shure SM7B Broadcast DSP vocal chain (-14 LUFS)
+    - Fallback #1: Kokoro-82M (for English af_heart, am_adam)
+    - Fallback #2: Edge-TTS 48kHz + Shure SM7B DSP
     """
     is_hindi = language in ("hi", "hindi") or any('\u0900' <= char <= '\u097f' for char in text)
+    target_gemini_voice = "Puck" if is_hindi else ("Puck" if any(k in str(voice).lower() for k in ["tech", "puck", "trading", "crypto"]) else "Fenrir")
 
-    # 1. Hindi: Ultra-Realistic Gemini 2.5 Flash Native Studio Voice
-    if is_hindi:
-        logger.info(f"🎙️ Synthesizing 100% Human Studio Hindi Voice with Gemini 2.5 Flash Native Speech...")
-        try:
-            from omnichannel_powerhouse.gemini_tts_engine import synthesize_master_voice
-            synthesize_master_voice(text, output_path, voice_name="Puck", apply_dsp=True)
-            if os.path.exists(output_path) and os.path.getsize(output_path) > 10000:
-                logger.success(f"🏆 Gemini 2.5 Flash Human Studio Voiceover Mastered: {output_path}")
-                return output_path
-        except Exception as ge:
-            logger.warning(f"Gemini Flash TTS primary notice: {ge}")
-
-    # 2. English: Kokoro-82M Studio Model
-    logger.info(f"🎙️ Synthesizing voiceover with Kokoro-82M Engine [Target Voice: {voice}] (Word count: {len(text.split())})...")
+    # 1. Primary #1: Google Gemini 2.5 Flash Native Studio Speech (100% Free, Human-Grade)
+    lang_label = "Hindi" if is_hindi else "English"
+    logger.info(f"🎙️ Synthesizing 100% Human Studio {lang_label} Voice with Gemini 2.5 Flash Native Speech [Voice: {target_gemini_voice}]...")
     try:
-        from omnichannel_powerhouse.kokoro_engine import synthesize_kokoro_voice
-        success = synthesize_kokoro_voice(
-            text=text,
-            output_path=output_path,
-            voice=voice,
-            speed=1.05,
-            language=language
-        )
-        if success and os.path.exists(output_path) and os.path.getsize(output_path) > 10000:
-            logger.success(f"🏆 Kokoro-82M voiceover mastered and verified: {output_path}")
+        from omnichannel_powerhouse.gemini_tts_engine import synthesize_master_voice
+        synthesize_master_voice(text, output_path, voice_name=target_gemini_voice, apply_dsp=True)
+        if os.path.exists(output_path) and os.path.getsize(output_path) > 10000:
+            logger.success(f"🏆 Gemini 2.5 Flash Human Studio Voiceover Mastered ({lang_label}): {output_path}")
             return output_path
-    except Exception as ke:
-        logger.warning(f"Kokoro-82M primary hook notice: {ke}")
+    except Exception as ge:
+        logger.warning(f"Gemini Flash TTS primary notice: {ge}")
 
-    # Fallback to Edge-TTS if needed
+    # 2. English Fallback: Kokoro-82M Studio Model
+    if not is_hindi:
+        logger.info(f"🎙️ Secondary Engine: Kokoro-82M Studio Model [Target Voice: {voice}] (Word count: {len(text.split())})...")
+        try:
+            from omnichannel_powerhouse.kokoro_engine import synthesize_kokoro_voice
+            success = synthesize_kokoro_voice(
+                text=text,
+                output_path=output_path,
+                voice=voice,
+                speed=1.05,
+                language=language
+            )
+            if success and os.path.exists(output_path) and os.path.getsize(output_path) > 10000:
+                logger.success(f"🏆 Kokoro-82M voiceover mastered and verified: {output_path}")
+                return output_path
+        except Exception as ke:
+            logger.warning(f"Kokoro-82M fallback notice: {ke}")
+
+    # 3. Fallback #2: Edge-TTS + Shure SM7B Broadcast DSP Chain
     temp_raw = output_path + ".raw.mp3"
-    edge_voice = "hi-IN-MadhurNeural" if language in ("hi", "hindi") else "en-US-ChristopherNeural"
-    logger.info(f"🎙️ Synthesizing speech with Tier-1 Voice [{edge_voice}] (Word count: {len(text.split())})...")
+    edge_voice = "hi-IN-MadhurNeural" if is_hindi else "en-US-ChristopherNeural"
+    logger.info(f"🎙️ Fallback: Synthesizing speech with Tier-1 Voice [{edge_voice}] (Word count: {len(text.split())})...")
     
     communicate = edge_tts.Communicate(text, edge_voice)
     run_async(communicate.save, temp_raw)
