@@ -329,21 +329,29 @@ def tool_list_unlisted_queue() -> Dict[str, Any]:
         return {"success": False, "error": str(e)}
 
 
-# --- 9. GEMINI KEY POOL TOOLS ---
+# --- 9. GEMINI & MULTI-BRAIN KEY POOL TOOLS ---
 def tool_add_gemini_key(api_key: str, label: str = "") -> Dict[str, Any]:
     """Enrolls a new Google Gemini API key into the key pool with live health validation."""
     from omnichannel_powerhouse.agent_commander.key_pool import KEY_POOL
     return KEY_POOL.add_key(api_key, label=label)
 
 
+def tool_add_multi_brain_key(api_key: str, label: str = "", provider: str = "auto") -> Dict[str, Any]:
+    """Enrolls an API key for Google Gemini, GroqCloud (Llama 3.3 70B), or OpenRouter (DeepSeek-R1)."""
+    from omnichannel_powerhouse.agent_commander.multi_brain import MULTI_BRAIN
+    return MULTI_BRAIN.add_key(api_key, label=label, provider=provider)
+
+
 def tool_get_system_health() -> Dict[str, Any]:
     """Returns real-time system health: disk space, key pool capacity, active daemon status, queue count."""
     from omnichannel_powerhouse.agent_commander.key_pool import KEY_POOL
+    from omnichannel_powerhouse.agent_commander.multi_brain import MULTI_BRAIN
     from omnichannel_powerhouse.perpetual_genius_daemon import get_daemon
 
     disk = shutil.disk_usage(_root)
     daemon = get_daemon()
     key_telem = KEY_POOL.get_telemetry()
+    brain_telem = MULTI_BRAIN.get_all_telemetry()
 
     queue_count = 0
     if os.path.exists(QUEUE_FILE):
@@ -361,6 +369,7 @@ def tool_get_system_health() -> Dict[str, Any]:
             "remaining_calls_today": key_telem["available_calls_remaining"],
             "healthy_keys": key_telem["healthy_keys"]
         },
+        "multi_brain": brain_telem.get("providers", {}),
         "disk_free_gb": round(disk.free / (1024**3), 2),
         "disk_total_gb": round(disk.total / (1024**3), 2),
         "unlisted_queue_pending": queue_count,
@@ -383,6 +392,7 @@ TOOL_REGISTRY = {
     "tool_read_file": tool_read_file,
     "tool_git_ops": tool_git_ops,
     "tool_add_gemini_key": tool_add_gemini_key,
+    "tool_add_multi_brain_key": tool_add_multi_brain_key,
     "tool_get_system_health": tool_get_system_health
 }
 
@@ -528,6 +538,19 @@ GEMINI_FUNCTION_DECLARATIONS = [
             "properties": {
                 "api_key": {"type": "STRING", "description": "The AIzaSy... API key"},
                 "label": {"type": "STRING", "description": "Optional label"}
+            },
+            "required": ["api_key"]
+        }
+    },
+    {
+        "name": "tool_add_multi_brain_key",
+        "description": "Add an API key for GroqCloud (Llama 3.3 70B), OpenRouter (DeepSeek-R1), or Gemini.",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "api_key": {"type": "STRING", "description": "The API key string"},
+                "label": {"type": "STRING", "description": "Optional label for the key"},
+                "provider": {"type": "STRING", "description": "'gemini', 'groq', 'openrouter', or 'auto'"}
             },
             "required": ["api_key"]
         }

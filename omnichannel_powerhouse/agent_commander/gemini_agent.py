@@ -19,6 +19,11 @@ if _root not in sys.path:
 
 from omnichannel_powerhouse.agent_commander.key_pool import KEY_POOL
 from omnichannel_powerhouse.agent_commander.tools import TOOL_REGISTRY, GEMINI_FUNCTION_DECLARATIONS
+from omnichannel_powerhouse.agent_commander.multi_brain import (
+    MULTI_BRAIN,
+    convert_gemini_tools_to_openai,
+    call_openai_compatible_api
+)
 from omnichannel_powerhouse.agent_commander.memory import (
     save_message,
     get_sliding_window_context,
@@ -122,6 +127,133 @@ def stream_chat_response(
     # Yield Thinking Process Card
     yield f"data: {json.dumps({'type': 'thinking_start', 'message': 'Deducing strategic intent & cross-referencing empire telemetry...'})}\n\n"
     time.sleep(0.2)
+
+    target_provider = "gemini"
+    target_model_id = model_name
+
+    if model_name.startswith("groq:"):
+        target_provider = "groq"
+        target_model_id = model_name.split("groq:", 1)[1]
+    elif model_name.startswith("openrouter:"):
+        target_provider = "openrouter"
+        target_model_id = model_name.split("openrouter:", 1)[1]
+    elif model_name in ("hybrid:auto", "auto"):
+        if MULTI_BRAIN.get_groq_key():
+            target_provider = "groq"
+            target_model_id = "llama-3.3-70b-versatile"
+        elif MULTI_BRAIN.get_openrouter_key():
+            target_provider = "openrouter"
+            target_model_id = "deepseek/deepseek-r1:free"
+        else:
+            target_provider = "gemini"
+            target_model_id = "gemini-3.5-flash"
+
+    # --- MULTI-BRAIN EXECUTION (GROQ / OPENROUTER) ---
+    if target_provider in ("groq", "openrouter"):
+        api_key = MULTI_BRAIN.get_groq_key() if target_provider == "groq" else MULTI_BRAIN.get_openrouter_key()
+        endpoint = "https://api.groq.com/openai/v1/chat/completions" if target_provider == "groq" else "https://openrouter.ai/api/v1/chat/completions"
+
+        if not api_key:
+            notice = f"> ℹ️ *[{target_provider.upper()} API key not configured yet. Auto-routing through Gemini 3.5 Flash Key Pool]*\n\n"
+            yield f"data: {json.dumps({'type': 'chunk', 'text': notice})}\n\n"
+            target_provider = "gemini"
+            model_name = "gemini-3.5-flash"
+        else:
+            openai_messages = [{"role": "system", "content": DEFAULT_SYSTEM_PROMPT}]
+            for msg in past_messages:
+                openai_messages.append({"role": msg["role"], "content": msg["content"]})
+
+            openai_tools = convert_gemini_tools_to_openai(GEMINI_FUNCTION_DECLARATIONS) if enable_tools else None
+
+            try:
+                resp = call_openai_compatible_api(
+                    endpoint=endpoint,
+                    api_key=api_key,
+                    model=target_model_id,
+                    messages=openai_messages,
+                    tools=openai_tools
+                )
+                choice = resp.get("choices", [{}])[0].get("message", {})
+                tool_calls = choice.get("tool_calls", [])
+                assistant_final_text = ""
+                thinking_text = f"Executed via {target_provider.upper()} ({target_model_id}) with ultra-low latency."
+                executed_tools = []
+
+                if tool_calls:
+                    for tc in tool_calls:
+                        fn_info = tc.get("function", {})
+                        fn_name = fn_info.get("name")
+                        fn_args = {}
+                        try:
+                            fn_args = json.loads(fn_info.get("arguments", "{}"))
+                        except Exception:
+                            pass
+
+                        yield f"data: {json.dumps({'type': 'tool_call', 'name': fn_name, 'args': fn_args})}\n\n"
+                        tool_func = TOOL_REGISTRY.get(fn_name)
+                        tool_result = {}
+                        if tool_func:
+                            try:
+                                tool_result = tool_func(**fn_args)
+                            except Exception as te:
+                                tool_result = {"success": False, "error": str(te)}
+                        else:
+                            tool_result = {"success": False, "error": f"Tool '{fn_name}' not registered"}
+
+                        executed_tools.append({"tool": fn_name, "args": fn_args, "result": tool_result})
+                        yield f"data: {json.dumps({'type': 'tool_result', 'name': fn_name, 'result': tool_result})}\n\n"
+
+                        openai_messages.append(choice)
+                        openai_messages.append({
+                            "role": "tool",
+                            "tool_call_id": tc.get("id", "call_1"),
+                            "content": json.dumps(tool_result)
+                        })
+
+                    followup = call_openai_compatible_api(
+                        endpoint=endpoint,
+                        api_key=api_key,
+                        model=target_model_id,
+                        messages=openai_messages,
+                        tools=None
+                    )
+                    assistant_final_text = followup.get("choices", [{}])[0].get("message", {}).get("content", "")
+                else:
+                    assistant_final_text = choice.get("content", "")
+
+                if "<think>" in assistant_final_text and "</think>" in assistant_final_text:
+                    s_idx = assistant_final_text.find("<think>") + len("<think>")
+                    e_idx = assistant_final_text.find("</think>")
+                    thinking_text = assistant_final_text[s_idx:e_idx].strip()
+                    assistant_final_text = assistant_final_text[e_idx + len("</think>"):].strip()
+
+                yield f"data: {json.dumps({'type': 'thinking_done', 'thought': thinking_text[:500]})}\n\n"
+
+                words = assistant_final_text.split(" ")
+                buffer = ""
+                for idx, w in enumerate(words):
+                    buffer += w + " "
+                    if idx % 4 == 0 or idx == len(words) - 1:
+                        yield f"data: {json.dumps({'type': 'chunk', 'text': buffer})}\n\n"
+                        buffer = ""
+                        time.sleep(0.01)
+
+                save_message(
+                    session_id=session_id,
+                    role="assistant",
+                    content=assistant_final_text,
+                    thinking=thinking_text,
+                    tool_calls=executed_tools
+                )
+                yield f"data: {json.dumps({'type': 'done', 'session_id': session_id})}\n\n"
+                return
+
+            except Exception as e:
+                err_str = str(e)[:80]
+                failover_msg = f"> ⚠️ *[{target_provider.upper()} API notice: {err_str}. Seamless failover to Gemini Key Pool...]*\n\n"
+                yield f"data: {json.dumps({'type': 'chunk', 'text': failover_msg})}\n\n"
+                target_provider = "gemini"
+                model_name = "gemini-3.5-flash"
 
     try:
         resp = call_gemini_raw(payload, model=model_name)

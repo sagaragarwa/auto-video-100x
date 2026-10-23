@@ -574,6 +574,7 @@ class ChatMessageRequest(BaseModel):
 class ChatAddKeyRequest(BaseModel):
     api_key: str
     label: Optional[str] = ""
+    provider: Optional[str] = "auto"
 
 
 class CreateSessionRequest(BaseModel):
@@ -623,14 +624,14 @@ def new_chat_session(req: CreateSessionRequest):
 
 @app.get("/api/chat/keys")
 def get_chat_keys_status():
-    from omnichannel_powerhouse.agent_commander.key_pool import KEY_POOL
-    return KEY_POOL.get_telemetry()
+    from omnichannel_powerhouse.agent_commander.multi_brain import MULTI_BRAIN
+    return MULTI_BRAIN.get_all_telemetry()
 
 
 @app.post("/api/chat/keys/add")
 def add_chat_key(req: ChatAddKeyRequest):
-    from omnichannel_powerhouse.agent_commander.key_pool import KEY_POOL
-    return KEY_POOL.add_key(req.api_key, label=req.label)
+    from omnichannel_powerhouse.agent_commander.multi_brain import MULTI_BRAIN
+    return MULTI_BRAIN.add_key(req.api_key, label=req.label, provider=req.provider or "auto")
 
 
 @app.post("/api/chat/code-interpreter")
