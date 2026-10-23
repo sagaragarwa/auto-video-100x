@@ -254,15 +254,34 @@ Return STRICTLY valid JSON:
     return data
 
 
-async def synthesize_tier1_voiceover(text: str, voice: str, output_path: str):
+def synthesize_tier1_voiceover(text: str, voice: str, output_path: str, language: str = "en"):
     """
-    Synthesizes speech via Edge-TTS 48kHz (0% Gemini Quota) and applies Shure SM7B DSP chain.
+    Synthesizes speech prioritizing Kokoro-82M (World-class open-source 82M model: af_heart, am_adam, hm_omega)
+    and applies 6-Stage Shure SM7B Broadcast DSP vocal chain (-14 LUFS).
     """
+    logger.info(f"🎙️ Synthesizing voiceover with Kokoro-82M Engine [Target Voice: {voice}] (Word count: {len(text.split())})...")
+    try:
+        from omnichannel_powerhouse.kokoro_engine import synthesize_kokoro_voice
+        success = synthesize_kokoro_voice(
+            text=text,
+            output_path=output_path,
+            voice=voice,
+            speed=1.05,
+            language=language
+        )
+        if success and os.path.exists(output_path) and os.path.getsize(output_path) > 10000:
+            logger.success(f"🏆 Kokoro-82M voiceover mastered and verified: {output_path}")
+            return output_path
+    except Exception as ke:
+        logger.warning(f"Kokoro-82M primary hook notice: {ke}")
+
+    # Fallback to Edge-TTS if needed
     temp_raw = output_path + ".raw.mp3"
-    logger.info(f"🎙️ Synthesizing speech with Tier-1 Voice [{voice}] (Word count: {len(text.split())})...")
+    edge_voice = "hi-IN-MadhurNeural" if language in ("hi", "hindi") else "en-US-ChristopherNeural"
+    logger.info(f"🎙️ Synthesizing speech with Tier-1 Voice [{edge_voice}] (Word count: {len(text.split())})...")
     
-    communicate = edge_tts.Communicate(text, voice)
-    await communicate.save(temp_raw)
+    communicate = edge_tts.Communicate(text, edge_voice)
+    run_async(communicate.save, temp_raw)
 
     # 6-Stage Shure SM7B Broadcast Mastering DSP Chain
     logger.info("🎛️ Applying 6-Stage Shure SM7B Broadcast DSP vocal chain (-14 LUFS)...")
@@ -284,16 +303,18 @@ async def synthesize_tier1_voiceover(text: str, voice: str, output_path: str):
         try: os.remove(temp_raw)
         except Exception: pass
     logger.success(f"Master voiceover ready: {output_path}")
+    return output_path
 
 
 def render_tier1_master_video(
     script_data: Dict[str, Any],
     channel_key: str,
-    voice: str = "en-US-ChristopherNeural"
+    voice: str = "af_heart",
+    language: str = "en"
 ) -> str:
     """
     Renders 1080p master documentary:
-    - Audio with SM7B DSP + -24dB ambient drone
+    - Audio with Kokoro-82M (Best model) + SM7B DSP + -24dB ambient drone
     - Zero-repeat unique B-roll stream
     - Mandatory 173.25s Vintage Blue Laser Content ID outro lock
     """
@@ -304,8 +325,8 @@ def render_tier1_master_video(
     audio_file = os.path.join(ep_temp, "master_voiceover.mp3")
     final_output = os.path.join(OUTPUT_DIR, f"tier1_{channel_key}_{ts}_master.mp4")
 
-    # 1. Synthesize Audio
-    run_async(synthesize_tier1_voiceover, script_data["video_script"], voice, audio_file)
+    # 1. Synthesize Audio with Kokoro-82M
+    synthesize_tier1_voiceover(script_data["video_script"], voice, audio_file, language=language)
     total_duration = get_media_duration(audio_file)
     logger.info(f"⏱️ Spoken Duration: {total_duration:.1f}s ({total_duration/60:.2f} minutes)")
 
@@ -349,7 +370,7 @@ def produce_and_queue_tier1_video(
     """
     niche = channel_data.get("niche", "technology")
     ch_name = channel_data.get("name", channel_key)
-    voice = "hi-IN-MadhurNeural" if language in ("hi", "hindi") else channel_data.get("voice_preferred", "en-US-ChristopherNeural")
+    voice = "hm_omega" if language in ("hi", "hindi") else channel_data.get("voice_preferred", "af_heart")
 
     # 1. Resolve Topic & Duration
     chosen_topic = custom_topic
@@ -364,8 +385,8 @@ def produce_and_queue_tier1_video(
     # 2. Generate Script & SEO
     script_data = synthesize_tier1_script_and_seo(chosen_topic, niche, ch_name, duration_min=chosen_duration, language=language)
 
-    # 3. Render Master Video (100% Real Authentic Stock Footage from Pexels/Pixabay/Wikimedia)
-    master_video_path = render_tier1_master_video(script_data, channel_key, voice=voice)
+    # 3. Render Master Video with Kokoro-82M Voiceover (100% Real Authentic Stock Footage)
+    master_video_path = render_tier1_master_video(script_data, channel_key, voice=voice, language=language)
 
     # 4. Generate 3 Authentic Real-Frame Thumbnails (STRICT ZERO AI IMAGES POLICY)
     base_name = os.path.splitext(os.path.basename(master_video_path))[0]
