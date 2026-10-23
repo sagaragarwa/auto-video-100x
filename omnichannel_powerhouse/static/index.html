@@ -1283,8 +1283,8 @@
               </span>
             </div>
             <div class="flex items-center gap-2">
-              <span class="text-[11px] px-3 py-1 rounded-full font-bold ${v.status === 'thumbnail_attached' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'}">
-                ${v.status === 'thumbnail_attached' ? '✅ Thumbnail & SEO Done' : '🔒 Unlisted (Awaiting Thumbnail)'}
+              <span class="text-[11px] px-3 py-1 rounded-full font-bold ${v.status === 'uploaded_unlisted' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : v.status === 'uploading' ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 animate-pulse' : v.status === 'thumbnail_attached' ? 'bg-teal-500/20 text-teal-400 border border-teal-500/30' : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'}">
+                ${v.status === 'uploaded_unlisted' ? '🚀 Uploaded & Live Unlisted' : v.status === 'uploading' ? '⏳ Uploading via Bot...' : v.status === 'thumbnail_attached' ? '✅ Thumbnail & SEO Ready' : '🔒 Unlisted (Pending Upload)'}
               </span>
               <button onclick="markThumbnailStatus('${v.id}', '${v.status === 'thumbnail_attached' ? 'unlisted_pending_thumbnail' : 'thumbnail_attached'}')" class="text-xs px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition">
                 ${v.status === 'thumbnail_attached' ? '↩️ Reset to Pending' : '✅ Mark Done'}
@@ -1318,7 +1318,7 @@
                   <span>🔗</span> Open ${isYoutube ? 'YouTube Studio Content Manager' : 'Rumble'} & Upload ↗
                 </a>
                 <!-- Bot Auto-Upload Action -->
-                <button onclick="autoUploadVideoNow('${v.id}', this)" class="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-cyan-600 via-blue-600 to-indigo-600 hover:from-cyan-500 hover:to-blue-500 text-white font-extrabold text-xs transition flex items-center justify-center gap-2 shadow-lg shadow-cyan-600/20 border border-cyan-400/40">
+                <button onclick="autoUploadVideoNow('${v.id}', '${v.channel_id || ''}', this)" class="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-cyan-600 via-blue-600 to-indigo-600 hover:from-cyan-500 hover:to-blue-500 text-white font-extrabold text-xs transition flex items-center justify-center gap-2 shadow-lg shadow-cyan-600/20 border border-cyan-400/40">
                   <span>🤖</span> Auto-Upload via Playwright Bot Now (${isYoutube ? 'YouTube Studio' : 'Rumble'})
                 </button>
 
@@ -1495,7 +1495,7 @@
     }
 
     // 24/7 Autonomous Daemon & Auto-Upload Functions
-    async function autoUploadVideoNow(vidId, btnElement) {
+    async function autoUploadVideoNow(vidId, channelKey, btnElement) {
       if (!confirm(`Launch autonomous Playwright background upload for video '${vidId}'?`)) return;
       const originalHtml = btnElement.innerHTML;
       btnElement.innerHTML = `<span>⏳</span> Launching Genuine Chrome Uploader...`;
@@ -1506,7 +1506,7 @@
         const res = await fetch('/api/unlisted-videos/auto-upload-now', {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({video_id: vidId})
+          body: JSON.stringify({video_id: vidId, channel_key: channelKey || null})
         });
         const data = await res.json();
         if (data.success) {

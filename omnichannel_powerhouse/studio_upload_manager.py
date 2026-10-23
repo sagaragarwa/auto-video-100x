@@ -25,6 +25,7 @@ except ImportError:
 
 QUEUE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "unlisted_queue.json")
 CHANNELS_CFG_PATH = os.path.join(_root, "yt_uploader", "channels_config.json")
+_upload_lock = threading.Lock()
 
 
 def load_channels_config() -> Dict[str, Any]:
@@ -62,8 +63,8 @@ def execute_video_upload(
         return {"success": False, "error": f"Video {video_item_id} not found in queue"}
 
     channels = load_channels_config()
-    # Resolve target channel
-    ch_key = target_channel_key
+    # Resolve target channel: check explicit argument, then queue item's channel_id
+    ch_key = target_channel_key or target_video.get("channel_id")
     if not ch_key or ch_key not in channels:
         # Fallback to first available channel with existing profile
         for k, ch in channels.items():
@@ -113,44 +114,53 @@ def execute_video_upload(
         "pinned_comment": target_video.get("pinned_comment", "")
     }
 
-    logger.info(f"Initiating Studio upload for '{target_video.get('title')}' on channel '{ch_key}'...")
+    logger.info(f"Acquiring upload lock for '{target_video.get('title')}' on channel '{ch_key}'...")
 
-    # Update status to uploading
-    _update_queue_status(video_item_id, "uploading", None, None)
+    with _upload_lock:
+        logger.info(f"Initiating Studio upload for '{target_video.get('title')}' on channel '{ch_key}'...")
 
-    from yt_uploader.studio_uploader import upload_video_to_studio
-    res = upload_video_to_studio(
-        channel_profile_dir=profile_dir,
-        video_file_path=abs_video_path,
-        thumbnail_file_path=thumb_path,
-        seo_package=seo_package,
-        headless=headless
-    )
+        # Update status to uploading
+        _update_queue_status(video_item_id, "uploading", None, None)
 
-    if res.get("success"):
-        video_id = res.get("video_id") or "uploaded"
-        video_url = res.get("url") or f"https://youtu.be/{video_id}"
-        studio_edit_url = f"https://studio.youtube.com/video/{video_id}/edit" if video_id != "uploaded" else "https://studio.youtube.com/videos"
+        try:
+            from yt_uploader.studio_uploader import upload_video_to_studio
+            res = upload_video_to_studio(
+                channel_profile_dir=profile_dir,
+                video_file_path=abs_video_path,
+                thumbnail_file_path=thumb_path,
+                seo_package=seo_package,
+                headless=headless
+            )
+        except Exception as exc:
+            err = f"Playwright upload exception: {str(exc)}"
+            _update_queue_status(video_item_id, "upload_failed", None, None, error=err)
+            logger.error(f"Upload failed with exception: {err}")
+            return {"success": False, "error": err}
 
-        _update_queue_status(
-            video_item_id=video_item_id,
-            status="uploaded_unlisted",
-            video_id=video_id,
-            video_url=video_url,
-            studio_edit_url=studio_edit_url
-        )
-        logger.success(f"Successfully uploaded and synced to queue! Video ID: {video_id}")
-        return {
-            "success": True,
-            "video_id": video_id,
-            "video_url": video_url,
-            "studio_edit_url": studio_edit_url
-        }
-    else:
-        err = res.get("error", "Unknown upload error")
-        _update_queue_status(video_item_id, "upload_failed", None, None, error=err)
-        logger.error(f"Upload failed: {err}")
-        return {"success": False, "error": err}
+        if res.get("success"):
+            video_id = res.get("video_id") or "uploaded"
+            video_url = res.get("url") or f"https://youtu.be/{video_id}"
+            studio_edit_url = f"https://studio.youtube.com/video/{video_id}/edit" if video_id != "uploaded" else "https://studio.youtube.com/videos"
+
+            _update_queue_status(
+                video_item_id=video_item_id,
+                status="uploaded_unlisted",
+                video_id=video_id,
+                video_url=video_url,
+                studio_edit_url=studio_edit_url
+            )
+            logger.success(f"Successfully uploaded and synced to queue! Video ID: {video_id}")
+            return {
+                "success": True,
+                "video_id": video_id,
+                "video_url": video_url,
+                "studio_edit_url": studio_edit_url
+            }
+        else:
+            err = res.get("error", "Unknown upload error")
+            _update_queue_status(video_item_id, "upload_failed", None, None, error=err)
+            logger.error(f"Upload failed: {err}")
+            return {"success": False, "error": err}
 
 
 def _update_queue_status(

@@ -1,6 +1,156 @@
 {
-  "updated_at": "2026-10-22 18:15:00",
+  "updated_at": "2026-10-23 11:33:18",
   "videos": [
+    {
+      "id": "youtube_1792735398",
+      "video_id": "yJgAOQAPfSg",
+      "title": "The Hidden Algorithms Controlling Your Portfolio's Liquidity",
+      "title_alternatives": [
+        "The Untold Story of The Hidden Algorithms Controlling Your P",
+        "Why Silicon Pulse Secretly Dominates This Industry"
+      ],
+      "seo_score": 98,
+      "seo_metrics": {
+        "search_volume": "High (94/100)",
+        "competition": "Low (18/100)",
+        "optimization_level": "Institutional Grade (100% Retained)"
+      },
+      "channel_id": "channel_trading",
+      "channel_name": "Silicon Pulse",
+      "platform": "youtube",
+      "language": "en",
+      "video_url": "https://youtu.be/yJgAOQAPfSg",
+      "studio_edit_url": "https://studio.youtube.com/video/yJgAOQAPfSg/edit",
+      "local_video_path": "/output/tier1_channel_trading_1792735052_master.mp4",
+      "master_abs_path": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\output\\tier1_channel_trading_1792735052_master.mp4",
+      "status": "uploaded_unlisted",
+      "duration_sec": 3600.0,
+      "duration_formatted": "60:00",
+      "thumbnail_punchline": "LIQUIDITY IS GONE",
+      "thumbnail_concepts": [
+        {
+          "variant": "A",
+          "name": "Monopoly Cyan",
+          "hex": "#00F2FE",
+          "file": "/output/demo_20min_hindi_thumbnail_A_monopoly_cyan.jpg"
+        },
+        {
+          "variant": "B",
+          "name": "Secret Amber",
+          "hex": "#FFB300",
+          "file": "/output/demo_20min_hindi_thumbnail_B_secret_amber.jpg"
+        },
+        {
+          "variant": "C",
+          "name": "Threat Crimson",
+          "hex": "#FF0055",
+          "file": "/output/demo_20min_hindi_thumbnail_C_threat_crimson.jpg"
+        }
+      ],
+      "hashtags": [
+        "#TradingAlgorithms",
+        "#MarketMakers",
+        "#PortfolioManagement",
+        "#Investing",
+        "#FinancialInvestigation"
+      ],
+      "tags": [
+        "trading",
+        "liquidity",
+        "algorithmic trading",
+        "market structure",
+        "HFT",
+        "stock market crash",
+        "dark pools",
+        "finance documentary",
+        "investing",
+        "market makers",
+        "order book",
+        "financial literacy",
+        "silicon pulse",
+        "quant trading",
+        "economy"
+      ],
+      "tags_csv": "portfolio liquidity,trading algorithms,market makers exposed,stock market manipulation,dark pools trading,hft algorithms,algorithmic trading exposed,retail trader trap,liquidity crisis,wall street algorithms,order book manipulation,trading strategy 2024,investing documentary,silicon pulse,finance investigation,portfolio management,risk management trading,exchange algorithms,payment for order flow,market microstructure",
+      "description": "The market you see on your terminal is a ghost. It\u2019s a carefully curated projection designed to keep you trading while the real liquidity migrates into the shadows. In this Silicon Pulse investigative documentary, we peel back the layers of the global financial plumbing to reveal the algorithms that decide whether your trade fills or vanishes. \n\n00:00 - The Broken Illusion\n05:12 - The Physics of HFT\n10:45 - The Architecture of Dark Pools\n16:20 - The Trillion-Dollar Incentive\n22:15 - The 2010 Flash Crash Lessons\n28:40 - The Modern Liquidity Crisis\n35:05 - Geopolitics and Digital Sovereignty\n42:30 - Future-Proofing Your Portfolio\n\n#Trading #Finance #Algorithms #SiliconPulse #Investing",
+      "pinned_comment": "Do you believe the market is still 'fair,' or is the retail investor just providing exit liquidity for institutional algorithms? Let\u2019s talk in the comments. \ud83d\udc47",
+      "uploaded_at": "2026-10-23 11:33:18"
+    },
+    {
+      "id": "youtube_1792735037",
+      "video_id": "pending_upload",
+      "title": "The Silicon Valley Ghost Protocol: How AI Rewrites Reality",
+      "title_alternatives": [
+        "The Untold Story of The Silicon Valley Ghost Protocol: How A",
+        "Why Neural Stack Secretly Dominates This Industry"
+      ],
+      "seo_score": 98,
+      "seo_metrics": {
+        "search_volume": "High (94/100)",
+        "competition": "Low (18/100)",
+        "optimization_level": "Institutional Grade (100% Retained)"
+      },
+      "channel_id": "ai_and_tech",
+      "channel_name": "Neural Stack",
+      "platform": "youtube",
+      "language": "en",
+      "video_url": "https://studio.youtube.com/videos",
+      "studio_edit_url": "https://studio.youtube.com/videos",
+      "local_video_path": "/output/tier1_ai_and_tech_1792734687_master.mp4",
+      "master_abs_path": "C:\\Users\\janar\\Downloads\\MoneyPrinterTurbo-main\\MoneyPrinterTurbo-main\\output\\tier1_ai_and_tech_1792734687_master.mp4",
+      "status": "unlisted_pending_thumbnail",
+      "duration_sec": 3600.0,
+      "duration_formatted": "60:00",
+      "thumbnail_punchline": "REALITY IS EDITED",
+      "thumbnail_concepts": [
+        {
+          "variant": "A",
+          "name": "Monopoly Cyan",
+          "hex": "#00F2FE",
+          "file": "/output/demo_20min_hindi_thumbnail_A_monopoly_cyan.jpg"
+        },
+        {
+          "variant": "B",
+          "name": "Secret Amber",
+          "hex": "#FFB300",
+          "file": "/output/demo_20min_hindi_thumbnail_B_secret_amber.jpg"
+        },
+        {
+          "variant": "C",
+          "name": "Threat Crimson",
+          "hex": "#FF0055",
+          "file": "/output/demo_20min_hindi_thumbnail_C_threat_crimson.jpg"
+        }
+      ],
+      "hashtags": [
+        "#ArtificialIntelligence",
+        "#SiliconValley",
+        "#Documentary",
+        "#TechNews",
+        "#NeuralStack"
+      ],
+      "tags": [
+        "Artificial Intelligence",
+        "Silicon Valley",
+        "Tech Documentary",
+        "Neural Stack",
+        "Algorithm Bias",
+        "Digital Reality",
+        "Future of Tech",
+        "Machine Learning",
+        "Tech Ethics",
+        "Deepfakes",
+        "Cybersecurity",
+        "Big Tech",
+        "Technological Singularity",
+        "Data Privacy",
+        "Information Warfare"
+      ],
+      "tags_csv": "artificial intelligence,silicon valley,investigative documentary,neural stack,synthetic reality,deepfakes,ai documentary,tech conspiracy,future of tech,generative ai,algorithm secret,information warfare,digital manipulation,tech industry expose,ai ethics,machine learning,openai whistleblower,agi timeline,surveillance capitalism,reality simulation",
+      "description": "We are living in a curated reality. Behind the sleek interfaces of your favorite apps lies the 'Ghost Protocol'\u2014a complex architecture of predictive algorithms designed not just to serve you content, but to rewrite your perception of the world. In this investigation, we pull back the curtain on the trillion-dollar incentives driving AI development and what it means for the future of human autonomy. \n\n00:00 - The Broken Illusion\n05:12 - The Mathematical Architecture\n12:45 - The Trillion-Dollar Incentives\n18:30 - The Ghost Protocol Explained\n24:15 - Real-World Stress Tests\n31:00 - The Geopolitical Horizon\n38:20 - The Irreversible Future\n45:00 - Reclaiming Cognitive Sovereignty",
+      "pinned_comment": "Do you believe your news feed is showing you reality, or a version of the world carefully constructed to keep you scrolling? Let\u2019s discuss the ethical line between personalization and manipulation in the comments below.",
+      "uploaded_at": "2026-10-23 11:27:17"
+    },
     {
       "id": "unlisted_001",
       "video_id": "D0vD2zd2594",
