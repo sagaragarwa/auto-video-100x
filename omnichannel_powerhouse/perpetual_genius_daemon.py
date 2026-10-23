@@ -152,10 +152,84 @@ class PerpetualGeniusDaemon:
             "state": self.state
         }
 
+    def add_standing_order(
+        self,
+        channel_key: str,
+        interval_hours: int = 24,
+        duration_min: int = 30,
+        custom_topic: Optional[str] = None,
+        auto_upload_unlisted: bool = True
+    ) -> Dict[str, Any]:
+        """Enrolls a persistent 24/7 standing order to manufacture & upload every interval_hours."""
+        with self._lock:
+            orders = self.state.setdefault("standing_orders", [])
+            order_id = f"order_{int(time.time())}_{random.randint(100, 999)}"
+            order = {
+                "id": order_id,
+                "channel_key": channel_key,
+                "interval_hours": max(1, int(interval_hours)),
+                "duration_min": int(duration_min),
+                "custom_topic": custom_topic,
+                "auto_upload_unlisted": bool(auto_upload_unlisted),
+                "last_run_timestamp": None,
+                "created_at": time.strftime("%Y-%m-%d %H:%M:%S")
+            }
+            orders.append(order)
+            self._save_state()
+            self.log(f"⏰ Standing Order Enrolled: Channel '{channel_key}' every {interval_hours}h ({duration_min} min, auto_upload={auto_upload_unlisted})")
+            if not self.is_running:
+                self.start()
+            return {"success": True, "order": order, "total_active_orders": len(orders)}
+
+    def list_standing_orders(self) -> List[Dict[str, Any]]:
+        return self.state.get("standing_orders", [])
+
+    def remove_standing_order(self, order_id: str) -> Dict[str, Any]:
+        with self._lock:
+            orders = self.state.get("standing_orders", [])
+            filtered = [o for o in orders if o.get("id") != order_id and o.get("channel_key") != order_id]
+            removed = len(orders) - len(filtered)
+            self.state["standing_orders"] = filtered
+            self._save_state()
+            self.log(f"🗑️ Removed {removed} standing order(s) for '{order_id}'")
+            return {"success": True, "removed_count": removed, "remaining_orders": len(filtered)}
+
     def _run_loop(self):
         self.log("Entering continuous autonomous Tier-1 long-form manufacturing cycle...")
         while not self._stop_event.is_set():
             try:
+                # Check & Execute Due Standing Orders
+                now_ts = time.time()
+                for order in list(self.state.get("standing_orders", [])):
+                    if self._stop_event.is_set():
+                        break
+                    last_run = order.get("last_run_timestamp")
+                    interval_sec = order.get("interval_hours", 24) * 3600
+                    if last_run is None or (now_ts - last_run) >= interval_sec:
+                        ch_key = order.get("channel_key", "channel_trading")
+                        yt_channels = self._load_json(YT_CHANNELS_FILE)
+                        ch_data = yt_channels.get(ch_key, {"name": ch_key, "niche": "technology"})
+                        dur_min = order.get("duration_min", 30)
+                        self.log(f"⏰ Standing Order Triggered: '{ch_key}' ({dur_min} min)...")
+                        
+                        try:
+                            from omnichannel_powerhouse.tier1_producer import produce_and_queue_tier1_video
+                            prod_res = produce_and_queue_tier1_video(
+                                channel_key=ch_key,
+                                channel_data=ch_data,
+                                platform="youtube",
+                                duration_min=dur_min,
+                                custom_topic=order.get("custom_topic"),
+                                auto_upload_unlisted=order.get("auto_upload_unlisted", True)
+                            )
+                            order["last_run_timestamp"] = now_ts
+                            self.state["total_cycles_completed"] += 1
+                            self.state["last_cycle_timestamp"] = time.strftime("%Y-%m-%d %H:%M:%S")
+                            self._save_state()
+                            self.log(f"✅ Standing Order Successfully Completed for '{ch_key}'!")
+                        except Exception as oe:
+                            self.log(f"⚠️ Standing order execution error for '{ch_key}': {oe}")
+
                 # 0. Midnight UTC/Local Quota Reset
                 current_day = time.strftime("%Y-%m-%d")
                 if self.state.get("last_active_date") != current_day:

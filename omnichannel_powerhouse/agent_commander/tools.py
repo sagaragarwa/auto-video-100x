@@ -44,21 +44,22 @@ def tool_daemon_control(action: str) -> Dict[str, Any]:
         return daemon.get_status()
 
 
-# --- 2. TIER-1 VIDEO MANUFACTURING TOOL ---
-def tool_manufacture_video(channel_key: str, topic: Optional[str] = None, duration_min: int = 40) -> Dict[str, Any]:
+# --- 2. TIER-1 VIDEO MANUFACTURING TOOLS ---
+def tool_manufacture_video(
+    channel_key: str,
+    topic: Optional[str] = None,
+    duration_min: int = 30,
+    auto_upload_unlisted: bool = True
+) -> Dict[str, Any]:
     """
-    Manufactures an institutional 30-60 min Tier-1 English documentary:
-    - 5-Act Deep Research Script via Gemini 3.5 Flash
+    Manufactures an institutional documentary of ANY requested duration (5 to 60+ min):
+    - Multi-Brain Script Synthesis (Groq 120B / OpenRouter / Gemini Pool)
     - Edge-TTS Tier-1 Voice + 6-Stage Shure SM7B DSP (-14 LUFS)
     - Zero-Repeat 1080p B-roll Stream + 173.25s Vintage Blue Laser Content ID Outro Lock
     - 98/100 God-Tier SEO + Pinned Comment
-    - Registers in Unlisted Queue for thumbnail review
+    - Registers in Unlisted Queue and auto-uploads as Unlisted if auto_upload_unlisted=True
     """
-    from omnichannel_powerhouse.tier1_producer import (
-        synthesize_tier1_script_and_seo,
-        render_tier1_master_video,
-        research_channel_topics
-    )
+    from omnichannel_powerhouse.tier1_producer import produce_and_queue_tier1_video
 
     yt_channels = {}
     if os.path.exists(YT_CHANNELS_FILE):
@@ -73,64 +74,124 @@ def tool_manufacture_video(channel_key: str, topic: Optional[str] = None, durati
         "voice_preferred": "en-US-ChristopherNeural"
     })
 
-    niche = ch_data.get("niche", "technology")
-    ch_name = ch_data.get("name", channel_key)
-    voice = ch_data.get("voice_preferred", "en-US-ChristopherNeural")
+    res = produce_and_queue_tier1_video(
+        channel_key=channel_key,
+        channel_data=ch_data,
+        platform="youtube",
+        duration_min=duration_min,
+        custom_topic=topic,
+        auto_upload_unlisted=auto_upload_unlisted
+    )
 
-    # If topic not provided, research dynamically
-    if not topic:
-        topics = research_channel_topics(niche, ch_name, count=2)
-        topic = topics[0]["topic"]
-
-    # 1. Synthesize Script & SEO
-    script_data = synthesize_tier1_script_and_seo(topic, niche, ch_name, duration_min=duration_min)
-
-    # 2. Render Master Video with Outro Lock
-    master_path = render_tier1_master_video(script_data, channel_key, voice=voice)
-
-    # 3. Add to Unlisted Queue
-    vid_id = f"yt_{int(time.time())}"
-    clean_rel = f"/output/{os.path.basename(master_path)}"
-    new_entry = {
-        "id": vid_id,
-        "video_id": "pending_upload",
-        "title": script_data.get("title", topic),
-        "seo_score": script_data.get("seo_score", 98),
-        "channel_id": channel_key,
-        "channel_name": ch_name,
-        "platform": "youtube",
-        "language": "en",
-        "local_video_path": clean_rel,
-        "master_abs_path": master_path,
-        "status": "unlisted_pending_thumbnail",
-        "duration_sec": script_data.get("duration_sec", duration_min * 60),
-        "duration_formatted": f"{duration_min}:00",
-        "thumbnail_punchline": script_data.get("thumbnail_punchline", "THE HIDDEN WAR"),
-        "tags": script_data.get("tags", []),
-        "description": script_data.get("description", ""),
-        "pinned_comment": script_data.get("pinned_comment", ""),
-        "uploaded_at": time.strftime("%Y-%m-%d %H:%M:%S")
+    upload_info = res.get("upload_result") or {}
+    return {
+        "success": res.get("success", True),
+        "video_id": res.get("video_id"),
+        "title": res.get("script_data", {}).get("title"),
+        "duration_minutes": duration_min,
+        "master_video_path": res.get("master_video_path"),
+        "seo_score": res.get("script_data", {}).get("seo_score", 98),
+        "uploaded_unlisted": upload_info.get("success", False),
+        "video_url": upload_info.get("video_url"),
+        "studio_edit_url": upload_info.get("studio_edit_url"),
+        "status": "Uploaded (Unlisted) to YouTube Studio!" if upload_info.get("success") else "Staged in Unlisted Queue"
     }
 
-    try:
-        q_data = {"videos": []}
-        if os.path.exists(QUEUE_FILE):
-            q_data = json.load(open(QUEUE_FILE, encoding="utf-8"))
-        q_data.setdefault("videos", []).insert(0, new_entry)
-        with open(QUEUE_FILE, "w", encoding="utf-8") as f:
-            json.dump(q_data, f, indent=2)
-    except Exception:
-        pass
+
+def tool_batch_manufacture_and_upload(
+    channels: List[str],
+    videos_per_channel: int = 1,
+    duration_min: int = 30,
+    custom_topics: Optional[List[str]] = None,
+    auto_upload_unlisted: bool = True
+) -> Dict[str, Any]:
+    """
+    Manufactures and uploads a batch of videos across multiple channels with custom duration:
+    - Custom duration per video (5 to 60+ min)
+    - Researches topics or uses provided custom_topics
+    - SM7B voice DSP + Content ID outro lock
+    - Auto-uploads as Unlisted to YouTube Studio via Playwright Chrome profile sequentially
+    """
+    from omnichannel_powerhouse.tier1_producer import produce_and_queue_tier1_video
+
+    yt_channels = {}
+    if os.path.exists(YT_CHANNELS_FILE):
+        try:
+            yt_channels = json.load(open(YT_CHANNELS_FILE, encoding="utf-8"))
+        except Exception:
+            pass
+
+    results = []
+    topic_idx = 0
+    for ch_key in channels:
+        ch_data = yt_channels.get(ch_key, {
+            "name": ch_key,
+            "niche": "technology",
+            "voice_preferred": "en-US-ChristopherNeural"
+        })
+        for v_i in range(videos_per_channel):
+            topic = None
+            if custom_topics and topic_idx < len(custom_topics):
+                topic = custom_topics[topic_idx]
+                topic_idx += 1
+
+            res = produce_and_queue_tier1_video(
+                channel_key=ch_key,
+                channel_data=ch_data,
+                platform="youtube",
+                duration_min=duration_min,
+                custom_topic=topic,
+                auto_upload_unlisted=auto_upload_unlisted
+            )
+            upload_info = res.get("upload_result") or {}
+            results.append({
+                "channel_key": ch_key,
+                "video_id": res.get("video_id"),
+                "title": res.get("script_data", {}).get("title"),
+                "duration_min": duration_min,
+                "uploaded_unlisted": upload_info.get("success", False),
+                "video_url": upload_info.get("video_url"),
+                "studio_edit_url": upload_info.get("studio_edit_url")
+            })
 
     return {
         "success": True,
-        "video_id": vid_id,
-        "title": new_entry["title"],
-        "master_video_path": master_path,
-        "duration_minutes": duration_min,
-        "seo_score": script_data.get("seo_score", 98),
-        "status": "Ready in Unlisted Queue. You can upload now or attach custom thumbnail."
+        "total_manufactured": len(results),
+        "results": results
     }
+
+
+def tool_schedule_standing_order(
+    channel_key: str,
+    action: str = "create",
+    interval_hours: int = 24,
+    duration_min: int = 30,
+    custom_topic: Optional[str] = None,
+    auto_upload_unlisted: bool = True
+) -> Dict[str, Any]:
+    """
+    Manages 24/7 standing autonomous orders in the Perpetual Daemon:
+    - 'create': Adds a standing scheduled order for channel_key to manufacture every interval_hours
+    - 'list': Lists all active standing orders and recurring tasks
+    - 'delete': Removes a standing order
+    """
+    from omnichannel_powerhouse.perpetual_genius_daemon import get_daemon
+    daemon = get_daemon()
+    action = action.lower().strip()
+    if action == "create":
+        return daemon.add_standing_order(
+            channel_key=channel_key,
+            interval_hours=interval_hours,
+            duration_min=duration_min,
+            custom_topic=custom_topic,
+            auto_upload_unlisted=auto_upload_unlisted
+        )
+    elif action in ("list", "show"):
+        return {"success": True, "standing_orders": daemon.list_standing_orders()}
+    elif action in ("delete", "remove", "cancel"):
+        return daemon.remove_standing_order(channel_key)
+    else:
+        return {"success": False, "error": f"Unknown action '{action}'. Use 'create', 'list', or 'delete'."}
 
 
 # --- 3. AUTO-UPLOAD YOUTUBE UNLISTED TOOL ---
@@ -381,6 +442,8 @@ def tool_get_system_health() -> Dict[str, Any]:
 TOOL_REGISTRY = {
     "tool_daemon_control": tool_daemon_control,
     "tool_manufacture_video": tool_manufacture_video,
+    "tool_batch_manufacture_and_upload": tool_batch_manufacture_and_upload,
+    "tool_schedule_standing_order": tool_schedule_standing_order,
     "tool_upload_youtube_unlisted": tool_upload_youtube_unlisted,
     "tool_upload_rumble": tool_upload_rumble,
     "tool_list_channels": tool_list_channels,
@@ -416,15 +479,55 @@ GEMINI_FUNCTION_DECLARATIONS = [
     },
     {
         "name": "tool_manufacture_video",
-        "description": "Generate and render a complete 30-60 min Tier-1 English institutional documentary with Shure SM7B DSP voice and Content ID outro lock.",
+        "description": "Manufacture and optionally auto-upload a Tier-1 institutional documentary of ANY duration (5 to 60+ min) with Shure SM7B voice DSP and Content ID outro lock.",
         "parameters": {
             "type": "OBJECT",
             "properties": {
-                "channel_key": {"type": "STRING", "description": "Channel key (e.g. 'channel_trading', 'ai_and_tech')"},
-                "topic": {"type": "STRING", "description": "Specific documentary topic (optional, bot will research if omitted)"},
-                "duration_min": {"type": "INTEGER", "description": "Target duration in minutes (e.g. 40 or 45)"}
+                "channel_key": {"type": "STRING", "description": "Channel identifier (e.g. 'channel_trading', 'ai_and_tech')"},
+                "topic": {"type": "STRING", "description": "Specific documentary topic (optional, bot researches if omitted)"},
+                "duration_min": {"type": "INTEGER", "description": "Target duration in minutes (e.g. 5, 10, 15, 30, 45, 60)"},
+                "auto_upload_unlisted": {"type": "BOOLEAN", "description": "Automatically upload to YouTube Studio as Unlisted (default true)"}
             },
             "required": ["channel_key"]
+        }
+    },
+    {
+        "name": "tool_batch_manufacture_and_upload",
+        "description": "Manufacture and auto-upload a batch of videos across multiple channels with custom duration and topics (e.g. 2 videos on Silicon Pulse, 1 on Neural Stack).",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "channels": {
+                    "type": "ARRAY",
+                    "items": {"type": "STRING"},
+                    "description": "List of channel keys (e.g. ['channel_trading', 'ai_and_tech'])"
+                },
+                "videos_per_channel": {"type": "INTEGER", "description": "Number of videos to manufacture per channel (default 1)"},
+                "duration_min": {"type": "INTEGER", "description": "Target duration in minutes for each video (e.g. 15, 30, 45)"},
+                "custom_topics": {
+                    "type": "ARRAY",
+                    "items": {"type": "STRING"},
+                    "description": "Optional specific topic blueprints"
+                },
+                "auto_upload_unlisted": {"type": "BOOLEAN", "description": "Whether to auto-upload as Unlisted via Playwright (default true)"}
+            },
+            "required": ["channels"]
+        }
+    },
+    {
+        "name": "tool_schedule_standing_order",
+        "description": "Schedule, view, or delete 24/7 autonomous recurring standing orders in the Perpetual Daemon (e.g. produce and upload every 12 or 24 hours).",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "channel_key": {"type": "STRING", "description": "Channel identifier (e.g. 'channel_trading', 'ai_and_tech')"},
+                "action": {"type": "STRING", "description": "'create', 'list', or 'delete'"},
+                "interval_hours": {"type": "INTEGER", "description": "Recurrence interval in hours (e.g. 6, 12, 24)"},
+                "duration_min": {"type": "INTEGER", "description": "Target video duration in minutes (e.g. 30)"},
+                "custom_topic": {"type": "STRING", "description": "Optional specific topic theme"},
+                "auto_upload_unlisted": {"type": "BOOLEAN", "description": "Whether to auto-upload each cycle as Unlisted (default true)"}
+            },
+            "required": ["channel_key", "action"]
         }
     },
     {

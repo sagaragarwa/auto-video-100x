@@ -36,20 +36,43 @@ except ImportError:
 
 import edge_tts
 
-def run_async(coro):
+def run_async(coro_or_fn, *args, **kwargs):
     """Safely runs an async coroutine across both synchronous threads and active event loops."""
+    import inspect
+    import concurrent.futures
+
     try:
         loop = asyncio.get_running_loop()
     except RuntimeError:
         loop = None
 
-    if loop and loop.is_running():
-        import concurrent.futures
-        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
-            return pool.submit(asyncio.run, coro).result()
+    if inspect.iscoroutinefunction(coro_or_fn):
+        if loop and loop.is_running():
+            def _target():
+                return asyncio.run(coro_or_fn(*args, **kwargs))
+            with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
+                return pool.submit(_target).result()
+        else:
+            return asyncio.run(coro_or_fn(*args, **kwargs))
     else:
-        return asyncio.run(coro)
+        coro = coro_or_fn
+        if loop and loop.is_running():
+            def _target():
+                new_loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(new_loop)
+                try:
+                    return new_loop.run_until_complete(coro)
+                finally:
+                    new_loop.close()
+            with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
+                return pool.submit(_target).result()
+        else:
+            return asyncio.run(coro)
 
+try:
+    from omnichannel_powerhouse.agent_commander.multi_brain import call_hybrid_completion
+except Exception:
+    from omnichannel_powerhouse.gemini_script_engine import call_gemini as call_hybrid_completion
 from omnichannel_powerhouse.gemini_script_engine import call_gemini
 from omnichannel_powerhouse.deep_seo_engine import generate_deep_seo
 from cloud_render_worker import (
@@ -93,7 +116,7 @@ Return STRICTLY valid JSON with no markdown formatting:
 ]
 """
     try:
-        raw = call_gemini(prompt, model="gemini-3.1-flash-lite")
+        raw = call_hybrid_completion(prompt)
         clean = raw.strip()
         if clean.startswith("```json"): clean = clean[7:]
         if clean.startswith("```"): clean = clean[3:]
@@ -118,34 +141,46 @@ Return STRICTLY valid JSON with no markdown formatting:
     ]
 
 
-def synthesize_tier1_script_and_seo(topic: str, niche: str, channel_name: str, duration_min: int = 35) -> Dict[str, Any]:
+def synthesize_tier1_script_and_seo(topic: str, niche: str, channel_name: str, duration_min: int = 30) -> Dict[str, Any]:
     """
-    Generates a full 5-Act institutional spoken script and God-Tier SEO package via Gemini 3.5 Flash.
+    Generates a full institutional spoken script and God-Tier SEO package via Multi-Brain (Groq / OpenRouter / Gemini).
     """
-    logger.info(f"✍️ Synthesizing 5-Act Tier-1 English Documentary Script for '{topic}'...")
-    target_words = min(5500, max(2200, duration_min * 110))
+    logger.info(f"✍️ Synthesizing Tier-1 English Documentary Script ({duration_min} min) for '{topic}'...")
+    target_words = max(600, min(10000, int(duration_min * 140)))
+
+    narrative_structure = (
+        f"1. Write an authoritative, gripping, 3-Act spoken documentary voiceover script (~{target_words} words).\n"
+        f"   - Act I: The Anomaly & The Hook (Deconstruct the surface illusion)\n"
+        f"   - Act II: The Mechanical Breakdown & Empirical Case Study\n"
+        f"   - Act III: The Strategic Verdict & The Irreversible Future\n"
+        f"   - NO scene directions, NO bracketed markers like [Music swells]. ONLY spoken narrator speech."
+    ) if duration_min <= 10 else (
+        f"1. Write an authoritative, gripping, 5-Act spoken documentary voiceover script (~{target_words} words).\n"
+        f"   - Act I: The Anomaly & The Hook (Deconstruct the surface illusion)\n"
+        f"   - Act II: The Mathematical & Physical Architecture (Granular mechanical breakdown)\n"
+        f"   - Act III: Covert Players & Trillion-Dollar Incentives (The hidden institutional players)\n"
+        f"   - Act IV: Real-World Stress Tests & Case Studies (Empirical failures & turning points)\n"
+        f"   - Act V: The Geopolitical Horizon & Strategic Framework (The irreversible future)\n"
+        f"   - NO scene directions, NO bracketed markers like [Music swells]. ONLY spoken narrator speech."
+    )
+
+    chapters_count = "3-4" if duration_min <= 10 else "6-10"
 
     prompt = f"""You are a master institutional documentary writer (in the style of Bloomberg Originals, Veritasium, and Frontline) and YouTube/Rumble algorithmic SEO engineer.
 Target Audience: Tier-1 English (USA, UK, Canada, Australia)
 Topic: "{topic}"
 Channel Name: "{channel_name}"
 Niche: "{niche}"
+Target Duration: {duration_min} minutes (~{target_words} words)
 
 Requirements:
-1. Write an authoritative, gripping, 5-Act spoken documentary voiceover script (~{target_words} words).
-   - Act I: The Anomaly & The Hook (Deconstruct the surface illusion)
-   - Act II: The Mathematical & Physical Architecture (Granular mechanical breakdown)
-   - Act III: Covert Players & Trillion-Dollar Incentives (The hidden institutional players)
-   - Act IV: Real-World Stress Tests & Case Studies (Empirical failures & turning points)
-   - Act V: The Geopolitical Horizon & Strategic Framework (The irreversible future)
-   - NO scene directions, NO bracketed markers like [Music swells]. ONLY spoken narrator speech.
+{narrative_structure}
 2. "title": 60-character CTR-optimized viral title.
 3. "thumbnail_punchline": 2-3 words capitalized.
 4. "video_terms": 15 visual search keywords for 4K stock footage.
 5. "tags": 15 high-volume algorithmic SEO tags.
-6. "description": Engaging description including 8-12 chapter timestamps formatted like:
+6. "description": Engaging description including {chapters_count} chapter timestamps spread across 00:00 to {duration_min:02d}:00:
    00:00 - Chapter 1: The Broken Illusion
-   03:45 - Chapter 2: The Physical Micro-Architecture
    ...
 7. "pinned_comment": Engaging question with high-conversion discussion prompt.
 
@@ -160,7 +195,7 @@ Return STRICTLY valid JSON:
   "video_script": "..."
 }}
 """
-    raw = call_gemini(prompt, model="gemini-3.1-flash-lite")
+    raw = call_hybrid_completion(prompt)
     clean = raw.strip()
     if clean.startswith("```json"): clean = clean[7:]
     if clean.startswith("```"): clean = clean[3:]
@@ -206,10 +241,7 @@ async def synthesize_tier1_voiceover(text: str, voice: str, output_path: str):
     logger.info(f"🎙️ Synthesizing speech with Tier-1 Voice [{voice}] (Word count: {len(text.split())})...")
     
     communicate = edge_tts.Communicate(text, voice)
-    with open(temp_raw, "wb") as f:
-        async for chunk in communicate.stream():
-            if chunk["type"] == "audio":
-                f.write(chunk["data"])
+    await communicate.save(temp_raw)
 
     # 6-Stage Shure SM7B Broadcast Mastering DSP Chain
     logger.info("🎛️ Applying 6-Stage Shure SM7B Broadcast DSP vocal chain (-14 LUFS)...")
@@ -252,7 +284,7 @@ def render_tier1_master_video(
     final_output = os.path.join(OUTPUT_DIR, f"tier1_{channel_key}_{ts}_master.mp4")
 
     # 1. Synthesize Audio
-    run_async(synthesize_tier1_voiceover(script_data["video_script"], voice, audio_file))
+    run_async(synthesize_tier1_voiceover, script_data["video_script"], voice, audio_file)
     total_duration = get_media_duration(audio_file)
     logger.info(f"⏱️ Spoken Duration: {total_duration:.1f}s ({total_duration/60:.2f} minutes)")
 
@@ -279,26 +311,36 @@ def render_tier1_master_video(
 def produce_and_queue_tier1_video(
     channel_key: str,
     channel_data: Dict[str, Any],
-    platform: str = "youtube"
+    platform: str = "youtube",
+    duration_min: Optional[int] = None,
+    custom_topic: Optional[str] = None,
+    auto_upload_unlisted: bool = False
 ) -> Dict[str, Any]:
     """
     End-to-End Orchestrator:
-    1. Researches Topic
-    2. Writes Tier-1 Script & SEO
+    1. Researches Topic (or uses custom topic)
+    2. Writes Tier-1 Script & SEO for target duration (5 to 60+ min)
     3. Synthesizes Audio with Shure SM7B DSP
     4. Renders 1080p Master Video with Outro Lock
     5. Prepends to Unlisted Queue
+    6. Automatically triggers Playwright upload if auto_upload_unlisted=True
     """
     niche = channel_data.get("niche", "technology")
     ch_name = channel_data.get("name", channel_key)
     voice = channel_data.get("voice_preferred", "en-US-ChristopherNeural")
 
-    # 1. Research Topic
-    topics = research_channel_topics(niche, ch_name, count=3)
-    chosen_topic = topics[0]["topic"]
+    # 1. Resolve Topic & Duration
+    chosen_topic = custom_topic
+    chosen_duration = duration_min
+    if not chosen_topic or not chosen_duration:
+        topics = research_channel_topics(niche, ch_name, count=3)
+        if not chosen_topic:
+            chosen_topic = topics[0]["topic"]
+        if not chosen_duration:
+            chosen_duration = topics[0].get("duration_min", 30)
 
     # 2. Generate Script & SEO
-    script_data = synthesize_tier1_script_and_seo(chosen_topic, niche, ch_name, duration_min=topics[0].get("duration_min", 40))
+    script_data = synthesize_tier1_script_and_seo(chosen_topic, niche, ch_name, duration_min=chosen_duration)
 
     # 3. Render Master Video
     master_video_path = render_tier1_master_video(script_data, channel_key, voice=voice)
@@ -326,8 +368,8 @@ def produce_and_queue_tier1_video(
         "local_video_path": clean_rel_path,
         "master_abs_path": master_video_path,
         "status": "unlisted_pending_thumbnail",
-        "duration_sec": script_data.get("duration_sec", 2400.0),
-        "duration_formatted": script_data.get("duration_formatted", "40:00"),
+        "duration_sec": script_data.get("duration_sec", chosen_duration * 60.0),
+        "duration_formatted": f"{chosen_duration}:00",
         "thumbnail_punchline": script_data.get("thumbnail_punchline", "THE HIDDEN WAR"),
         "thumbnail_concepts": [
             {"variant": "A", "name": "Monopoly Cyan", "hex": "#00F2FE", "file": "/output/demo_20min_hindi_thumbnail_A_monopoly_cyan.jpg"},
@@ -357,12 +399,26 @@ def produce_and_queue_tier1_video(
     except Exception as e:
         logger.error(f"Error registering in queue: {e}")
 
+    # 5. Immediate Auto-Upload if requested
+    upload_res = None
+    if auto_upload_unlisted and platform == "youtube":
+        try:
+            logger.info(f"🚀 Triggering immediate Playwright upload for {vid_id} on {channel_key}...")
+            from omnichannel_powerhouse.studio_upload_manager import execute_video_upload
+            upload_res = execute_video_upload(vid_id, target_channel_key=channel_key, headless=False)
+            if upload_res.get("success"):
+                logger.success(f"Successfully auto-uploaded {vid_id} -> {upload_res.get('video_url')}")
+        except Exception as ue:
+            logger.error(f"Auto-upload failed: {ue}")
+            upload_res = {"success": False, "error": str(ue)}
+
     return {
         "success": True,
         "video_id": vid_id,
         "master_video_path": master_video_path,
         "script_data": script_data,
-        "queue_entry": queue_entry
+        "queue_entry": queue_entry,
+        "upload_result": upload_res
     }
 
 

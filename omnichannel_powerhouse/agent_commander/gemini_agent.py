@@ -32,17 +32,16 @@ from omnichannel_powerhouse.agent_commander.memory import (
 
 DEFAULT_SYSTEM_PROMPT = """You are the Supreme AI Commander of the OmniChannel Autonomous Empire.
 You possess complete real-time authority and agentic tools over:
-1. Video Production: Synthesizing 30-60 min Tier-1 English documentaries with Edge-TTS voices and Shure SM7B DSP.
-2. Content Protection: Hard-locking the mandatory 173.25s Vintage Blue Laser Content ID outro.
-3. YouTube & Rumble Fleets: Managing daily quotas (5 YT / 20 Rumble), unlisted uploads, and pinned comments.
-4. Cloud Swarm: Dispatching 100 to 1,000 video batches across GitHub Actions multi-repo runners.
-5. Code Interpreter: Running Python scripts locally to crunch data, calculate RPMs, or plot charts.
-6. System Health & Keys: Monitoring disk space, server telemetry, and adding Gemini API keys.
+1. Dynamic Video Production: Synthesizing documentaries of ANY requested duration (5, 10, 15, 20, 30, 45, 60+ min) with Edge-TTS voices and 6-stage Shure SM7B DSP.
+2. Batch & Multi-Channel Swarm: Producing multiple videos across multiple channels (Silicon Pulse / channel_trading, Neural Stack / ai_and_tech, Mind Decoded / channel_psychology, motival) in a single command.
+3. 24/7 Standing Orders & Daemon: Scheduling recurring autonomous production and uploads every N hours (tool_schedule_standing_order).
+4. Content Protection & SEO: Hard-locking the 173.25s Vintage Blue Laser Content ID outro, 98/100 algorithmic SEO, custom thumbnails, and high-velocity pinned debate comments.
+5. Zero-Touch Uploads: Uploading directly to YouTube Studio as Unlisted via Playwright Chrome profiles.
+6. Zero-Token Shield: Routing queries through Groq (120B @ 800 t/s) and OpenRouter for 100% lifetime free operation with Gemini Key Pool failover.
 
 You speak authoritatively, smartly, and concisely in English, Hindi, or Hinglish depending on what the user speaks.
-When the user requests an action, use the appropriate function tool to execute it immediately.
-Always format output in rich GitHub-style Markdown with tables, bullet points, and KaTeX math when appropriate.
-Show deep reasoning and tactical intelligence in all responses.
+When the user requests an action (e.g. "Silicon pulse pe 2 video 30 min ki aur Neural Stack pe 1 video 15 min ki banao aur upload kardo", or "har 12 ghante me ek video upload karo"), immediately call the appropriate tool (tool_batch_manufacture_and_upload, tool_manufacture_video, or tool_schedule_standing_order) to execute it.
+Always format output in rich GitHub-style Markdown with tables, bullet points, and execution telemetry.
 """
 
 
@@ -140,13 +139,13 @@ def stream_chat_response(
     elif model_name in ("hybrid:auto", "auto"):
         if MULTI_BRAIN.get_groq_key():
             target_provider = "groq"
-            target_model_id = "llama-3.3-70b-versatile"
+            target_model_id = "openai/gpt-oss-120b"
         elif MULTI_BRAIN.get_openrouter_key():
             target_provider = "openrouter"
-            target_model_id = "deepseek/deepseek-r1:free"
+            target_model_id = "nvidia/nemotron-3.5-lightning:free"
         else:
             target_provider = "gemini"
-            target_model_id = "gemini-3.5-flash"
+            target_model_id = "gemini-3.1-flash-lite"
 
     # --- MULTI-BRAIN EXECUTION (GROQ / OPENROUTER) ---
     if target_provider in ("groq", "openrouter"):
@@ -180,6 +179,13 @@ def stream_chat_response(
                 executed_tools = []
 
                 if tool_calls:
+                    assistant_msg = {
+                        "role": "assistant",
+                        "content": choice.get("content") or "",
+                        "tool_calls": tool_calls
+                    }
+                    openai_messages.append(assistant_msg)
+
                     for tc in tool_calls:
                         fn_info = tc.get("function", {})
                         fn_name = fn_info.get("name")
@@ -203,7 +209,6 @@ def stream_chat_response(
                         executed_tools.append({"tool": fn_name, "args": fn_args, "result": tool_result})
                         yield f"data: {json.dumps({'type': 'tool_result', 'name': fn_name, 'result': tool_result})}\n\n"
 
-                        openai_messages.append(choice)
                         openai_messages.append({
                             "role": "tool",
                             "tool_call_id": tc.get("id", "call_1"),

@@ -274,3 +274,62 @@ def call_openai_compatible_api(
 
     with urllib.request.urlopen(req, timeout=timeout) as resp:
         return json.loads(resp.read().decode("utf-8"))
+
+
+def call_hybrid_completion(
+    prompt: str,
+    system_prompt: Optional[str] = None,
+    max_tokens: int = 8192,
+    timeout: int = 45
+) -> str:
+    """
+    Tiered Zero-Token Completion Engine:
+    1. Groq (openai/gpt-oss-120b) -> 800+ tokens/sec, 100% Free, 0 Gemini tokens!
+    2. OpenRouter (nvidia/nemotron-3.5-lightning:free) -> 100% Free, 0 Gemini tokens!
+    3. Gemini Key Pool (gemini-3.1-flash-lite) -> 3-key round-robin failover
+    """
+    msgs: List[Dict[str, Any]] = []
+    if system_prompt:
+        msgs.append({"role": "system", "content": system_prompt})
+    msgs.append({"role": "user", "content": prompt})
+
+    # 1. Try Groq (120B Frontier Model, Sub-second TTFT)
+    groq_key = MULTI_BRAIN.get_groq_key()
+    if groq_key:
+        try:
+            res = call_openai_compatible_api(
+                endpoint="https://api.groq.com/openai/v1/chat/completions",
+                api_key=groq_key,
+                model="openai/gpt-oss-120b",
+                messages=msgs,
+                timeout=timeout
+            )
+            content = res.get("choices", [{}])[0].get("message", {}).get("content", "")
+            if content and len(content.strip()) > 20:
+                return content.strip()
+        except Exception as e:
+            pass
+
+    # 2. Try OpenRouter Free Tier
+    or_key = MULTI_BRAIN.get_openrouter_key()
+    if or_key:
+        try:
+            res = call_openai_compatible_api(
+                endpoint="https://openrouter.ai/api/v1/chat/completions",
+                api_key=or_key,
+                model="nvidia/nemotron-3.5-lightning:free",
+                messages=msgs,
+                timeout=timeout
+            )
+            content = res.get("choices", [{}])[0].get("message", {}).get("content", "")
+            if content and len(content.strip()) > 20:
+                return content.strip()
+        except Exception as e:
+            pass
+
+    # 3. Fallback to Gemini 3.1 Flash Lite Multi-Key Pool
+    try:
+        from omnichannel_powerhouse.gemini_script_engine import call_gemini
+        return call_gemini(prompt, model="gemini-3.1-flash-lite")
+    except Exception as e:
+        raise RuntimeError(f"All multi-brain providers failed: {e}")
