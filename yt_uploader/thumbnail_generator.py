@@ -8,40 +8,47 @@ def create_ultra_thumbnail(
     punchline: str = "IT'S A TRAP!",
     badge_text: str = "DEEP DOCUMENTARY",
     highlight_color: tuple = (255, 230, 0), # Electric Yellow
+    frame_timestamp_sec: float = 15.0,
 ):
     """
     Renders an Ultra High-CTR, algorithm-catchy 1080p YouTube thumbnail.
-    Optimized for the 0.3-second viewer decision window.
+    STRICT ZERO AI IMAGES POLICY:
+    Extracts an authentic crisp 1080p frame from real video footage (Pexels/Pixabay),
+    boosts cinematic contrast/saturation, and stamps high-converting 3D typography.
     """
     os.makedirs(os.path.dirname(os.path.abspath(output_path)), exist_ok=True)
     target_w, target_h = 1920, 1080
 
-    # 1. Acquire base frame
+    # 1. Acquire base frame from actual video footage (ZERO AI GENERATED IMAGES)
     im = None
-    if bg_image_or_video.lower().endswith((".mp4", ".mov", ".mkv", ".avi")):
-        # Extract a crisp 1080p frame from 15% into the video
+    if bg_image_or_video.lower().endswith((".mp4", ".mov", ".mkv", ".avi", ".webm")):
         import subprocess
         ffmpeg_bin = "ffmpeg"
-        temp_frame = output_path + ".temp_frame.jpg"
-        try:
-            cmd = [
-                ffmpeg_bin, "-y",
-                "-ss", "00:00:15",
-                "-i", bg_image_or_video,
-                "-vframes", "1",
-                "-q:v", "2",
-                temp_frame
-            ]
-            subprocess.run(cmd, capture_output=True, check=True)
-            if os.path.exists(temp_frame):
-                im = Image.open(temp_frame).convert("RGB")
-                os.remove(temp_frame)
-        except Exception:
-            if os.path.exists(temp_frame):
-                try:
-                    os.remove(temp_frame)
-                except Exception:
-                    pass
+        temp_frame = output_path + f".temp_frame_{int(frame_timestamp_sec)}.jpg"
+        for ts in [str(frame_timestamp_sec), "10", "3", "0"]:
+            try:
+                cmd = [
+                    ffmpeg_bin, "-y",
+                    "-ss", ts,
+                    "-i", bg_image_or_video,
+                    "-vframes", "1",
+                    "-q:v", "2",
+                    temp_frame
+                ]
+                subprocess.run(cmd, capture_output=True, check=True)
+                if os.path.exists(temp_frame) and os.path.getsize(temp_frame) > 1000:
+                    im = Image.open(temp_frame).convert("RGB")
+                    try:
+                        os.remove(temp_frame)
+                    except Exception:
+                        pass
+                    break
+            except Exception:
+                if os.path.exists(temp_frame):
+                    try:
+                        os.remove(temp_frame)
+                    except Exception:
+                        pass
 
     if im is None:
         if os.path.exists(bg_image_or_video) and bg_image_or_video.lower().endswith((".jpg", ".jpeg", ".png", ".webp")):

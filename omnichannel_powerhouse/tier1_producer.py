@@ -342,10 +342,28 @@ def produce_and_queue_tier1_video(
     # 2. Generate Script & SEO
     script_data = synthesize_tier1_script_and_seo(chosen_topic, niche, ch_name, duration_min=chosen_duration)
 
-    # 3. Render Master Video
+    # 3. Render Master Video (100% Real Authentic Stock Footage from Pexels/Pixabay/Wikimedia)
     master_video_path = render_tier1_master_video(script_data, channel_key, voice=voice)
 
-    # 4. Register in Unlisted Queue
+    # 4. Generate 3 Authentic Real-Frame Thumbnails (STRICT ZERO AI IMAGES POLICY)
+    base_name = os.path.splitext(os.path.basename(master_video_path))[0]
+    punchline = script_data.get("thumbnail_punchline", "THE HIDDEN WAR")
+    badge = ch_name.upper()
+
+    thumb_a = os.path.join(OUTPUT_DIR, f"{base_name}_thumb_A_monopoly_cyan.jpg")
+    thumb_b = os.path.join(OUTPUT_DIR, f"{base_name}_thumb_B_secret_amber.jpg")
+    thumb_c = os.path.join(OUTPUT_DIR, f"{base_name}_thumb_C_threat_crimson.jpg")
+
+    try:
+        from yt_uploader.thumbnail_generator import create_ultra_thumbnail
+        create_ultra_thumbnail(master_video_path, thumb_a, punchline=punchline, badge_text=badge, highlight_color=(0, 242, 254), frame_timestamp_sec=15.0)
+        create_ultra_thumbnail(master_video_path, thumb_b, punchline=punchline, badge_text=badge, highlight_color=(255, 179, 0), frame_timestamp_sec=45.0)
+        create_ultra_thumbnail(master_video_path, thumb_c, punchline=punchline, badge_text=badge, highlight_color=(255, 0, 85), frame_timestamp_sec=75.0)
+        logger.success(f"🖼️ Sourced 3 authentic real-frame thumbnails directly from video footage (ZERO AI IMAGES)!")
+    except Exception as te:
+        logger.warning(f"Thumbnail generation notice: {te}")
+
+    # 5. Register in Unlisted Queue
     vid_id = f"{platform}_{int(time.time())}"
     clean_rel_path = f"/output/{os.path.basename(master_video_path)}"
 
@@ -370,11 +388,11 @@ def produce_and_queue_tier1_video(
         "status": "unlisted_pending_thumbnail",
         "duration_sec": script_data.get("duration_sec", chosen_duration * 60.0),
         "duration_formatted": f"{chosen_duration}:00",
-        "thumbnail_punchline": script_data.get("thumbnail_punchline", "THE HIDDEN WAR"),
+        "thumbnail_punchline": punchline,
         "thumbnail_concepts": [
-            {"variant": "A", "name": "Monopoly Cyan", "hex": "#00F2FE", "file": "/output/demo_20min_hindi_thumbnail_A_monopoly_cyan.jpg"},
-            {"variant": "B", "name": "Secret Amber", "hex": "#FFB300", "file": "/output/demo_20min_hindi_thumbnail_B_secret_amber.jpg"},
-            {"variant": "C", "name": "Threat Crimson", "hex": "#FF0055", "file": "/output/demo_20min_hindi_thumbnail_C_threat_crimson.jpg"}
+            {"variant": "A", "name": "Monopoly Cyan", "hex": "#00F2FE", "file": f"/output/{os.path.basename(thumb_a)}"},
+            {"variant": "B", "name": "Secret Amber", "hex": "#FFB300", "file": f"/output/{os.path.basename(thumb_b)}"},
+            {"variant": "C", "name": "Threat Crimson", "hex": "#FF0055", "file": f"/output/{os.path.basename(thumb_c)}"}
         ],
         "hashtags": script_data.get("hashtags", []),
         "tags": script_data.get("tags", []),

@@ -56,7 +56,8 @@ def build_semantic_visual_timeline(
 ) -> List[Dict[str, Any]]:
     """
     Constructs a frame-by-frame semantically matched timeline.
-    Matches narration intent to exact visual clips, 3D blueprints, and Flux AI assets.
+    Matches narration intent to exact visual clips from real stock footage (Pexels, Pixabay, Wikimedia).
+    STRICT ZERO AI IMAGES POLICY: Uses 100% authentic real-world video footage.
     """
     timeline = []
     current_time = 0.0
@@ -81,8 +82,8 @@ def build_semantic_visual_timeline(
         text_lower = text.lower()
         if any(k in text_lower for k in ["blackwell", "3d", "architecture", "hardware"]) and "exploded_3d" in custom_assets:
             selected_clip = custom_assets["exploded_3d"]
-        elif any(k in text_lower for k in ["asml", "euv", "laser", "plasma"]) and "flux_asml" in custom_assets:
-            selected_clip = custom_assets["flux_asml"]
+        elif any(k in text_lower for k in ["asml", "euv", "laser", "plasma"]) and "euv_laser" in custom_assets:
+            selected_clip = custom_assets["euv_laser"]
         elif any(k in text_lower for k in ["market", "monopoly", "share", "percent", "90%"]) and "market_chart" in custom_assets:
             selected_clip = custom_assets["market_chart"]
         elif any(k in text_lower for k in ["news", "report", "breaking", "headline"]) and "headline_scan" in custom_assets:

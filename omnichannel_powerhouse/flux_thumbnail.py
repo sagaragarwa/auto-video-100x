@@ -1,8 +1,9 @@
 """
-Cloudflare Workers AI Free Thumbnail Generator (Flux.1 Schnell)
-==============================================================
-Generates 1080p photorealistic thumbnail backgrounds completely free using
-Black Forest Labs' Flux.1 Schnell model under Cloudflare's 10,000 Neurons/day free tier.
+DISENGAGED / DEPRECATED: STRICT ZERO AI IMAGES POLICY
+=====================================================
+As per system directive, AI image generation (Flux, Stable Diffusion, DALL-E)
+is strictly DISENGAGED. The system exclusively uses authentic 1080p frame
+extractions from real Pexels/Pixabay video footage via yt_uploader/thumbnail_generator.py.
 """
 
 import os
@@ -41,12 +42,13 @@ def generate_flux_thumbnail_background(
     steps: int = 4
 ) -> Dict[str, Any]:
     """
-    Generates a high-CTR image via Cloudflare Workers AI Flux.1 Schnell.
-    Free tier quota: 10,000 Neurons/day.
+    DISENGAGED: Strictly returns non-AI real-frame fallback to honor Zero AI Images policy.
     """
-    creds = load_cloudflare_credentials()
-    account_id = creds["account_id"]
-    api_token = creds["api_token"]
+    return {
+        "success": False,
+        "error": "STRICT ZERO AI IMAGES POLICY: AI image generation is disabled. Use yt_uploader.thumbnail_generator.create_ultra_thumbnail for real video footage frame extraction.",
+        "output_path": None
+    }
 
     if not account_id or not api_token:
         return {
