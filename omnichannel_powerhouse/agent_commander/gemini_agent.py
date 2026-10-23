@@ -46,11 +46,11 @@ Show deep reasoning and tactical intelligence in all responses.
 """
 
 
-def call_gemini_raw(payload: Dict[str, Any], model: str = "gemini-3.5-flash", timeout: int = 40) -> Dict[str, Any]:
+def call_gemini_raw(payload: Dict[str, Any], model: str = "gemini-3.1-flash-lite", timeout: int = 40) -> Dict[str, Any]:
     """Calls Gemini REST API with automatic multi-key rotation, 429/503 failover, and model failover."""
     req_data = json.dumps(payload).encode("utf-8")
     candidate_models = [model]
-    for alt in ["gemini-3.5-flash", "gemini-3.5-pro", "gemma-4-26b-a4b-it"]:
+    for alt in ["gemini-3.1-flash-lite", "gemini-3.5-flash-lite", "gemini-flash-latest"]:
         if alt not in candidate_models:
             candidate_models.append(alt)
 
@@ -268,16 +268,14 @@ def stream_chat_response(
     parts = content_obj.get("parts", [])
 
     thinking_text = "Analyzed user query, verified channel configurations and quota states."
-    yield f"data: {json.dumps({'type': 'thinking_done', 'thought': thinking_text})}\n\n"
-
+    
     # Check for functionCall
-    has_tool_call = False
+    has_tool_call = any("functionCall" in p for p in parts)
     assistant_final_text = ""
     executed_tools = []
 
     for part in parts:
         if "functionCall" in part:
-            has_tool_call = True
             fn_call = part["functionCall"]
             fn_name = fn_call.get("name")
             fn_args = fn_call.get("args", {})
@@ -319,6 +317,8 @@ def stream_chat_response(
                 "systemInstruction": {"parts": [{"text": DEFAULT_SYSTEM_PROMPT}]},
                 "generationConfig": {"temperature": 0.6, "maxOutputTokens": 3000}
             }
+            if enable_tools:
+                followup_payload["tools"] = [{"function_declarations": GEMINI_FUNCTION_DECLARATIONS}]
 
             try:
                 followup_resp = call_gemini_raw(followup_payload, model=model_name)
@@ -330,7 +330,19 @@ def stream_chat_response(
                 assistant_final_text = f"Action **{fn_name}** executed successfully. Result: `{json.dumps(tool_result)[:300]}`"
 
         elif "text" in part:
-            assistant_final_text += part["text"]
+            if has_tool_call:
+                # If tool call is present in the turn, text is model's internal deliberation
+                thinking_text = part["text"][:500]
+            else:
+                assistant_final_text += part["text"]
+
+    # Filter out leaked internal thoughts (e.g. "The user wants to... Plan: ...")
+    if "The user wants to" in assistant_final_text:
+        parts_split = assistant_final_text.split("###")
+        if len(parts_split) > 1:
+            assistant_final_text = "###" + parts_split[1]
+
+    yield f"data: {json.dumps({'type': 'thinking_done', 'thought': thinking_text[:500]})}\n\n"
 
     # Stream the assistant's final text in chunks for smooth ChatGPT Pro experience
     words = assistant_final_text.split(" ")

@@ -93,7 +93,7 @@ Return STRICTLY valid JSON with no markdown formatting:
 ]
 """
     try:
-        raw = call_gemini(prompt, model="gemini-3.5-flash")
+        raw = call_gemini(prompt, model="gemini-3.1-flash-lite")
         clean = raw.strip()
         if clean.startswith("```json"): clean = clean[7:]
         if clean.startswith("```"): clean = clean[3:]
@@ -160,7 +160,7 @@ Return STRICTLY valid JSON:
   "video_script": "..."
 }}
 """
-    raw = call_gemini(prompt, model="gemini-3.5-flash")
+    raw = call_gemini(prompt, model="gemini-3.1-flash-lite")
     clean = raw.strip()
     if clean.startswith("```json"): clean = clean[7:]
     if clean.startswith("```"): clean = clean[3:]

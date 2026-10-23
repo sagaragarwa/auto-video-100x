@@ -37,8 +37,13 @@ def get_gemini_api_key() -> str:
     return os.environ.get("GEMINI_API_KEY", "")
 
 
-def call_gemini(prompt: str, model: str = "gemini-3.5-flash", max_retries: int = 5) -> str:
+def call_gemini(prompt: str, model: str = "gemini-3.1-flash-lite", max_retries: int = 5) -> str:
     clean_model = model.replace("models/", "")
+    candidate_models = [clean_model]
+    for alt in ["gemini-3.1-flash-lite", "gemini-3.5-flash-lite", "gemini-flash-latest"]:
+        if alt not in candidate_models:
+            candidate_models.append(alt)
+
     payload = {
         "contents": [{"parts": [{"text": prompt}]}],
         "generationConfig": {
@@ -50,32 +55,29 @@ def call_gemini(prompt: str, model: str = "gemini-3.5-flash", max_retries: int =
     req_data = json.dumps(payload).encode("utf-8")
 
     last_err = None
-    for attempt in range(max_retries):
-        try:
-            key = KEY_RING.get_next_key()
-        except Exception:
-            key = get_gemini_api_key()
-
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/{clean_model}:generateContent?key={key}"
-        try:
-            req = urllib.request.Request(
-                url, data=req_data,
-                headers={"Content-Type": "application/json"},
-                method="POST"
-            )
-            with urllib.request.urlopen(req, timeout=90) as response:
-                res = json.loads(response.read().decode("utf-8"))
-                return res["candidates"][0]["content"]["parts"][0]["text"]
-        except Exception as e:
-            last_err = e
-            logger.warning(f"Gemini API attempt {attempt+1} on key [{key[:6]}...] failed: {e}")
+    for cur_m in candidate_models:
+        for attempt in range(max_retries):
             try:
-                KEY_RING.record_error(key)
+                key = KEY_RING.get_next_key()
             except Exception:
-                pass
-            time.sleep(1.0)
+                key = get_gemini_api_key()
 
-    raise RuntimeError(f"Gemini API call failed after {max_retries} attempts across Key-Ring: {last_err}")
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/{cur_m}:generateContent?key={key}"
+            try:
+                req = urllib.request.Request(
+                    url, data=req_data,
+                    headers={"Content-Type": "application/json"},
+                    method="POST"
+                )
+                with urllib.request.urlopen(req, timeout=90) as response:
+                    res = json.loads(response.read().decode("utf-8"))
+                    return res["candidates"][0]["content"]["parts"][0]["text"]
+            except Exception as e:
+                last_err = e
+                logger.warning(f"Gemini API attempt {attempt+1} on [{cur_m}] key [{key[:6]}...] failed: {e}")
+                time.sleep(0.5)
+
+    raise RuntimeError(f"Gemini API call failed across candidate models: {last_err}")
 
 
 def generate_documentary_package(topic: str, niche: str = "tech", target_words: int = 2500) -> Dict[str, Any]:

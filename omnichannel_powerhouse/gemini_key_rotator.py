@@ -125,9 +125,11 @@ class GeminiKeyRing:
 
             # If all at RPM limit, pick the one with oldest last_used and sleep briefly
             oldest = min(self.keys, key=lambda x: x["last_used"])
-            wait_time = max(0.5, 61.0 - (now - oldest["last_used"]))
+            wait_time = min(3.0, max(0.5, 61.0 - (now - oldest["last_used"])))
             logger.info(f"⏳ Rate-limit throttle: sleeping {wait_time:.1f}s for key reset...")
             time.sleep(wait_time)
+            for k in self.keys:
+                k["rpm_count"] = 0
             oldest["rpm_count"] = 1
             oldest["daily_count"] += 1
             oldest["last_used"] = time.time()
